@@ -1,0 +1,136 @@
+.how-it-works {
+  width: 100%;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+}
+
+.how-it-works__inner {
+  width: min(100% - 40px, 1120px);
+  margin: 0 auto;
+  padding: 72px 0 78px;
+}
+
+.how-it-works__heading {
+  max-width: 520px;
+}
+
+.how-it-works__eyebrow {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: #16a34a;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.how-it-works__heading h2 {
+  margin: 0;
+  color: #0f172a;
+  font-family: "Poppins", sans-serif;
+  font-size: clamp(32px, 4vw, 43px);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.08;
+}
+
+.how-it-works__heading p {
+  max-width: 470px;
+  margin: 16px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.how-it-works__steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 80px;
+  row-gap: 30px;
+  margin-top: 42px;
+}
+
+.how-it-works__step {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 15px;
+  align-items: start;
+  opacity: 0;
+  animation: howStepReveal 650ms ease-out forwards;
+}
+
+.how-it-works__number {
+  display: flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+}
+
+.how-it-works__content h3 {
+  margin: 2px 0 0;
+  color: #0f172a;
+  font-family: "Poppins", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.how-it-works__content p {
+  max-width: 350px;
+  margin: 7px 0 0;
+  color: #94a3b8;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+@keyframes howStepReveal {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 700px) {
+  .how-it-works__inner {
+    width: min(100% - 32px, 560px);
+    padding: 58px 0 64px;
+  }
+
+  .how-it-works__heading h2 {
+    font-size: 32px;
+  }
+
+  .how-it-works__steps {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    margin-top: 34px;
+  }
+}
+
+@media (max-width: 420px) {
+  .how-it-works__heading h2 {
+    font-size: 29px;
+  }
+
+  .how-it-works__heading p {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-it-works__step {
+    opacity: 1;
+    animation: none;
+  }
+}

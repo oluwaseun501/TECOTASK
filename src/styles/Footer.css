@@ -1,0 +1,150 @@
+.site-footer {
+  width: 100%;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.site-footer__main {
+  display: grid;
+  width: min(100% - 40px, 1120px);
+  margin: 0 auto;
+  grid-template-columns: 1.6fr repeat(3, 1fr);
+  gap: 55px;
+  padding: 54px 0 48px;
+}
+
+.site-footer__brand {
+  max-width: 260px;
+}
+
+.site-footer__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.site-footer__logo-mark {
+  display: flex;
+  width: 31px;
+  height: 31px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #16a34a;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.site-footer__logo span:last-child span {
+  color: #16a34a;
+}
+
+.site-footer__brand p {
+  margin: 18px 0 0;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.site-footer__location {
+  display: block;
+  margin-top: 12px;
+  color: #94a3b8;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.site-footer__column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.site-footer__column h3 {
+  margin: 3px 0 7px;
+  color: #0f172a;
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.site-footer__column a {
+  color: #64748b;
+  font-size: 10px;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.site-footer__column a:hover {
+  color: #16a34a;
+  transform: translateX(2px);
+}
+
+.site-footer__bottom {
+  display: flex;
+  width: min(100% - 40px, 1120px);
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f1f5f9;
+  padding: 19px 0;
+}
+
+.site-footer__bottom p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 9px;
+}
+
+.site-footer__bottom-links {
+  display: flex;
+  gap: 18px;
+}
+
+.site-footer__bottom-links a {
+  color: #94a3b8;
+  font-size: 9px;
+  transition: color 180ms ease;
+}
+
+.site-footer__bottom-links a:hover {
+  color: #16a34a;
+}
+
+@media (max-width: 760px) {
+  .site-footer__main {
+    width: min(100% - 32px, 560px);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 38px 28px;
+    padding: 48px 0 42px;
+  }
+
+  .site-footer__brand {
+    grid-column: 1 / -1;
+    max-width: 390px;
+  }
+}
+
+@media (max-width: 430px) {
+  .site-footer__main {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .site-footer__brand {
+    grid-column: 1 / -1;
+  }
+
+  .site-footer__bottom {
+    width: min(100% - 32px, 560px);
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
