@@ -39,48 +39,55 @@ const Navbar = () => {
 
         <button
           type="button"
-          className="navbar__menu-button"
+          className={`navbar__menu-button ${
+            menuOpen ? "is-open" : ""
+          }`}
           onClick={() => setMenuOpen(!menuOpen)}
-          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-label={
+            menuOpen ? "Close navigation menu" : "Open navigation menu"
+          }
           aria-expanded={menuOpen}
         >
-          {menuOpen ? "×" : "☰"}
+          <span>{menuOpen ? "×" : "☰"}</span>
         </button>
       </nav>
 
-      {menuOpen && (
-        <div className="navbar__mobile-menu">
-          <a href="#how-it-works" onClick={closeMenu}>
-            How it works
-          </a>
+      <div
+        className={`navbar__mobile-menu ${
+          menuOpen ? "is-open" : ""
+        }`}
+        aria-hidden={!menuOpen}
+      >
+        <a href="#how-it-works" onClick={closeMenu}>
+          How it works
+        </a>
 
-          <a href="#tasks" onClick={closeMenu}>
-            Tasks
-          </a>
+        <a href="#tasks" onClick={closeMenu}>
+          Tasks
+        </a>
 
-          <a href="#advertisers" onClick={closeMenu}>
-            For advertisers
-          </a>
+        <a href="#advertisers" onClick={closeMenu}>
+          For advertisers
+        </a>
 
-          <a href="#faq" onClick={closeMenu}>
-            FAQ
-          </a>
+        <a href="#faq" onClick={closeMenu}>
+          FAQ
+        </a>
 
-          <div className="navbar__mobile-actions">
-            <Link to="/login" onClick={closeMenu}>
-              Log in
-            </Link>
+        <div className="navbar__mobile-actions">
+          <Link to="/login" onClick={closeMenu}>
+            Log in
+          </Link>
 
-            <Link
-              to="/signup"
-              onClick={closeMenu}
-              className="navbar__signup"
-            >
-              Start earning
-            </Link>
-          </div>
+          <Link
+            to="/signup"
+            onClick={closeMenu}
+            className="navbar__signup"
+          >
+            Start earning
+          </Link>
         </div>
-      )}
+      </div>
     </header>
   );
 };

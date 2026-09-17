@@ -1,7 +1,7 @@
 import "../styles/WhatWeDo.css";
 
 const advertiserBenefits = [
-  "Set your own reward — from ₦10 to ₦5,000 per task",
+  "Set your own budget",
   "Target by state, device, and task category",
   "Live fill rate and cost-per-action overview",
   "Top up with card, transfer, or USSD",
