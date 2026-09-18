@@ -5,6 +5,8 @@ const AnimatedStat = ({
   prefix = "",
   suffix = "",
   decimals = 0,
+  duration = 2200,
+  delay = 350,
 }) => {
   const [displayValue, setDisplayValue] = useState(0);
   const elementRef = useRef(null);
@@ -15,6 +17,8 @@ const AnimatedStat = ({
     if (!element) return;
 
     let hasStarted = false;
+    let timeoutId;
+    let animationFrameId;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -22,25 +26,27 @@ const AnimatedStat = ({
 
         hasStarted = true;
 
-        const duration = 1400;
-        const startTime = performance.now();
+        timeoutId = window.setTimeout(() => {
+          const startTime = performance.now();
 
-        const updateValue = (currentTime) => {
-          const progress = Math.min(
-            (currentTime - startTime) / duration,
-            1,
-          );
+          const updateValue = (currentTime) => {
+            const progress = Math.min(
+              (currentTime - startTime) / duration,
+              1,
+            );
 
-          const easedProgress = 1 - Math.pow(1 - progress, 3);
+            const easedProgress = 1 - Math.pow(1 - progress, 3);
 
-          setDisplayValue(value * easedProgress);
+            setDisplayValue(value * easedProgress);
 
-          if (progress < 1) {
-            requestAnimationFrame(updateValue);
-          }
-        };
+            if (progress < 1) {
+              animationFrameId = requestAnimationFrame(updateValue);
+            }
+          };
 
-        requestAnimationFrame(updateValue);
+          animationFrameId = requestAnimationFrame(updateValue);
+        }, delay);
+
         observer.disconnect();
       },
       { threshold: 0.35 },
@@ -48,8 +54,12 @@ const AnimatedStat = ({
 
     observer.observe(element);
 
-    return () => observer.disconnect();
-  }, [value]);
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timeoutId);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [value, duration, delay]);
 
   const formattedValue = displayValue.toLocaleString("en-NG", {
     minimumFractionDigits: decimals,

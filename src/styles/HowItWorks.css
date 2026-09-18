@@ -134,3 +134,44 @@
     animation: none;
   }
 }
+
+
+
+.how-it-works__heading,
+.how-it-works__step {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 700ms ease,
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.how-it-works.is-visible .how-it-works__heading {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.how-it-works.is-visible .how-it-works__step {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: var(--delay);
+}
+
+.how-it-works__number {
+  transition:
+    transform 400ms ease,
+    background-color 400ms ease;
+}
+
+.how-it-works__step:hover .how-it-works__number {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-it-works__heading,
+  .how-it-works__step {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

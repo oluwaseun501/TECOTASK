@@ -16,9 +16,11 @@ const Hero = ({ imageSrc = "/hero-earner.jpg" }) => {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // This changes both when scrolling down and when scrolling back up.
-        setIsVisible(entry.isIntersecting);
-      },
+  if (!entry.isIntersecting) return;
+
+  setIsVisible(true);
+  observer.unobserve(entry.target);
+},
       {
         threshold: 0.2,
         rootMargin: "-40px 0px -40px 0px",
@@ -63,10 +65,10 @@ const Hero = ({ imageSrc = "/hero-earner.jpg" }) => {
           </p>
 
           <div className="hero__actions">
-            <a href="/signup" className="hero__primary-button">
-              <span className="hero__button-text"><Link to="/signup">Start earning free</Link></span>
-              <span className="hero__button-arrow">→</span>
-            </a>
+            <Link to="/signup" className="hero__primary-button">
+  <span className="hero__button-text">Start earning free</span>
+  <span className="hero__button-arrow">→</span>
+</Link>
 
             <a href="#advertisers" className="hero__secondary-button">
               <span className="hero__button-text">Advertise with us</span>

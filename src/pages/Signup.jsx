@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "../styles/Signup.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const EyeIcon = ({ visible }) => {
   if (visible) {
@@ -60,6 +60,7 @@ const EyeIcon = ({ visible }) => {
 };
 
 const Signup = () => {
+  const navigate = useNavigate();
   const signupRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -89,12 +90,12 @@ const Signup = () => {
     };
   }, []);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+ const handleSubmit = (event) => {
+  event.preventDefault();
 
-    // Temporary route until backend registration is connected.
-    window.location.href = "/choose-role";
-  };
+  // Temporary route until backend registration is connected.
+  navigate("/choose-role");
+};
 
   return (
     <main
@@ -126,10 +127,10 @@ const Signup = () => {
       <div className="signup-background-glow signup-background-glow--one" />
       <div className="signup-background-glow signup-background-glow--two" />
 
-      <a href="/" className="signup-back-home">
-        <span>←</span>
-        <Link to="/">Back to Home</Link>
-      </a>
+      <Link to="/" className="signup-back-home">
+  <span>←</span>
+  Back to Home
+</Link>
 
       <section className="signup-card">
         <div className="signup-card__brand">

@@ -1,9 +1,23 @@
+import useScrollReveal from "../hooks/useScrollReveal";
 import "../styles/Footer.css";
 
 const Footer = () => {
+  const [footerRef, isVisible] = useScrollReveal({
+    threshold: 0.05,
+    rootMargin: "0px",
+  });
+
   return (
-    <footer className="site-footer">
-      <div className="site-footer__main">
+    <footer
+      ref={footerRef}
+      className={`site-footer reveal-section ${
+        isVisible ? "is-visible" : ""
+      }`}
+    >
+      <div
+        className="site-footer__main reveal-item"
+        style={{ "--reveal-delay": "0ms" }}
+      >
         <div className="site-footer__brand">
           <a href="/" className="site-footer__logo">
             <span className="site-footer__logo-mark">T</span>
@@ -25,16 +39,14 @@ const Footer = () => {
 
         <div className="site-footer__column">
           <h3>Earners</h3>
-
           <a href="#tasks">Task board</a>
           <a href="/signup">Create account</a>
-          <a href="#faq">How it works</a>
+          <a href="#how-it-works">How it works</a>
           <a href="#faq">Referrals</a>
         </div>
 
         <div className="site-footer__column">
           <h3>Advertisers</h3>
-
           <a href="#advertisers">Create campaign</a>
           <a href="#advertisers">Campaign pricing</a>
           <a href="#faq">Moderation policy</a>
@@ -43,7 +55,6 @@ const Footer = () => {
 
         <div className="site-footer__column">
           <h3>Company</h3>
-
           <a href="#how-it-works">About TecoTask</a>
           <a href="mailto:support@tecotask.com">Support</a>
           <a href="/terms">Terms of use</a>
@@ -51,7 +62,10 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="site-footer__bottom">
+      <div
+        className="site-footer__bottom reveal-item"
+        style={{ "--reveal-delay": "180ms" }}
+      >
         <p>© 2026 TecoTask. All rights reserved.</p>
 
         <div className="site-footer__bottom-links">

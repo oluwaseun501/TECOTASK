@@ -1,3 +1,7 @@
+// src/components/TrustBar.jsx
+import useScrollReveal from "../hooks/useScrollReveal";
+import "../styles/TrustBar.css";
+
 const trustItems = [
   {
     icon: "✓",
@@ -17,14 +21,21 @@ const trustItems = [
 ];
 
 const TrustBar = () => {
+  const [sectionRef, isVisible] = useScrollReveal({
+    threshold: 0.2,
+  });
+
   return (
-    <section className="trust-strip">
+    <section
+      ref={sectionRef}
+      className={`trust-strip ${isVisible ? "is-visible" : ""}`}
+    >
       <div className="mx-auto grid max-w-6xl gap-6 px-5 py-7 sm:grid-cols-3 lg:px-8">
         {trustItems.map((item, index) => (
           <div
             key={item.title}
             className="trust-item flex gap-3"
-            style={{ animationDelay: `${index * 150}ms` }}
+            style={{ "--delay": `${index * 150}ms` }}
           >
             <span className="trust-icon">{item.icon}</span>
 

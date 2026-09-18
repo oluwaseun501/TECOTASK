@@ -1,0 +1,696 @@
+.earner-layout {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: "Poppins", sans-serif;
+}
+
+.earner-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 10;
+  display: flex;
+  width: 238px;
+  flex-direction: column;
+  border-right: 1px solid #e8edf2;
+  background: #ffffff;
+  padding: 23px 14px 18px;
+}
+
+.earner-sidebar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 3px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  text-decoration: none;
+}
+
+.earner-sidebar__brand > span:last-child span {
+  color: #16a34a;
+}
+
+.earner-sidebar__logo {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #16a34a;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.earner-sidebar__label {
+  margin: 29px 7px 11px;
+  color: #94a3b8;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.earner-sidebar__nav {
+  display: grid;
+  gap: 4px;
+}
+
+.earner-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-radius: 8px;
+  padding: 10px 9px;
+  color: #64748b;
+  font-size: 11px;
+  text-decoration: none;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.earner-sidebar__link:hover,
+.earner-sidebar__link.is-active {
+  background: #effcf3;
+  color: #16a34a;
+}
+
+.earner-sidebar__link:hover {
+  transform: translateX(2px);
+}
+
+.earner-sidebar__icon {
+  width: 16px;
+  font-size: 15px;
+  text-align: center;
+}
+
+.earner-sidebar__count {
+  display: inline-flex;
+  width: 17px;
+  height: 17px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #16a34a;
+  color: #ffffff;
+  font-size: 8px;
+}
+
+.earner-sidebar__bottom {
+  margin-top: auto;
+}
+
+.earner-sidebar__profile {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  padding: 10px 8px;
+}
+
+.earner-sidebar__avatar,
+.earner-topbar__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.earner-sidebar__avatar {
+  width: 31px;
+  height: 31px;
+}
+
+.earner-sidebar__profile strong,
+.earner-sidebar__profile small {
+  display: block;
+}
+
+.earner-sidebar__profile strong {
+  color: #334155;
+  font-size: 9px;
+}
+
+.earner-sidebar__profile small {
+  margin-top: 3px;
+  color: #94a3b8;
+  font-size: 8px;
+}
+
+.earner-sidebar__logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 7px 0;
+  border: 0;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+}
+
+.earner-layout__main {
+  width: calc(100% - 238px);
+  min-width: 0;
+  margin-left: 238px;
+}
+
+.earner-topbar {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e8edf2;
+  background: #ffffff;
+  padding: 0 30px;
+}
+
+.earner-topbar h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+  letter-spacing: -0.04em;
+}
+
+.earner-topbar p {
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.earner-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.earner-topbar__balance {
+  border-radius: 999px;
+  background: #f8fafc;
+  padding: 8px 12px;
+  color: #94a3b8;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.earner-topbar__balance strong {
+  margin-left: 6px;
+  color: #475569;
+}
+
+.earner-topbar__notification {
+  position: relative;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 17px;
+}
+
+.earner-topbar__notification span {
+  position: absolute;
+  top: 0;
+  right: -1px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #16a34a;
+}
+
+.earner-topbar__avatar {
+  width: 28px;
+  height: 28px;
+}
+
+.earner-layout__content {
+  min-width: 0;
+}
+.earner-layout,
+.earner-layout * {
+  box-sizing: border-box;
+}
+
+.earner-layout {
+  overflow-x: hidden;
+}
+
+@media (max-width: 1100px) {
+  .earner-sidebar {
+    width: 215px;
+  }
+
+  .earner-layout__main {
+    width: calc(100% - 215px);
+    margin-left: 215px;
+  }
+
+  .earner-topbar {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+}
+
+@media (max-width: 760px) {
+  .earner-layout {
+    display: block;
+    min-width: 0;
+  }
+
+  .earner-sidebar {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 1px solid #e8edf2;
+    padding: 14px 12px 10px;
+  }
+
+  .earner-sidebar__label {
+    margin: 18px 4px 8px;
+  }
+
+  .earner-sidebar__nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    margin: 0 -4px;
+    padding: 0 4px 5px;
+    scrollbar-width: none;
+  }
+
+  .earner-sidebar__nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .earner-sidebar__link {
+    min-width: max-content;
+    flex-shrink: 0;
+    padding: 9px 11px;
+    white-space: nowrap;
+  }
+
+  .earner-sidebar__bottom {
+    display: none;
+  }
+
+  .earner-layout__main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .earner-topbar {
+    min-height: 66px;
+    gap: 12px;
+    padding: 13px 14px;
+  }
+
+  .earner-topbar h1 {
+    font-size: 14px;
+  }
+
+  .earner-topbar p {
+    font-size: 9px;
+  }
+
+  .earner-topbar__actions {
+    flex-shrink: 0;
+    gap: 8px;
+  }
+
+  .earner-topbar__balance {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .earner-sidebar__brand {
+    font-size: 14px;
+  }
+
+  .earner-sidebar__logo {
+    width: 26px;
+    height: 26px;
+  }
+
+  .earner-topbar {
+    align-items: flex-start;
+  }
+
+  .earner-topbar h1 {
+    font-size: 12px;
+  }
+
+  .earner-topbar p {
+    max-width: 150px;
+    font-size: 8px;
+  }
+
+  .earner-topbar__avatar {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+.earner-activation-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #16a34a;
+  border-radius: 8px;
+  background: #effcf3;
+  padding: 8px 10px;
+  color: #16a34a;
+  cursor: pointer;
+  font: 600 8px "Poppins", sans-serif;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.earner-activation-button strong {
+  border-radius: 999px;
+  background: #16a34a;
+  padding: 4px 6px;
+  color: #ffffff;
+  font-size: 8px;
+}
+
+.earner-activation-button:hover {
+  background: #16a34a;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 16px rgba(22, 163, 74, 0.18);
+}
+
+.earner-activation-button:hover strong {
+  background: #ffffff;
+  color: #16a34a;
+}
+
+.activation-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.42);
+  padding: 20px;
+}
+
+.activation-modal__card {
+  position: relative;
+  width: min(100%, 410px);
+  border: 1px solid #e2e8f0;
+  border-radius: 17px;
+  background: #ffffff;
+  padding: 28px;
+  box-shadow: 0 25px 70px rgba(15, 23, 42, 0.2);
+  animation: activationModalIn 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.activation-modal__close {
+  position: absolute;
+  top: 13px;
+  right: 15px;
+  display: flex;
+  width: 27px;
+  height: 27px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 19px;
+}
+
+.activation-modal__icon {
+  display: flex;
+  width: 43px;
+  height: 43px;
+  align-items: center;
+  justify-content: center;
+  margin: 4px auto 15px;
+  border-radius: 12px;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.activation-modal__eyebrow {
+  display: block;
+  color: #16a34a;
+  font-size: 9px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.activation-modal__card h2 {
+  margin: 8px 0 0;
+  color: #0f172a;
+  font-size: 21px;
+  letter-spacing: -0.04em;
+  text-align: center;
+}
+
+.activation-modal__card > p,
+.activation-modal__pending p {
+  margin: 10px auto 0;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.activation-modal__price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 13px;
+}
+
+.activation-modal__price span {
+  color: #64748b;
+  font-size: 9px;
+}
+
+.activation-modal__price strong {
+  color: #16a34a;
+  font-size: 20px;
+}
+
+.activation-modal__benefits {
+  display: grid;
+  gap: 9px;
+  margin: 18px 0 0;
+  padding: 0;
+  color: #475569;
+  font-size: 9px;
+  list-style: none;
+}
+
+.activation-modal__benefits li::before {
+  margin-right: 7px;
+  color: #16a34a;
+  content: "✓";
+  font-weight: 700;
+}
+
+.activation-modal__button {
+  display: flex;
+  width: 100%;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 21px;
+  border: 0;
+  border-radius: 8px;
+  background: #16a34a;
+  color: #ffffff;
+  cursor: pointer;
+  font: 600 10px "Poppins", sans-serif;
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.activation-modal__button:hover {
+  background: #05830d;
+  transform: translateY(-2px);
+}
+
+.activation-modal__button span {
+  font-size: 15px;
+}
+
+.activation-modal__note {
+  display: block;
+  margin-top: 11px;
+  color: #94a3b8;
+  font-size: 8px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.activation-modal__pending {
+  text-align: center;
+}
+
+@keyframes activationModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .earner-activation-button {
+    padding: 7px 8px;
+  }
+
+  .earner-activation-button span {
+    display: none;
+  }
+
+  .earner-activation-button strong {
+    padding: 5px 7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .activation-modal {
+    padding: 14px;
+  }
+
+  .activation-modal__card {
+    padding: 24px 19px;
+  }
+
+  .activation-modal__card h2 {
+    font-size: 19px;
+  }
+}
+
+.earner-topbar {
+  display: block;
+  min-height: auto;
+  padding: 18px 30px 16px;
+}
+
+.earner-topbar__main {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.earner-activation-banner {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 15px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff1f2;
+  padding: 11px 13px;
+}
+
+.earner-activation-banner > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.earner-activation-banner strong {
+  color: #991b1b;
+  font-size: 10px;
+}
+
+.earner-activation-banner span {
+  color: #b45353;
+  font-size: 8px;
+}
+
+.earner-activation-banner__button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 9px;
+  border-radius: 7px;
+  background: #dc2626;
+  padding: 9px 13px;
+  color: #ffffff;
+  font: 600 8px "Poppins", sans-serif;
+  text-decoration: none;
+  transition:
+    background 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.earner-activation-banner__button:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 15px rgba(220, 38, 38, 0.2);
+}
+
+.earner-activation-banner__button span {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .earner-topbar {
+    padding: 14px;
+  }
+
+  .earner-topbar__main {
+    min-height: 38px;
+  }
+
+  .earner-activation-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 13px;
+  }
+
+  .earner-activation-banner__button {
+    justify-content: center;
+    width: 100%;
+  }
+}

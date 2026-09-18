@@ -1,3 +1,4 @@
+import useScrollReveal from "../hooks/useScrollReveal";
 import "../styles/Tasks.css";
 
 const tasks = [
@@ -54,10 +55,21 @@ const tasks = [
 ];
 
 const Tasks = () => {
+  const [sectionRef, isVisible] = useScrollReveal();
+
   return (
-    <section id="tasks" className="tasks-section">
+    <section
+      ref={sectionRef}
+      id="tasks"
+      className={`tasks-section reveal-section ${
+        isVisible ? "is-visible" : ""
+      }`}
+    >
       <div className="tasks-section__inner">
-        <div className="tasks-section__header">
+        <div
+          className="tasks-section__header reveal-item"
+          style={{ "--reveal-delay": "0ms" }}
+        >
           <div>
             <h2>Tasks open right now</h2>
 
@@ -74,8 +86,14 @@ const Tasks = () => {
         </div>
 
         <div className="tasks-list">
-          {tasks.map((task) => (
-            <article className="task-row" key={task.title}>
+          {tasks.map((task, index) => (
+            <article
+              className="task-row reveal-item"
+              key={task.title}
+              style={{
+                "--reveal-delay": `${160 + index * 120}ms`,
+              }}
+            >
               <div className={`task-row__icon ${task.iconColor}`}>
                 {task.icon}
               </div>

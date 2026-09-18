@@ -1,4 +1,5 @@
 import "../styles/HowItWorks.css";
+import useScrollReveal from "../hooks/useScrollReveal";
 
 const steps = [
   {
@@ -28,8 +29,14 @@ const steps = [
 ];
 
 const HowItWorks = () => {
+  const [sectionRef, isVisible] = useScrollReveal();
+
   return (
-    <section id="how-it-works" className="how-it-works">
+    <section
+      ref={sectionRef}
+      id="how-it-works"
+      className={`how-it-works ${isVisible ? "is-visible" : ""}`}
+    >
       <div className="how-it-works__inner">
         <div className="how-it-works__heading">
           <span className="how-it-works__eyebrow">
@@ -53,7 +60,7 @@ const HowItWorks = () => {
             <article
               key={step.number}
               className="how-it-works__step"
-              style={{ animationDelay: `${index * 120}ms` }}
+              style={{ "--delay": `${index * 120}ms` }}
             >
               <span className="how-it-works__number">{step.number}</span>
 

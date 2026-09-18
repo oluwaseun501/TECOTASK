@@ -289,3 +289,8 @@
     justify-content: center;
   }
 }
+.role-card {
+  appearance: none;
+  width: 100%;
+  font-family: "Poppins", sans-serif;
+}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "../styles/FAQ.css";
+import useScrollReveal from "../hooks/useScrollReveal";
 
 const questions = [
   {
@@ -35,6 +36,8 @@ const questions = [
 ];
 
 const FAQ = () => {
+  const [sectionRef, isVisible] = useScrollReveal();
+
   const [openIndex, setOpenIndex] = useState(0);
 
   const toggleQuestion = (index) => {
@@ -42,9 +45,18 @@ const FAQ = () => {
   };
 
   return (
-    <section id="faq" className="faq-section">
+    <section
+      ref={sectionRef}
+      id="faq"
+      className={`faq-section reveal-section ${
+        isVisible ? "is-visible" : ""
+      }`}
+    >
       <div className="faq-section__inner">
-        <div className="faq-section__intro">
+        <div
+          className="faq-section__intro reveal-item"
+          style={{ "--reveal-delay": "0ms" }}
+        >
           <span className="faq-section__eyebrow">
             Frequently asked questions
           </span>
@@ -62,9 +74,7 @@ const FAQ = () => {
 
           <div className="faq-section__help">
             <span>Still need help?</span>
-            <a href="mailto:support@tecotask.com">
-              Contact support →
-            </a>
+            <a href="mailto:support@tecotask.com">Contact support →</a>
           </div>
         </div>
 
@@ -75,7 +85,12 @@ const FAQ = () => {
             return (
               <article
                 key={item.question}
-                className={`faq-item ${isOpen ? "is-open" : ""}`}
+                className={`faq-item reveal-item ${
+                  isOpen ? "is-open" : ""
+                }`}
+                style={{
+                  "--reveal-delay": `${180 + index * 120}ms`,
+                }}
               >
                 <button
                   type="button"

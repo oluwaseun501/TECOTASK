@@ -656,3 +656,76 @@
     display: none;
   }
 }
+
+.hero__content > *,
+.hero__visual {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 750ms ease,
+    transform 750ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero--visible .hero__content > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero--visible .hero__visual {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 220ms;
+}
+
+.hero--visible .hero__badge {
+  transition-delay: 80ms;
+}
+
+.hero--visible .hero__title {
+  transition-delay: 160ms;
+}
+
+.hero--visible .hero__description {
+  transition-delay: 240ms;
+}
+
+.hero--visible .hero__actions {
+  transition-delay: 320ms;
+}
+
+.hero--visible .hero__stats {
+  transition-delay: 400ms;
+}
+
+.hero__proof-card {
+  animation: gentleFloat 4s ease-in-out infinite;
+}
+
+.hero__balance-card {
+  animation: gentleFloat 4s ease-in-out infinite 1.2s;
+}
+
+@keyframes gentleFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__content > *,
+  .hero__visual {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .hero__proof-card,
+  .hero__balance-card {
+    animation: none;
+  }
+}

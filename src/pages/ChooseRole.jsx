@@ -1,27 +1,29 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/ChooseRole.css";
 
 const ChooseRole = () => {
   const [selectedRole, setSelectedRole] = useState("earner");
+  const navigate = useNavigate();
 
   const handleContinue = () => {
     if (selectedRole === "earner") {
-      window.location.href = "/earner/dashboard";
+      navigate("/earners");
     } else {
-      window.location.href = "/advertiser/dashboard";
+      navigate("/advertisers");
     }
   };
 
   return (
     <main className="role-page">
       <header className="role-header">
-        <a href="/" className="role-brand">
+        <Link to="/" className="role-brand">
           <span className="role-brand__logo">T</span>
 
           <span className="role-brand__name">
             Teco<span>Task</span>
           </span>
-        </a>
+        </Link>
 
         <span className="role-step">Step 2 of 2</span>
       </header>
@@ -33,8 +35,7 @@ const ChooseRole = () => {
           <h1>How will you be using TecoTask?</h1>
 
           <p>
-            This helps us personalize your dashboard. 
-            
+            This helps us personalize your dashboard.
           </p>
         </div>
 
@@ -88,7 +89,7 @@ const ChooseRole = () => {
 
             <h2>I want to advertise</h2>
 
-            <p>Create campaigns and reach verified task earners.</p>
+            <p>Create campaigns and reach real people.</p>
 
             <div className="role-card__divider" />
 
@@ -104,7 +105,7 @@ const ChooseRole = () => {
           <button
             type="button"
             className="role-back-button"
-            onClick={() => window.history.back()}
+            onClick={() => navigate(-1)}
           >
             Back
           </button>

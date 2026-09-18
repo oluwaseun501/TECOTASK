@@ -163,7 +163,7 @@ const Login = () => {
             <div className="login-password-label">
               <label htmlFor="loginPassword">Password</label>
 
-              <a href="/forgot-password">Forgot password?</a>
+             <Link to="/forgot-password">Forgot password?</Link>
             </div>
 
             <div className="login-password-input">

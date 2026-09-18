@@ -1,0 +1,509 @@
+.earner-dashboard {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 24px 30px 45px;
+}
+
+.earner-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.earner-stat-card {
+  min-height: 112px;
+  border: 1px solid #e8edf2;
+  border-radius: 13px;
+  background: #ffffff;
+  padding: 15px;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.025);
+}
+
+.earner-stat-card > span,
+.earner-stat-card > small {
+  display: block;
+  color: #94a3b8;
+  font-size: 8px;
+}
+
+.earner-stat-card > span {
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.earner-stat-card > strong {
+  display: block;
+  margin-top: 14px;
+  color: #0f172a;
+  font-size: 19px;
+  letter-spacing: -0.04em;
+}
+
+.earner-stat-card > small {
+  margin-top: 5px;
+}
+
+.earner-stat-card--green {
+  border-color: #07951a;
+  background: #07951a;
+}
+
+.earner-stat-card--green > span,
+.earner-stat-card--green > strong {
+  color: #ffffff;
+}
+
+.earner-stat-card--green > small {
+  color: #bbf7d0;
+}
+
+.earner-dashboard__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin: 26px 0 12px;
+}
+
+.earner-dashboard__heading h2 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: -0.03em;
+}
+
+.earner-dashboard__heading p,
+.earner-dashboard__heading > span {
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 9px;
+}
+
+.earner-dashboard__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(250px, 0.7fr);
+  gap: 16px;
+}
+
+.earner-featured-task,
+.earner-task-row,
+.earner-panel {
+  border: 1px solid #e8edf2;
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.025);
+}
+
+.earner-featured-task {
+  padding: 17px;
+}
+
+.earner-featured-task__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 8px;
+}
+
+.earner-featured-task__meta > span:not(.earner-task-badge) {
+  border-radius: 999px;
+  background: #f1f5f9;
+  padding: 5px 8px;
+}
+
+.earner-task-badge {
+  border-radius: 999px;
+  background: #dcfce7;
+  padding: 5px 8px;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.earner-featured-task__content {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 18px;
+}
+
+.earner-featured-task h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  letter-spacing: -0.035em;
+}
+
+.earner-featured-task p {
+  max-width: 620px;
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.earner-featured-task__reward {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.earner-featured-task__reward strong {
+  display: block;
+  color: #16a34a;
+  font-size: 20px;
+}
+
+.earner-featured-task__reward span {
+  color: #94a3b8;
+  font-size: 8px;
+}
+
+.earner-featured-task__actions {
+  display: flex;
+  gap: 9px;
+  margin-top: 17px;
+}
+
+.earner-primary-button,
+.earner-secondary-button {
+  height: 38px;
+  border-radius: 8px;
+  cursor: pointer;
+  font: 600 9px "Poppins", sans-serif;
+}
+
+.earner-primary-button {
+  border: 0;
+  background: #16a34a;
+  padding: 0 16px;
+  color: #ffffff;
+  box-shadow: 0 7px 16px rgba(22, 163, 74, 0.2);
+}
+
+.earner-secondary-button {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 0 16px;
+  color: #475569;
+}
+
+.earner-task-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.earner-task-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.earner-task-row:hover {
+  border-color: #86efac;
+}
+
+.earner-task-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.earner-task-icon.purple {
+  background: #f3e8ff;
+  color: #9333ea;
+}
+
+.earner-task-icon.orange {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.earner-task-row__details {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.earner-task-row__details strong {
+  overflow: hidden;
+  color: #334155;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.earner-task-row__details small {
+  color: #94a3b8;
+  font-size: 8px;
+}
+
+.earner-task-row__reward {
+  margin-left: auto;
+  color: #16a34a;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.earner-task-row__arrow {
+  color: #64748b;
+}
+
+.earner-dashboard__side {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.earner-panel {
+  padding: 16px;
+}
+
+.earner-panel h3 {
+  margin: 0;
+  color: #334155;
+  font-size: 11px;
+}
+
+.earner-panel > p {
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 8px;
+  line-height: 1.6;
+}
+
+.earner-progress-number {
+  display: block;
+  margin-top: 17px;
+  color: #334155;
+  font-size: 19px;
+}
+
+.earner-progress-bar {
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+}
+
+.earner-progress-bar span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #16a34a;
+}
+
+.earner-panel > small {
+  display: block;
+  margin-top: 12px;
+  color: #94a3b8;
+  font-size: 8px;
+}
+
+.earner-panel > small strong {
+  color: #475569;
+}
+
+.earner-empty-state {
+  display: flex;
+  min-height: 118px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.earner-empty-state > span {
+  color: #94a3b8;
+  font-size: 17px;
+}
+
+.earner-empty-state strong {
+  margin-top: 8px;
+  color: #475569;
+  font-size: 9px;
+}
+
+.earner-empty-state p {
+  max-width: 160px;
+  margin: 4px 0 0;
+}
+@media (max-width: 1100px) {
+  .earner-dashboard {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+
+  .earner-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .earner-dashboard__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .earner-dashboard__side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .earner-dashboard {
+    width: 100%;
+    padding: 20px 16px 35px;
+  }
+
+  .earner-dashboard__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .earner-featured-task__content {
+    display: block;
+  }
+
+  .earner-featured-task__reward {
+    margin-top: 14px;
+    text-align: left;
+  }
+
+  .earner-task-row__details strong {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 560px) {
+  .earner-stat-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .earner-dashboard__side {
+    grid-template-columns: 1fr;
+  }
+
+  .earner-stat-card {
+    min-height: 100px;
+  }
+
+  .earner-stat-card > span {
+    font-size: 9px;
+  }
+
+  .earner-stat-card > strong {
+    margin-top: 10px;
+    font-size: 22px;
+  }
+
+  .earner-stat-card > small {
+    font-size: 9px;
+  }
+
+  .earner-dashboard__heading h2 {
+    font-size: 17px;
+  }
+
+  .earner-dashboard__heading p,
+  .earner-dashboard__heading > span {
+    font-size: 10px;
+  }
+
+  .earner-featured-task {
+    padding: 14px;
+  }
+
+  .earner-featured-task h3 {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .earner-featured-task p {
+    font-size: 10px;
+    line-height: 1.7;
+  }
+
+  .earner-featured-task__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .earner-primary-button,
+  .earner-secondary-button {
+    width: 100%;
+    height: 42px;
+  }
+
+  .earner-task-row {
+    gap: 8px;
+    padding: 11px 10px;
+  }
+
+  .earner-task-row__details {
+    flex: 1;
+  }
+
+  .earner-task-row__details strong {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .earner-task-row__details small {
+    font-size: 8px;
+    line-height: 1.4;
+  }
+
+  .earner-task-row__reward {
+    font-size: 9px;
+  }
+
+  .earner-panel {
+    padding: 14px;
+  }
+
+  .earner-panel h3 {
+    font-size: 13px;
+  }
+
+  .earner-panel > p,
+  .earner-panel > small {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 360px) {
+  .earner-dashboard {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .earner-featured-task__meta {
+    gap: 5px;
+  }
+
+  .earner-featured-task__meta > span {
+    font-size: 7px;
+  }
+
+  .earner-task-row__reward,
+  .earner-task-row__arrow {
+    display: none;
+  }
+}
