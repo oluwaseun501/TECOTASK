@@ -1,0 +1,239 @@
+.admin-topbar {
+  display: flex;
+  min-height: 70px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--admin-border);
+  background: #ffffff;
+  padding: 0 30px;
+}
+
+.admin-menu-button {
+  display: none;
+  border: 0;
+  background: transparent;
+  color: #718078;
+}
+
+.admin-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #9ba6a1;
+  font-size: 10px;
+}
+
+.admin-breadcrumb-root {
+  color: #66736c;
+  font-weight: 700;
+}
+
+.admin-breadcrumb strong {
+  color: #58655e;
+}
+
+.admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.admin-refresh-button,
+.admin-notification-button,
+.admin-topbar-avatar {
+  border: 0;
+  background: transparent;
+}
+
+.admin-refresh-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #829088;
+  font-size: 10px;
+}
+
+.admin-refresh-button:hover {
+  color: var(--admin-green-dark);
+}
+
+.admin-spin {
+  animation: admin-spin 700ms linear infinite;
+}
+
+.admin-notification-wrapper {
+  position: relative;
+}
+
+.admin-notification-button {
+  position: relative;
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  color: #76847d;
+}
+
+.admin-notification-button:hover,
+.admin-notification-button--active {
+  background: #f0f6f2;
+  color: var(--admin-green-dark);
+}
+
+.admin-notification-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #ffffff;
+  border-radius: 50%;
+  background: #db5752;
+}
+
+.admin-notification-popover {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  z-index: 50;
+  width: 300px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 14px;
+  box-shadow: 0 15px 35px rgba(22, 49, 35, 0.13);
+}
+
+.admin-popover-heading,
+.admin-popover-item {
+  display: flex;
+  align-items: center;
+}
+
+.admin-popover-heading {
+  justify-content: space-between;
+  border-bottom: 1px solid #eef2ef;
+  padding-bottom: 10px;
+}
+
+.admin-popover-heading strong {
+  font-size: 11px;
+}
+
+.admin-popover-heading span,
+.admin-popover-item time {
+  color: #9ba6a1;
+  font-size: 9px;
+}
+
+.admin-popover-item {
+  gap: 8px;
+  border-bottom: 1px solid #f0f3f1;
+  padding: 12px 0;
+}
+
+.admin-popover-item > div {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+}
+
+.admin-popover-item strong {
+  color: var(--admin-text);
+  font-size: 9px;
+}
+
+.admin-popover-item small {
+  color: var(--admin-muted);
+  font-size: 8px;
+}
+
+.admin-popover-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.admin-popover-dot--red {
+  background: #db5752;
+}
+
+.admin-popover-dot--green {
+  background: #2aa463;
+}
+
+.admin-popover-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 11px;
+  color: var(--admin-green);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.admin-topbar-divider {
+  width: 1px;
+  height: 24px;
+  background: #e9eeeb;
+}
+
+.admin-topbar-avatar {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 8px;
+  background: #15251e;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+@keyframes admin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-topbar {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-topbar {
+    min-height: 62px;
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .admin-menu-button {
+    display: inline-flex;
+  }
+
+  .admin-breadcrumb-root,
+  .admin-breadcrumb > svg:first-of-type {
+    display: none;
+  }
+
+  .admin-refresh-button span {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-notification-popover {
+    position: fixed;
+    top: 61px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}

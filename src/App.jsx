@@ -33,6 +33,16 @@ import AdvertiserTransactionDetails from "./components/advertisers/AdvertiserTra
 import AdvertiserReferrals from "./components/advertisers/AdvertiserReferrals";
 import AdvertiserSettings from "./components/advertisers/AdvertiserSettings";
 
+import AdvertiserCreateCampaign from "./components/advertisers/AdvertiserCreateCampaign";
+import AdminDashboard from "./components/admin/AdminDashboard.jsx";
+import AdminUsers from "./components/admin/AdminUsers.jsx";
+import AdminUserDetails from "./components/admin/AdminUserDetails.jsx";
+import AdminOverview from "./components/admin/AdminOverview.jsx";
+
+import AdminCampaigns from "./components/admin/AdminCampaigns.jsx";
+import AdminServiceSetup from "./components/admin/AdminServiceSetup.jsx";
+import AdminCampaignDetails from "./components/admin/AdminCampaignDetails.jsx";
+
 const Home = () => {
   return (
     <>
@@ -70,6 +80,54 @@ const AdvertiserComingSoon = ({ title }) => {
   );
 };
 
+
+const AdminComingSoon = ({ title }) => {
+  return (
+    <section
+      style={{
+        padding: "32px",
+        minHeight: "400px",
+        borderRadius: "16px",
+        background: "#ffffff",
+        border: "1px solid #e1e9e4",
+      }}
+    >
+      <p
+        style={{
+          margin: 0,
+          color: "#159447",
+          fontSize: "11px",
+          fontWeight: 500,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+        }}
+      >
+        Admin workspace
+      </p>
+
+      <h1
+        style={{
+          margin: "8px 0 0",
+          color: "#17221d",
+          fontSize: "26px",
+          fontWeight: 600,
+        }}
+      >
+        {title}
+      </h1>
+
+      <p
+        style={{
+          marginTop: "8px",
+          color: "#89978f",
+          fontSize: "14px",
+        }}
+      >
+        This page will be added next.
+      </p>
+    </section>
+  );
+};
 const App = () => {
   return (
     <Routes>
@@ -101,6 +159,11 @@ const App = () => {
   <Route path="campaigns" element={<AdvertiserCampaigns />} />
   <Route path="wallet" element={<AdvertiserWallet />} />
 
+    <Route
+    path="campaigns/new"
+    element={<AdvertiserCreateCampaign />}
+  />
+
   <Route
     path="transactions/:transactionId"
     element={<AdvertiserTransactionDetails />}
@@ -121,6 +184,98 @@ const App = () => {
   element={<AdvertiserSettings />}
 />
 </Route>
+
+<Route
+  path="/admin"
+  element={<AdminDashboard basePath="/admin" />}
+>
+  <Route index element={<AdminOverview />} />
+
+  <Route
+    path="users"
+    element={
+      <AdminUsers
+        role="all"
+        basePath="/admin"
+      />
+    }
+  />
+
+  <Route
+    path="earners"
+    element={
+      <AdminUsers
+        role="earner"
+        basePath="/admin"
+      />
+    }
+  />
+
+  <Route
+    path="advertisers"
+    element={
+      <AdminUsers
+        role="advertiser"
+        basePath="/admin"
+      />
+    }
+  />
+
+  <Route
+    path="moderators"
+    element={
+      <AdminUsers
+        role="moderator"
+        basePath="/admin"
+      />
+    }
+  />
+
+  <Route
+    path="users/:userId"
+    element={
+      <AdminUserDetails
+        basePath="/admin"
+      />
+    }
+  />
+
+  <Route
+    path="campaigns"
+    element={<AdminCampaigns basePath="/admin" />}
+  />
+
+  <Route
+    path="campaigns/new-service"
+    element={<AdminServiceSetup basePath="/admin" />}
+  />
+
+  <Route
+    path="campaigns/:campaignId"
+    element={<AdminCampaignDetails basePath="/admin" />}
+  />
+
+  <Route
+    path="campaign-progress"
+    element={<Navigate to="campaigns" replace />}
+  />
+
+  <Route
+    path="transactions"
+    element={<AdminComingSoon title="All transactions" />}
+  />
+
+  <Route
+    path="moderation"
+    element={<AdminComingSoon title="Moderation" />}
+  />
+
+  <Route
+    path="settings"
+    element={<AdminComingSoon title="Settings" />}
+  />
+</Route>
+
 
 
       {/* Other pages */}
