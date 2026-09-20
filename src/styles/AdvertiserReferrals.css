@@ -1,0 +1,430 @@
+.advertiser-referrals {
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 24px 30px 45px;
+}
+
+.advertiser-referral-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.advertiser-referral-stat-card {
+  min-height: 105px;
+  border: 1px solid #e8edf2;
+  border-radius: 13px;
+  background: #ffffff;
+  padding: 15px;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.025);
+}
+
+.advertiser-referral-stat-card--green {
+  border-color: #07951a;
+  background: #07951a;
+}
+
+.advertiser-referral-stat-card span,
+.advertiser-referral-stat-card small {
+  display: block;
+  font-size: 8px;
+}
+
+.advertiser-referral-stat-card span {
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.advertiser-referral-stat-card--green span {
+  color: #bbf7d0;
+}
+
+.advertiser-referral-stat-card strong {
+  display: block;
+  margin-top: 15px;
+  color: #0f172a;
+  font-size: 21px;
+  letter-spacing: -0.04em;
+}
+
+.advertiser-referral-stat-card--green strong {
+  color: #ffffff;
+}
+
+.advertiser-referral-stat-card small {
+  margin-top: 5px;
+  color: #94a3b8;
+}
+
+.advertiser-referral-stat-card--green small {
+  color: #dcfce7;
+}
+
+.advertiser-referrals__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.75fr);
+  gap: 16px;
+  margin-top: 16px;
+  align-items: start;
+}
+
+.advertiser-referral-invite-card,
+.advertiser-referral-people-card,
+.advertiser-referral-how-card,
+.advertiser-referral-rules-card {
+  border: 1px solid #e8edf2;
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.025);
+}
+
+.advertiser-referral-invite-card,
+.advertiser-referral-people-card,
+.advertiser-referral-how-card,
+.advertiser-referral-rules-card {
+  padding: 16px;
+}
+
+.advertiser-referral-people-card {
+  margin-top: 14px;
+}
+
+.advertiser-referral-section-heading h2,
+.advertiser-referral-how-card h2,
+.advertiser-referral-rules-card h2 {
+  margin: 0;
+  color: #334155;
+  font-size: 12px;
+}
+
+.advertiser-referral-section-heading p {
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 8px;
+  line-height: 1.6;
+}
+
+.advertiser-referral-link-row {
+  display: flex;
+  gap: 9px;
+  margin-top: 17px;
+}
+
+.advertiser-referral-link-input {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  height: 40px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 0 12px;
+}
+
+.advertiser-referral-link-input span {
+  overflow: hidden;
+  color: #475569;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.advertiser-referral-copy-button,
+.advertiser-referral-share-button {
+  border: 1px solid #dbe3ec;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  font: 600 8px "Poppins", sans-serif;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.advertiser-referral-copy-button {
+  display: flex;
+  width: 100px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-color: #16a34a;
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.advertiser-referral-copy-button:hover {
+  border-color: #05830d;
+  background: #05830d;
+  transform: translateY(-2px);
+}
+
+.advertiser-referral-share-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.advertiser-referral-share-button {
+  padding: 8px 10px;
+}
+
+.advertiser-referral-share-button:hover {
+  border-color: #86efac;
+  color: #16a34a;
+  transform: translateY(-2px);
+}
+
+.advertiser-referral-code {
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 8px;
+}
+
+.advertiser-referral-code strong {
+  color: #475569;
+}
+
+.advertiser-referral-people-list {
+  margin-top: 15px;
+}
+
+.advertiser-referral-person {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.advertiser-referral-person__avatar {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.advertiser-referral-person__details {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.advertiser-referral-person__details strong {
+  color: #475569;
+  font-size: 9px;
+}
+
+.advertiser-referral-person__details small {
+  color: #94a3b8;
+  font-size: 8px;
+}
+
+.advertiser-referral-person__status {
+  margin-left: auto;
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 7px;
+  font-weight: 600;
+}
+
+.advertiser-referral-person__status.is-activated {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.advertiser-referral-person__status.is-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.advertiser-referral-person__reward {
+  min-width: 45px;
+  color: #64748b;
+  font-size: 9px;
+  text-align: right;
+}
+
+.advertiser-referral-person__reward.is-earned {
+  color: #16a34a;
+}
+
+.advertiser-referral-person__reward.is-pending {
+  color: #94a3b8;
+}
+
+.advertiser-referral-side {
+  display: grid;
+  gap: 14px;
+}
+
+.advertiser-referral-steps {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.advertiser-referral-steps > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.advertiser-referral-steps span {
+  display: inline-flex;
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.advertiser-referral-steps p {
+  margin: 2px 0 0;
+  color: #64748b;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.advertiser-referral-rules-card ul {
+  display: grid;
+  gap: 10px;
+  margin: 17px 0 0;
+  padding: 0;
+  color: #64748b;
+  font-size: 9px;
+  line-height: 1.6;
+  list-style: none;
+}
+
+.advertiser-referral-rules-card li {
+  position: relative;
+  padding-left: 13px;
+}
+
+.advertiser-referral-rules-card li::before {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #16a34a;
+  content: "";
+}
+
+@media (max-width: 1050px) {
+  .advertiser-referrals {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+}
+
+@media (max-width: 850px) {
+  .advertiser-referrals__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .advertiser-referral-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .advertiser-referral-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .advertiser-referral-side {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .advertiser-referrals {
+    padding: 18px 14px 32px;
+  }
+
+  .advertiser-referral-stat-card {
+    min-height: 95px;
+  }
+
+  .advertiser-referral-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .advertiser-referral-invite-card,
+  .advertiser-referral-people-card,
+  .advertiser-referral-how-card,
+  .advertiser-referral-rules-card {
+    padding: 13px;
+  }
+
+  .advertiser-referral-link-row {
+    flex-direction: column;
+  }
+
+  .advertiser-referral-copy-button {
+    width: 100%;
+    height: 40px;
+  }
+
+  .advertiser-referral-share-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .advertiser-referral-share-button {
+    width: 100%;
+  }
+
+  .advertiser-referral-code {
+    margin: 2px 0 0;
+  }
+
+  .advertiser-referral-person {
+    gap: 7px;
+  }
+
+  .advertiser-referral-person__details strong {
+    font-size: 8px;
+  }
+
+  .advertiser-referral-person__details small {
+    font-size: 7px;
+  }
+
+  .advertiser-referral-person__status {
+    font-size: 6px;
+  }
+
+  .advertiser-referral-person__reward {
+    min-width: 34px;
+    font-size: 8px;
+  }
+}
