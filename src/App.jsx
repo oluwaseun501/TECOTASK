@@ -339,7 +339,6 @@ const App = () => {
 </Route>
 
 
-
       {/* Other pages */}
       <Route
         path="/support"
