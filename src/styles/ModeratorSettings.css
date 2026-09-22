@@ -1,0 +1,507 @@
+.moderator-settings-page {
+  min-height: 100%;
+  background: #f6f8f7;
+  color: #26342c;
+  padding: 28px 24px 48px;
+}
+
+.moderator-settings-container {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.moderator-settings-header {
+  margin-bottom: 24px;
+}
+
+.moderator-settings-eyebrow {
+  display: block;
+  color: #159447;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.moderator-settings-header h1 {
+  margin: 8px 0 0;
+  color: #17221d;
+  font-size: clamp(26px, 3vw, 35px);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+
+.moderator-settings-header p {
+  margin: 9px 0 0;
+  color: #718078;
+  font-size: 14px;
+}
+
+.moderator-settings-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(420px, 1.18fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.moderator-settings-card {
+  border: 1px solid #e1e9e4;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.035);
+}
+
+.moderator-settings-card-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  border-bottom: 1px solid #edf1ee;
+  padding: 20px;
+}
+
+.moderator-settings-heading-icon {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #eaf7ee;
+  color: #159447;
+}
+
+.moderator-settings-card-heading h2 {
+  margin: 1px 0 0;
+  color: #26342c;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.moderator-settings-card-heading p {
+  margin: 5px 0 0;
+  color: #89978f;
+  font-size: 11px;
+}
+
+.moderator-account-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #edf1ee;
+  padding: 22px 20px;
+}
+
+.moderator-account-avatar {
+  display: flex;
+  width: 47px;
+  height: 47px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #17221d;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.moderator-account-profile div {
+  display: grid;
+  gap: 5px;
+}
+
+.moderator-account-profile strong {
+  color: #3d4d43;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.moderator-account-profile span:not(.moderator-account-avatar) {
+  color: #89978f;
+  font-size: 10px;
+}
+
+.moderator-account-details {
+  display: grid;
+  gap: 0;
+  padding: 0 20px;
+}
+
+.moderator-account-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid #eff3f0;
+  padding: 15px 0;
+}
+
+.moderator-account-detail:last-child {
+  border-bottom: 0;
+}
+
+.moderator-account-detail-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #89978f;
+  font-size: 10px;
+}
+
+.moderator-account-detail-label svg {
+  color: #159447;
+}
+
+.moderator-account-detail > strong {
+  color: #536159;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: right;
+}
+
+.moderator-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  background: #eaf7ee;
+  color: #21824a;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 5px 9px;
+}
+
+.moderator-account-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 20px;
+  border: 1px solid #dcefe1;
+  border-radius: 9px;
+  background: #f4fbf5;
+  color: #5f8d6d;
+  padding: 12px;
+}
+
+.moderator-account-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #159447;
+}
+
+.moderator-account-note p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.moderator-password-form {
+  padding: 20px;
+}
+
+.moderator-settings-field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.moderator-settings-field > span {
+  color: #536159;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.moderator-password-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.moderator-password-input input {
+  width: 100%;
+  height: 39px;
+  border: 1px solid #dfe8e1;
+  border-radius: 8px;
+  outline: 0;
+  background: #fbfcfb;
+  color: #536159;
+  font: inherit;
+  font-size: 11px;
+  padding: 0 42px 0 12px;
+}
+
+.moderator-password-input input::placeholder {
+  color: #a4afa9;
+}
+
+.moderator-password-input input:focus {
+  border-color: #69bc84;
+  box-shadow: 0 0 0 3px #eaf7ee;
+}
+
+.moderator-password-input button {
+  position: absolute;
+  right: 9px;
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: #89978f;
+  cursor: pointer;
+}
+
+.moderator-password-input button:hover {
+  color: #159447;
+}
+
+.moderator-password-strength {
+  margin: -4px 0 17px;
+}
+
+.moderator-password-strength-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
+.moderator-password-strength-top > span {
+  color: #89978f;
+  font-size: 9px;
+}
+
+.moderator-password-strength-label {
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.moderator-password-strength-label--empty {
+  color: #89978f;
+}
+
+.moderator-password-strength-label--weak {
+  color: #c25555;
+}
+
+.moderator-password-strength-label--fair {
+  color: #b27b1e;
+}
+
+.moderator-password-strength-label--strong {
+  color: #21824a;
+}
+
+.moderator-password-strength-track {
+  display: block;
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf1ee;
+}
+
+.moderator-password-strength-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+
+.moderator-password-strength-fill--empty {
+  background: transparent;
+}
+
+.moderator-password-strength-fill--weak {
+  background: #c25555;
+}
+
+.moderator-password-strength-fill--fair {
+  background: #d49b35;
+}
+
+.moderator-password-strength-fill--strong {
+  background: #159447;
+}
+
+.moderator-password-requirements {
+  margin: 4px 0 21px;
+  border: 1px solid #e5ece7;
+  border-radius: 9px;
+  background: #fbfcfb;
+  padding: 13px;
+}
+
+.moderator-password-requirements > span {
+  color: #536159;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.moderator-password-requirements ul {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.moderator-password-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #9aa69f;
+  font-size: 10px;
+}
+
+.moderator-password-requirements li svg {
+  color: #c0cbc3;
+}
+
+.moderator-password-requirements li.moderator-password-requirement--valid {
+  color: #21824a;
+}
+
+.moderator-password-requirements
+  li.moderator-password-requirement--valid
+  svg {
+  color: #159447;
+}
+
+.moderator-settings-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 18px 20px 0;
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 1.45;
+  padding: 11px 12px;
+}
+
+.moderator-settings-message svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.moderator-settings-message--error {
+  border: 1px solid #f0caca;
+  background: #fff7f7;
+  color: #c25555;
+}
+
+.moderator-settings-message--success {
+  border: 1px solid #bde5c9;
+  background: #f0fbf3;
+  color: #21824a;
+}
+
+.moderator-password-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-top: 1px solid #edf1ee;
+  padding-top: 17px;
+}
+
+.moderator-password-form-footer > div {
+  display: grid;
+  gap: 7px;
+}
+
+.moderator-password-form-footer p {
+  max-width: 260px;
+  margin: 0;
+  color: #9aa69f;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.moderator-password-form-footer a {
+  color: #159447;
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.moderator-password-form-footer a:hover {
+  color: #08752f;
+}
+
+.moderator-save-password-button {
+  display: inline-flex;
+  min-height: 37px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #159447;
+  border-radius: 8px;
+  background: #159447;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 0 13px;
+  white-space: nowrap;
+}
+
+.moderator-save-password-button:hover {
+  background: #08752f;
+}
+
+@media (max-width: 900px) {
+  .moderator-settings-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .moderator-settings-page {
+    padding: 22px 14px 38px;
+  }
+
+  .moderator-settings-card-heading {
+    padding: 17px;
+  }
+
+  .moderator-account-profile {
+    padding: 19px 17px;
+  }
+
+  .moderator-account-details {
+    padding: 0 17px;
+  }
+
+  .moderator-account-note {
+    margin: 17px;
+  }
+
+  .moderator-password-form {
+    padding: 17px;
+  }
+
+  .moderator-account-detail {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .moderator-account-detail > strong {
+    text-align: left;
+  }
+
+  .moderator-password-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .moderator-password-form-footer p {
+    max-width: none;
+  }
+
+  .moderator-save-password-button {
+    width: 100%;
+  }
+}

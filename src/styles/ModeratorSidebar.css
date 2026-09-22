@@ -1,0 +1,253 @@
+.moderator-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+  display: flex;
+  width: 248px;
+  flex-direction: column;
+  overflow-y: auto;
+  border-right: 1px solid #e5ebe7;
+  background: #ffffff;
+  padding: 20px 14px 16px;
+}
+
+.moderator-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 0 8px;
+}
+
+.moderator-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #17221d;
+  text-decoration: none;
+}
+
+.moderator-brand-mark {
+  display: inline-flex;
+  height: 30px;
+  width: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #159447;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.moderator-brand-name {
+  color: #17221d;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.moderator-brand-name em {
+  color: #159447;
+  font-style: normal;
+}
+
+.moderator-workspace-label {
+  margin: 31px 10px 12px;
+  color: #9aa69f;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.moderator-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.moderator-nav-section-label {
+  margin: 25px 10px 8px;
+  color: #a5afa9;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.moderator-nav-link {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #718078;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 10px 11px;
+  text-align: left;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.moderator-nav-link:hover {
+  background: #f3f8f4;
+  color: #159447;
+}
+
+.moderator-nav-link--active {
+  background: #e9f7ed;
+  color: #159447;
+  font-weight: 600;
+}
+
+.moderator-sidebar-spacer {
+  flex: 1;
+  min-height: 24px;
+}
+
+.moderator-sidebar-help,
+.moderator-logout {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  color: #84918a;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 10px 11px;
+  text-align: left;
+}
+
+.moderator-sidebar-help:hover,
+.moderator-logout:hover {
+  color: #159447;
+}
+
+.moderator-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 8px;
+  border-top: 1px solid #eef2ef;
+  padding: 17px 10px 5px;
+}
+
+.moderator-avatar {
+  display: inline-flex;
+  height: 30px;
+  width: 30px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #17221d;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.moderator-profile-details {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.moderator-profile-details strong {
+  overflow: hidden;
+  color: #334139;
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderator-profile-details small {
+  color: #9aa69f;
+  font-size: 10px;
+}
+
+.moderator-mobile-close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: #64736b;
+  cursor: pointer;
+}
+
+.moderator-sidebar-scrim {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .moderator-sidebar {
+    transform: translateX(-100%);
+    transition: transform 220ms ease;
+  }
+
+  .moderator-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .moderator-sidebar-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: block;
+    border: 0;
+    background: rgba(15, 23, 42, 0.28);
+  }
+
+  .moderator-mobile-close {
+    display: inline-flex;
+  }
+}
+
+.moderator-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+  display: flex;
+  width: 248px;
+  flex-direction: column;
+  border-right: 1px solid #e5ebe7;
+  background: #ffffff;
+  padding: 20px 14px 16px;
+}
+
+.moderator-nav-link {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #718078;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 10px 11px;
+  text-decoration: none;
+}
+
+.moderator-nav-link:hover {
+  background: #f3f8f4;
+  color: #159447;
+}
+
+.moderator-nav-link--active {
+  background: #e9f7ed;
+  color: #159447;
+  font-weight: 600;
+}

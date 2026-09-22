@@ -42,6 +42,24 @@ import AdminOverview from "./components/admin/AdminOverview.jsx";
 import AdminCampaigns from "./components/admin/AdminCampaigns.jsx";
 import AdminServiceSetup from "./components/admin/AdminServiceSetup.jsx";
 import AdminCampaignDetails from "./components/admin/AdminCampaignDetails.jsx";
+import AdminTransactions from "./components/admin/AdminTransactions.jsx";
+import AdminWithdrawals from "./components/admin/AdminWithdrawals.jsx";
+import AdminModeration from "./components/admin/AdminModeration.jsx";
+import AdminSettings from "./components/admin/AdminSettings.jsx";
+
+import ModeratorDashboard from "./components/moderator/ModeratorDashboard.jsx";
+import ModeratorOverview from "./components/moderator/ModeratorOverview.jsx";
+import ModeratorReviewQueue from "./components/moderator/ModeratorReviewQueue.jsx";
+import ModeratorReviewDetails from "./components/moderator/ModeratorReviewDetails.jsx";
+import ModeratorWithdrawals from "./components/moderator/ModeratorWithdrawals.jsx";
+import ModeratorInstructions from "./components/moderator/ModeratorInstructions.jsx";
+import ModeratorSettings from "./components/moderator/ModeratorSettings.jsx";
+
+import AdminLogin from "./pages/AdminLogin";
+import ModeratorLogin from "./pages/ModeratorLogin";
+
+import SupportWidget from "./components/SupportWidget";
+
 
 const Home = () => {
   return (
@@ -130,6 +148,7 @@ const AdminComingSoon = ({ title }) => {
 };
 const App = () => {
   return (
+  <>
     <Routes>
       {/* Public website */}
       <Route path="/" element={<Home />} />
@@ -139,6 +158,11 @@ const App = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/choose-role" element={<ChooseRole />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/admin/accessmeadmin" element={<AdminLogin />} />
+<Route
+  path="/moderator/accessmemoderator"
+  element={<ModeratorLogin />}
+/>
 
       {/* Earner activation page */}
       <Route
@@ -184,6 +208,40 @@ const App = () => {
   element={<AdvertiserSettings />}
 />
 </Route>
+
+{/* moderator */}
+<Route
+  path="/moderator"
+  element={<ModeratorDashboard basePath="/moderator" />}
+>
+  <Route index element={<ModeratorOverview />} />
+
+  <Route
+    path="reviews"
+    element={<ModeratorReviewQueue />}
+  />
+
+  <Route
+    path="reviews/:reviewId"
+    element={<ModeratorReviewDetails />}
+  />
+
+  <Route
+  path="withdrawals"
+  element={<ModeratorWithdrawals />}
+/>
+
+<Route
+  path="instructions"
+  element={<ModeratorInstructions />}
+/>
+
+<Route
+  path="settings"
+  element={<ModeratorSettings />}
+/>
+</Route>
+{/* Admin */}
 
 <Route
   path="/admin"
@@ -260,20 +318,24 @@ const App = () => {
     element={<Navigate to="campaigns" replace />}
   />
 
-  <Route
-    path="transactions"
-    element={<AdminComingSoon title="All transactions" />}
-  />
+<Route
+  path="transactions"
+  element={<AdminTransactions />}
+/>
+<Route
+  path="moderation"
+  element={<AdminModeration />}
+/>
 
   <Route
-    path="moderation"
-    element={<AdminComingSoon title="Moderation" />}
-  />
+  path="withdrawals"
+  element={<AdminWithdrawals />}
+/>
 
-  <Route
-    path="settings"
-    element={<AdminComingSoon title="Settings" />}
-  />
+ <Route
+  path="settings"
+  element={<AdminSettings />}
+/>
 </Route>
 
 
@@ -287,6 +349,8 @@ const App = () => {
       {/* Unknown routes */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+        <SupportWidget />
+  </>
   );
 };
 

@@ -1,4 +1,5 @@
 import {
+  ArrowDownToLine,
   BarChart3,
   CircleHelp,
   LayoutDashboard,
@@ -76,13 +77,18 @@ const userItems = [
 //     to: `${basePath}/moderators`,
 //   },
 ];
-
 const operationItems = [
   {
     key: "campaigns",
     label: "Campaigns",
     icon: Megaphone,
     to: `${basePath}/campaigns`,
+  },
+  {
+    key: "withdrawals",
+    label: "Withdrawals",
+    icon: ArrowDownToLine,
+    to: `${basePath}/withdrawals`,
   },
   {
     key: "transactions",

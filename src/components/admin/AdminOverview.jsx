@@ -3,10 +3,7 @@ import {
   ArrowUpRight,
   CheckCircle2,
   ChevronRight,
-  Clock3,
   DollarSign,
-  FileWarning,
-  MoreHorizontal,
   ShieldAlert,
   Users,
   WalletCards,
@@ -51,36 +48,6 @@ const withdrawalRows = [
   },
 ];
 
-const moderators = [
-  {
-    initials: "HY",
-    name: "Halima Yusuf",
-    detail: "42 reviews · 100% accuracy",
-    score: "+142",
-    tone: "green",
-  },
-  {
-    initials: "IS",
-    name: "Ibrahim Sule",
-    detail: "38 reviews · 98.7% accuracy",
-    score: "+138",
-    tone: "blue",
-  },
-  {
-    initials: "NI",
-    name: "Nneka Ize",
-    detail: "34 reviews · 99% accuracy",
-    score: "+134",
-    tone: "purple",
-  },
-  {
-    initials: "PA",
-    name: "Peter Ajayi",
-    detail: "26 reviews · 96% accuracy",
-    score: "+120",
-    tone: "rose",
-  },
-];
 
 const avatarStyles = {
   green: "bg-emerald-100 text-emerald-700",
@@ -403,7 +370,6 @@ function PeopleCard() {
     ["Active earners", "132,406"],
     ["Advertisers", "2,918"],
     ["Moderators", "146"],
-    ["Signups today", "1,204"],
   ];
 
   return (
@@ -415,21 +381,14 @@ function PeopleCard() {
       />
 
       <div className="mt-6 divide-y divide-slate-100">
-        {people.map(([label, value], index) => (
+        {people.map(([label, value]) => (
           <div
             key={label}
             className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
           >
             <span className="text-sm text-slate-500">{label}</span>
 
-            <strong
-              className={cn(
-                "text-sm font-medium",
-                index === people.length - 1
-                  ? "text-emerald-600"
-                  : "text-slate-800"
-              )}
-            >
+            <strong className="text-sm font-medium text-slate-800">
               {value}
             </strong>
           </div>
@@ -439,76 +398,6 @@ function PeopleCard() {
   );
 }
 
-function RiskCard({ basePath }) {
-  const risks = [
-    {
-      title: "3 accounts showing device fingerprint overlap",
-      time: "12 mins ago",
-      tone: "bg-red-500",
-      icon: AlertTriangle,
-    },
-    {
-      title: "Campaign Tree airtime giveaway failed policy review",
-      time: "48 mins ago",
-      tone: "bg-amber-500",
-      icon: FileWarning,
-    },
-    {
-      title: "Unusual approval rate on moderator PA-778",
-      time: "2 hours ago",
-      tone: "bg-blue-500",
-      icon: ShieldAlert,
-    },
-  ];
-
-  return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-      <SectionHeading
-        title="Risk flags"
-        subtitle="Items needing a decision"
-        icon={FileWarning}
-      />
-
-      <div className="mt-6 space-y-4">
-        {risks.map((risk) => {
-          const Icon = risk.icon;
-
-          return (
-            <div key={risk.title} className="flex gap-3">
-              <div
-                className={cn(
-                  "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white",
-                  risk.tone
-                )}
-              >
-                <Icon size={14} />
-              </div>
-
-              <div className="min-w-0">
-                <p className="text-xs font-medium leading-5 text-slate-700">
-                  {risk.title}
-                </p>
-
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
-                  <Clock3 size={11} />
-                  {risk.time}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <Link
-        to={`${basePath}/moderation`}
-        className="mt-6 inline-flex items-center gap-1 text-xs font-medium text-emerald-600 transition hover:text-emerald-700"
-      >
-        Review risk queue
-        <ChevronRight size={14} />
-      </Link>
-    </article>
-  );
-}
 
 function WithdrawalsCard({ basePath }) {
   return (
@@ -581,50 +470,6 @@ function WithdrawalsCard({ basePath }) {
   );
 }
 
-function ModeratorCard() {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:p-6">
-      <SectionHeading
-        title="Moderator performance"
-        subtitle="Queue depth right now · 6 reports"
-        action={
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700"
-            aria-label="Moderator options"
-          >
-            <MoreHorizontal size={17} />
-          </button>
-        }
-      />
-
-      <div className="mt-5 divide-y divide-slate-100">
-        {moderators.map((moderator) => (
-          <div
-            key={moderator.name}
-            className="flex items-center gap-3 py-4 first:pt-0 last:pb-0"
-          >
-            <Avatar initials={moderator.initials} tone={moderator.tone} />
-
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-slate-700">
-                {moderator.name}
-              </p>
-
-              <p className="mt-1 truncate text-xs text-slate-400">
-                {moderator.detail}
-              </p>
-            </div>
-
-            <span className="text-sm font-medium text-emerald-600">
-              {moderator.score}
-            </span>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 function CampaignStatusCard() {
   const statuses = [
@@ -750,15 +595,14 @@ export default function AdminOverview({ basePath = "/admin" }) {
             icon={DollarSign}
             tone="green"
           />
-
-          <MetricCard
-            label="Active earners"
-            value="132,406"
-            note="1,204 new signups today"
-            trend="9.2%"
-            icon={Users}
-            tone="blue"
-          />
+<MetricCard
+  label="Active earners"
+  value="132,406"
+  note="Earner accounts currently active"
+  trend="9.2%"
+  icon={Users}
+  tone="blue"
+/>
 
           <MetricCard
             label="Escrow balance"
@@ -777,23 +621,20 @@ export default function AdminOverview({ basePath = "/admin" }) {
         </section>
 
         {/* Revenue panel and side panels */}
-        <section className="mt-6 grid gap-6 xl:grid-cols-12">
-          <div className="xl:col-span-8">
-            <RevenuePerformancePanel period={period} />
-          </div>
+     <section className="mt-6 grid gap-6 xl:grid-cols-12">
+  <div className="xl:col-span-8">
+    <RevenuePerformancePanel period={period} />
+  </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 xl:col-span-4 xl:grid-cols-1">
-            <PeopleCard />
-            <RiskCard basePath={basePath} />
-          </div>
-        </section>
+  <div className="xl:col-span-4">
+    <PeopleCard />
+  </div>
+</section>
 
         {/* Operational lists */}
-        <section className="mt-6 grid gap-6 xl:grid-cols-2">
-          <WithdrawalsCard basePath={basePath} />
-          <ModeratorCard />
-        </section>
-
+       <section className="mt-6">
+  <WithdrawalsCard basePath={basePath} />
+</section>
         {/* Campaign status */}
         <div className="mt-6">
           <CampaignStatusCard />

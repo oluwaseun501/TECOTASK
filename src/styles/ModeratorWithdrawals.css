@@ -1,0 +1,474 @@
+.moderator-withdrawals {
+  min-height: calc(100vh - 68px);
+  background: #f6f8f7;
+  padding: 28px;
+}
+
+.moderator-withdrawals__inner {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.moderator-withdrawals__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.moderator-withdrawals__eyebrow {
+  color: #159447;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.moderator-withdrawals__header h1 {
+  margin: 7px 0 0;
+  color: #17221d;
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+
+.moderator-withdrawals__header p {
+  margin: 8px 0 0;
+  color: #89978f;
+  font-size: 13px;
+}
+
+.moderator-withdrawals__header-icon {
+  display: flex;
+  height: 42px;
+  width: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #e9f7ed;
+  color: #159447;
+}
+
+.moderator-withdrawals__notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 11px 13px;
+}
+
+.moderator-withdrawals__notice--success {
+  border: 1px solid #bce9c9;
+  background: #effbf1;
+  color: #16723b;
+}
+
+.moderator-withdrawals__notice--error {
+  border: 1px solid #f0caca;
+  background: #fff5f5;
+  color: #c55252;
+}
+
+.moderator-withdrawals__summary {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 14px;
+  margin-top: 25px;
+}
+
+.moderator-balance-card,
+.moderator-withdrawal-stat {
+  min-height: 125px;
+  border: 1px solid #e1e9e4;
+  border-radius: 13px;
+  background: #ffffff;
+  padding: 18px;
+  box-shadow: 0 7px 22px rgba(15, 23, 42, 0.04);
+}
+
+.moderator-balance-card {
+  border-color: #bce9c9;
+  background: #effbf1;
+}
+
+.moderator-balance-card__icon {
+  display: flex;
+  height: 32px;
+  width: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #d7f2de;
+  color: #159447;
+}
+
+.moderator-balance-card span,
+.moderator-withdrawal-stat span {
+  display: block;
+  margin-top: 13px;
+  color: #77857c;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.moderator-balance-card strong,
+.moderator-withdrawal-stat strong {
+  display: block;
+  margin-top: 6px;
+  color: #17221d;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+
+.moderator-balance-card small,
+.moderator-withdrawal-stat small {
+  display: block;
+  margin-top: 4px;
+  color: #9aa69f;
+  font-size: 10px;
+}
+
+.moderator-withdrawals__layout {
+  display: grid;
+  grid-template-columns: minmax(290px, 0.75fr) minmax(0, 1.55fr);
+  align-items: start;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.moderator-withdrawal-form,
+.moderator-withdrawal-history {
+  border: 1px solid #e1e9e4;
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: 0 7px 22px rgba(15, 23, 42, 0.04);
+}
+
+.moderator-withdrawal-form {
+  padding: 19px;
+}
+
+.moderator-withdrawal-form__heading,
+.moderator-withdrawal-history__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.moderator-withdrawal-form__heading h2,
+.moderator-withdrawal-history__heading h2 {
+  margin: 0;
+  color: #334139;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.moderator-withdrawal-form__heading p,
+.moderator-withdrawal-history__heading p {
+  margin: 5px 0 0;
+  color: #9aa69f;
+  font-size: 10px;
+}
+
+.moderator-withdrawal-form__heading > svg {
+  color: #159447;
+}
+
+.moderator-withdrawal-form label {
+  display: block;
+  margin-top: 16px;
+  color: #526158;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.moderator-withdrawal-form input,
+.moderator-withdrawal-form select,
+.moderator-withdrawal-form textarea {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  border: 1px solid #dfe8e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #526158;
+  font-family: inherit;
+  font-size: 11px;
+  outline: none;
+  padding: 10px;
+}
+
+.moderator-withdrawal-form input:focus,
+.moderator-withdrawal-form select:focus,
+.moderator-withdrawal-form textarea:focus {
+  border-color: #8bc99a;
+  box-shadow: 0 0 0 3px rgba(21, 148, 71, 0.08);
+}
+
+.moderator-withdrawal-form textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.moderator-withdrawal-form label > small {
+  display: block;
+  margin-top: 5px;
+  color: #9aa69f;
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.moderator-optional {
+  color: #9aa69f;
+  font-weight: 400;
+}
+
+.moderator-amount-input,
+.moderator-input-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+  border: 1px solid #dfe8e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #9aa69f;
+  padding: 0 10px;
+}
+
+.moderator-amount-input:focus-within,
+.moderator-input-with-icon:focus-within {
+  border-color: #8bc99a;
+  box-shadow: 0 0 0 3px rgba(21, 148, 71, 0.08);
+}
+
+.moderator-amount-input input,
+.moderator-input-with-icon input {
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.moderator-amount-input span {
+  color: #159447;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.moderator-withdrawal-submit {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 20px;
+  border: 1px solid #159447;
+  border-radius: 8px;
+  background: #159447;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 11px;
+}
+
+.moderator-withdrawal-submit:hover {
+  background: #117b3a;
+}
+
+.moderator-withdrawal-history {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.moderator-withdrawal-history__heading {
+  padding: 19px;
+}
+
+.moderator-withdrawal-filters {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.moderator-withdrawal-filter {
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #718078;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  padding: 7px 9px;
+}
+
+.moderator-withdrawal-filter:hover {
+  background: #edf7ef;
+  color: #159447;
+}
+
+.moderator-withdrawal-filter--active {
+  background: #17221d;
+  color: #ffffff;
+}
+
+.moderator-withdrawal-table {
+  border-top: 1px solid #edf1ee;
+}
+
+.moderator-withdrawal-table__header,
+.moderator-withdrawal-table__row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 0.8fr 0.9fr 0.8fr;
+  align-items: center;
+  gap: 15px;
+  padding: 13px 19px;
+}
+
+.moderator-withdrawal-table__header {
+  background: #fbfcfb;
+  color: #9aa69f;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.moderator-withdrawal-table__row {
+  border-top: 1px solid #f0f3f1;
+  color: #526158;
+  font-size: 10px;
+}
+
+.moderator-withdrawal-table__row > div {
+  min-width: 0;
+}
+
+.moderator-withdrawal-table__row strong {
+  display: block;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderator-withdrawal-table__row small {
+  display: block;
+  margin-top: 4px;
+  color: #9aa69f;
+  font-size: 9px;
+}
+
+.moderator-withdrawal-date {
+  color: #89978f;
+  font-size: 10px;
+}
+
+.moderator-withdrawal-status {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 5px 8px;
+}
+
+.moderator-withdrawal-status--completed {
+  background: #eaf8ed;
+  color: #159447;
+}
+
+.moderator-withdrawal-status--pending {
+  background: #fff8e4;
+  color: #b68726;
+}
+
+.moderator-withdrawal-status--rejected {
+  background: #fff0f0;
+  color: #d35b5b;
+}
+
+.moderator-withdrawal-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 180px;
+  color: #9aa69f;
+}
+
+.moderator-withdrawal-empty strong {
+  color: #526158;
+  font-size: 12px;
+}
+
+.moderator-withdrawal-empty span {
+  font-size: 10px;
+}
+
+@media (max-width: 1050px) {
+  .moderator-withdrawals__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .moderator-withdrawal-form {
+    max-width: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .moderator-withdrawals {
+    padding: 20px 16px;
+  }
+
+  .moderator-withdrawals__header {
+    align-items: flex-start;
+  }
+
+  .moderator-withdrawals__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .moderator-withdrawal-table {
+    overflow-x: auto;
+  }
+
+  .moderator-withdrawal-table__header,
+  .moderator-withdrawal-table__row {
+    min-width: 680px;
+  }
+}
+
+@media (max-width: 560px) {
+  .moderator-withdrawals__header {
+    gap: 14px;
+  }
+
+  .moderator-withdrawals__header h1 {
+    font-size: 24px;
+  }
+
+  .moderator-withdrawal-history__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .moderator-withdrawal-filters {
+    justify-content: flex-start;
+  }
+}

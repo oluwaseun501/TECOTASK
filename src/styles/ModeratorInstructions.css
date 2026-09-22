@@ -1,0 +1,229 @@
+.moderator-instructions {
+  min-height: calc(100vh - 68px);
+  background: #f6f8f7;
+  padding: 30px 28px 45px;
+}
+
+.moderator-instructions__inner {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.moderator-instructions__header {
+  max-width: 620px;
+}
+
+.moderator-instructions__eyebrow {
+  color: #159447;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.moderator-instructions__header h1 {
+  margin: 7px 0 0;
+  color: #17221d;
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+
+.moderator-instructions__header p {
+  margin: 8px 0 0;
+  color: #89978f;
+  font-size: 13px;
+}
+
+.moderator-ai-monitor {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 27px;
+  border: 1px solid #bce9c9;
+  border-radius: 13px;
+  background: #effbf1;
+  padding: 19px;
+}
+
+.moderator-ai-monitor__icon {
+  display: flex;
+  height: 38px;
+  width: 38px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #d5f2dc;
+  color: #159447;
+}
+
+.moderator-ai-monitor__label {
+  color: #159447;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moderator-ai-monitor h2 {
+  margin: 5px 0 0;
+  color: #245b35;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.moderator-ai-monitor p {
+  max-width: 650px;
+  margin: 6px 0 0;
+  color: #5b7662;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.moderator-ai-monitor__status {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #159447;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 7px 9px;
+}
+
+.moderator-ai-monitor__status span {
+  height: 6px;
+  width: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.moderator-attention-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 15px;
+  border: 1px solid #f0dfae;
+  border-radius: 11px;
+  background: #fffdf3;
+  color: #a27b24;
+  padding: 15px 17px;
+}
+
+.moderator-attention-card > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.moderator-attention-card strong {
+  color: #86651f;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.moderator-attention-card p {
+  margin: 5px 0 0;
+  color: #927b43;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.moderator-instruction-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 15px;
+}
+
+.moderator-instruction-card {
+  border: 1px solid #e1e9e4;
+  border-radius: 13px;
+  background: #ffffff;
+  padding: 19px;
+  box-shadow: 0 7px 22px rgba(15, 23, 42, 0.04);
+}
+
+.moderator-instruction-card__icon {
+  display: flex;
+  height: 33px;
+  width: 33px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #e9f7ed;
+  color: #159447;
+}
+
+.moderator-instruction-card h2 {
+  margin: 14px 0 0;
+  color: #334139;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.moderator-instruction-card p {
+  margin: 6px 0 0;
+  color: #89978f;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.moderator-final-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 15px;
+  border-top: 1px solid #e1e9e4;
+  color: #159447;
+  padding: 18px 3px 0;
+}
+
+.moderator-final-note > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.moderator-final-note strong {
+  color: #526158;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.moderator-final-note p {
+  margin: 4px 0 0;
+  color: #89978f;
+  font-size: 10px;
+}
+
+@media (max-width: 760px) {
+  .moderator-instructions {
+    padding: 22px 16px 35px;
+  }
+
+  .moderator-ai-monitor {
+    flex-wrap: wrap;
+  }
+
+  .moderator-ai-monitor__status {
+    margin-left: 52px;
+  }
+
+  .moderator-instruction-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .moderator-instructions__header h1 {
+    font-size: 24px;
+  }
+
+  .moderator-ai-monitor__status {
+    margin-left: 0;
+  }
+}

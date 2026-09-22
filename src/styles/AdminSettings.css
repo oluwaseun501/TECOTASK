@@ -1,0 +1,513 @@
+.admin-settings-page {
+  min-height: 100%;
+  padding: 28px 24px 48px;
+  background: #f6f8f7;
+  color: #26342c;
+}
+
+.admin-settings-container {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.admin-settings-header {
+  margin-bottom: 24px;
+}
+
+.admin-settings-eyebrow {
+  display: block;
+  color: #159447;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.admin-settings-header h1 {
+  margin: 8px 0 0;
+  color: #17221d;
+  font-size: clamp(26px, 3vw, 35px);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+
+.admin-settings-header p {
+  margin: 9px 0 0;
+  color: #718078;
+  font-size: 14px;
+}
+
+.admin-settings-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(420px, 1.18fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.admin-settings-card {
+  border: 1px solid #e1e9e4;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.035);
+}
+
+.admin-settings-card-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 20px;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.admin-settings-heading-icon {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #eaf7ee;
+  color: #159447;
+}
+
+.admin-settings-card-heading h2 {
+  margin: 1px 0 0;
+  color: #26342c;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.admin-settings-card-heading p {
+  margin: 5px 0 0;
+  color: #89978f;
+  font-size: 11px;
+}
+
+/* Admin account card */
+
+.admin-account-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 20px;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.admin-account-avatar {
+  display: flex;
+  width: 47px;
+  height: 47px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #17221d;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-account-profile div {
+  display: grid;
+  gap: 5px;
+}
+
+.admin-account-profile strong {
+  color: #3d4d43;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-account-profile span:not(.admin-account-avatar) {
+  color: #89978f;
+  font-size: 10px;
+}
+
+.admin-account-details {
+  display: grid;
+  gap: 0;
+  padding: 0 20px;
+}
+
+.admin-account-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 0;
+  border-bottom: 1px solid #eff3f0;
+}
+
+.admin-account-detail:last-child {
+  border-bottom: 0;
+}
+
+.admin-account-detail-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #89978f;
+  font-size: 10px;
+}
+
+.admin-account-detail-label svg {
+  color: #159447;
+}
+
+.admin-account-detail > strong {
+  color: #536159;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: right;
+}
+
+.admin-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eaf7ee;
+  color: #21824a;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.admin-account-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 20px;
+  padding: 12px;
+  border: 1px solid #dcefe1;
+  border-radius: 9px;
+  background: #f4fbf5;
+  color: #5f8d6d;
+}
+
+.admin-account-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #159447;
+}
+
+.admin-account-note p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+/* Password card */
+
+.admin-password-form {
+  padding: 20px;
+}
+
+.admin-settings-field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.admin-settings-field > span {
+  color: #536159;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.admin-password-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.admin-password-input input {
+  width: 100%;
+  height: 39px;
+  padding: 0 42px 0 12px;
+  border: 1px solid #dfe8e1;
+  border-radius: 8px;
+  outline: 0;
+  background: #fbfcfb;
+  color: #536159;
+  font: inherit;
+  font-size: 11px;
+}
+
+.admin-password-input input::placeholder {
+  color: #a4afa9;
+}
+
+.admin-password-input input:focus {
+  border-color: #69bc84;
+  box-shadow: 0 0 0 3px #eaf7ee;
+}
+
+.admin-password-input button {
+  position: absolute;
+  right: 9px;
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: #89978f;
+  cursor: pointer;
+}
+
+.admin-password-input button:hover {
+  color: #159447;
+}
+
+/* Password strength */
+
+.admin-password-strength {
+  margin: -4px 0 17px;
+}
+
+.admin-password-strength-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
+.admin-password-strength-top > span {
+  color: #89978f;
+  font-size: 9px;
+}
+
+.admin-password-strength-label {
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.admin-password-strength-label--empty {
+  color: #89978f;
+}
+
+.admin-password-strength-label--weak {
+  color: #c25555;
+}
+
+.admin-password-strength-label--fair {
+  color: #b27b1e;
+}
+
+.admin-password-strength-label--strong {
+  color: #21824a;
+}
+
+.admin-password-strength-track {
+  display: block;
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf1ee;
+}
+
+.admin-password-strength-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+
+.admin-password-strength-fill--empty {
+  background: transparent;
+}
+
+.admin-password-strength-fill--weak {
+  background: #c25555;
+}
+
+.admin-password-strength-fill--fair {
+  background: #d49b35;
+}
+
+.admin-password-strength-fill--strong {
+  background: #159447;
+}
+
+/* Requirements */
+
+.admin-password-requirements {
+  margin: 4px 0 21px;
+  padding: 13px;
+  border: 1px solid #e5ece7;
+  border-radius: 9px;
+  background: #fbfcfb;
+}
+
+.admin-password-requirements > span {
+  color: #536159;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.admin-password-requirements ul {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-password-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #9aa69f;
+  font-size: 10px;
+}
+
+.admin-password-requirements li svg {
+  color: #c0cbc3;
+}
+
+.admin-password-requirements li.admin-password-requirement--valid {
+  color: #21824a;
+}
+
+.admin-password-requirements li.admin-password-requirement--valid svg {
+  color: #159447;
+}
+
+/* Messages */
+
+.admin-settings-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 18px 20px 0;
+  padding: 11px 12px;
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.admin-settings-message svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.admin-settings-message--error {
+  border: 1px solid #f0caca;
+  background: #fff7f7;
+  color: #c25555;
+}
+
+.admin-settings-message--success {
+  border: 1px solid #bde5c9;
+  background: #f0fbf3;
+  color: #21824a;
+}
+
+/* Form footer */
+
+.admin-password-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding-top: 17px;
+  border-top: 1px solid #edf1ee;
+}
+
+.admin-password-form-footer p {
+  max-width: 245px;
+  margin: 0;
+  color: #9aa69f;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.admin-save-password-button {
+  display: inline-flex;
+  min-height: 37px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid #159447;
+  border-radius: 8px;
+  background: #159447;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.admin-save-password-button:hover {
+  background: #08752f;
+}
+
+.admin-save-password-button:focus-visible,
+.admin-password-input button:focus-visible {
+  outline: 3px solid #cdebd4;
+  outline-offset: 2px;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .admin-settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-account-card {
+    max-width: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-settings-page {
+    padding: 22px 14px 38px;
+  }
+
+  .admin-settings-card-heading {
+    padding: 17px;
+  }
+
+  .admin-account-profile {
+    padding: 19px 17px;
+  }
+
+  .admin-account-details {
+    padding: 0 17px;
+  }
+
+  .admin-account-note {
+    margin: 17px;
+  }
+
+  .admin-password-form {
+    padding: 17px;
+  }
+
+  .admin-account-detail {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .admin-account-detail > strong {
+    text-align: left;
+  }
+
+  .admin-password-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-password-form-footer p {
+    max-width: none;
+  }
+
+  .admin-save-password-button {
+    width: 100%;
+  }
+}
