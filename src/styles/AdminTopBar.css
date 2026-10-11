@@ -237,3 +237,320 @@
     width: auto;
   }
 }
+
+/* Sticky top bar and clickable admin profile menu */
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(12px);
+}
+
+.admin-menu-button,
+.admin-refresh-button,
+.admin-notification-button,
+.admin-topbar-avatar {
+  cursor: pointer;
+}
+
+.admin-menu-button {
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  padding: 6px;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.admin-menu-button:hover {
+  background: #f0f6f2;
+  color: var(--admin-green-dark);
+}
+
+.admin-refresh-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.admin-notification-button {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.admin-profile-wrapper {
+  position: relative;
+}
+
+.admin-topbar-avatar {
+  width: auto;
+  height: auto;
+  padding: 0 1px;
+  border-radius: 999px;
+  background: transparent;
+  color: #64748b;
+  transition: color 160ms ease;
+}
+
+.admin-topbar-avatar:hover {
+  color: var(--admin-green-dark);
+}
+
+.admin-topbar-avatar__initials {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #15251e;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.admin-menu-button:focus-visible,
+.admin-refresh-button:focus-visible,
+.admin-notification-button:focus-visible,
+.admin-topbar-avatar:focus-visible,
+.admin-account-menu a:focus-visible,
+.admin-account-menu button:focus-visible {
+  outline: 3px solid #cdebd4;
+  outline-offset: 2px;
+}
+
+.admin-account-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  width: 230px;
+  padding: 8px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 14px 36px rgba(22, 49, 35, 0.14);
+  font-family: "Poppins", sans-serif;
+}
+
+.admin-account-menu__identity {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-bottom: 1px solid #eef2ef;
+}
+
+.admin-account-menu__identity strong {
+  overflow: hidden;
+  color: var(--admin-text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account-menu__identity span {
+  overflow: hidden;
+  color: var(--admin-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account-menu > a,
+.admin-account-menu > button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.admin-account-menu > a:hover {
+  background: #f0fdf4;
+  color: var(--admin-green);
+}
+
+.admin-account-menu > button:hover {
+  background: #fff5f5;
+  color: #c2413a;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .admin-account-menu {
+    animation: adminAccountMenuEnter 160ms ease-out both;
+  }
+}
+
+@keyframes adminAccountMenuEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-account-menu {
+    position: fixed;
+    top: 70px;
+    right: 12px;
+    width: min(230px, calc(100vw - 24px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-spin,
+  .admin-account-menu,
+  .admin-menu-button,
+  .admin-refresh-button,
+  .admin-notification-button,
+  .admin-topbar-avatar,
+  .admin-account-menu > a,
+  .admin-account-menu > button {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.admin-profile-wrapper {
+  position: relative;
+}
+
+.admin-topbar-avatar {
+  width: auto;
+  height: auto;
+  padding: 0 1px;
+  border-radius: 999px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.admin-topbar-avatar__initials {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #15251e;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.admin-account-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  width: 230px;
+  padding: 8px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 14px 36px rgba(22, 49, 35, 0.14);
+  font-family: "Poppins", sans-serif;
+}
+
+.admin-account-menu__identity {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-bottom: 1px solid #eef2ef;
+}
+
+.admin-account-menu__identity strong,
+.admin-account-menu__identity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account-menu__identity strong {
+  color: var(--admin-text);
+  font-size: 12px;
+}
+
+.admin-account-menu__identity span {
+  color: var(--admin-muted);
+  font-size: 10px;
+}
+
+.admin-account-menu > a,
+.admin-account-menu > button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  text-decoration: none;
+}
+
+.admin-account-menu > a:hover {
+  background: #f0fdf4;
+  color: var(--admin-green);
+}
+
+.admin-account-menu > button:hover {
+  background: #fff5f5;
+  color: #c2413a;
+}
+
+@media (max-width: 760px) {
+  .admin-account-menu {
+    position: fixed;
+    top: 70px;
+    right: 12px;
+    width: min(230px, calc(100vw - 24px));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .admin-account-menu {
+    animation: adminAccountMenuEnter 160ms ease-out both;
+  }
+}
+
+@keyframes adminAccountMenuEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-account-menu {
+    animation: none;
+  }
+}

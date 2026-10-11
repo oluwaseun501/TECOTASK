@@ -1,8 +1,34 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { authApi } from "../../services/auth.js";
 import "../../styles/EarnersSettings.css";
 
+function getInitials(fullName = "") {
+  return (
+    fullName
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "TT"
+  );
+}
+
+function displayRole(role = "") {
+  return role
+    ? role.charAt(0).toUpperCase() + role.slice(1)
+    : "—";
+}
+
 const EarnersSettings = () => {
+  const navigate = useNavigate();
+
+  const [account, setAccount] = useState(null);
+  const [loadingAccount, setLoadingAccount] = useState(true);
+  const [accountError, setAccountError] = useState("");
+
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -13,7 +39,48 @@ const EarnersSettings = () => {
     confirmPassword: "",
   });
 
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({
+    type: "",
+    text: "",
+  });
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSettings() {
+      const token = sessionStorage.getItem("tecotaskToken");
+
+      if (!token) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      try {
+        const data = await authApi.getSettings(token);
+
+        if (isMounted) {
+          setAccount(data.account || null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setAccountError(
+            error.message || "Could not load account settings.",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingAccount(false);
+        }
+      }
+    }
+
+    loadSettings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -23,32 +90,84 @@ const EarnersSettings = () => {
       [name]: value,
     }));
 
-    setMessage("");
+    setMessage({
+      type: "",
+      text: "",
+    });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (passwords.newPassword !== passwords.confirmPassword) {
-      setMessage("Your new passwords do not match.");
+      setMessage({
+        type: "error",
+        text: "Your new passwords do not match.",
+      });
       return;
     }
 
     if (passwords.newPassword.length < 8) {
-      setMessage("Your new password must be at least 8 characters.");
+      setMessage({
+        type: "error",
+        text: "Your new password must be at least 8 characters.",
+      });
       return;
     }
 
-    // Temporary front-end success state.
-    // Connect this to your backend later.
-    setMessage("Your password has been updated successfully.");
+    if (passwords.currentPassword === passwords.newPassword) {
+      setMessage({
+        type: "error",
+        text: "Your new password must differ from your current password.",
+      });
+      return;
+    }
 
-    setPasswords({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
+    const token = sessionStorage.getItem("tecotaskToken");
+
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    setSavingPassword(true);
+    setMessage({
+      type: "",
+      text: "",
     });
+
+    try {
+      const result = await authApi.updatePassword(
+        {
+          currentPassword: passwords.currentPassword,
+          newPassword: passwords.newPassword,
+          confirmPassword: passwords.confirmPassword,
+        },
+        token,
+      );
+
+      setMessage({
+        type: "success",
+        text: result.message || "Password updated successfully.",
+      });
+
+      setPasswords({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error.message || "Could not update your password.",
+      });
+    } finally {
+      setSavingPassword(false);
+    }
   };
+
+  const accountStatus =
+    account?.accountStatus === "active" ? "Active" : "Inactive";
 
   return (
     <section className="earner-settings">
@@ -71,30 +190,42 @@ const EarnersSettings = () => {
             <span className="settings-card__icon">◉</span>
           </div>
 
+          {accountError && (
+            <p className="settings-message settings-message--error" role="alert">
+              {accountError}
+            </p>
+          )}
+
           <div className="settings-account">
-            <div className="settings-account__avatar">CO</div>
+            <div className="settings-account__avatar">
+              {getInitials(account?.fullName)}
+            </div>
 
             <div>
-              <strong>Chinedu Okafor</strong>
-              <span>chinedu@example.com</span>
+              <strong>
+                {loadingAccount ? "Loading..." : account?.fullName || "—"}
+              </strong>
+              <span>{account?.email || ""}</span>
             </div>
           </div>
 
           <div className="settings-detail-row">
             <span>Account ID</span>
-            <strong>TT-48219</strong>
+            <strong>{account?.id || "—"}</strong>
           </div>
 
           <div className="settings-detail-row">
             <span>Role</span>
-            <strong className="settings-role">Earner</strong>
+            <strong className="settings-role">
+              {displayRole(account?.role)}
+            </strong>
           </div>
 
           <div className="settings-detail-row">
             <span>Account status</span>
             <strong className="settings-status">
               <span />
-              Active
+              {loadingAccount ? "Loading..." : accountStatus}
             </strong>
           </div>
         </article>
@@ -109,7 +240,10 @@ const EarnersSettings = () => {
             <span className="settings-card__icon">◆</span>
           </div>
 
-          <form className="settings-password-form" onSubmit={handleSubmit}>
+          <form
+            className="settings-password-form"
+            onSubmit={handleSubmit}
+          >
             <div className="settings-field">
               <label htmlFor="currentPassword">Current password</label>
 
@@ -128,7 +262,7 @@ const EarnersSettings = () => {
                 <button
                   type="button"
                   onClick={() =>
-                    setShowCurrentPassword(!showCurrentPassword)
+                    setShowCurrentPassword((visible) => !visible)
                   }
                   aria-label={
                     showCurrentPassword
@@ -159,7 +293,9 @@ const EarnersSettings = () => {
 
                 <button
                   type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  onClick={() =>
+                    setShowNewPassword((visible) => !visible)
+                  }
                   aria-label={
                     showNewPassword
                       ? "Hide new password"
@@ -190,7 +326,7 @@ const EarnersSettings = () => {
                 <button
                   type="button"
                   onClick={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
+                    setShowConfirmPassword((visible) => !visible)
                   }
                   aria-label={
                     showConfirmPassword
@@ -203,20 +339,21 @@ const EarnersSettings = () => {
               </div>
             </div>
 
-            {message && (
+            {message.text && (
               <p
-                className={`settings-message ${
-                  message.includes("successfully")
-                    ? "settings-message--success"
-                    : "settings-message--error"
-                }`}
+                className={`settings-message settings-message--${message.type}`}
+                role={message.type === "error" ? "alert" : "status"}
               >
-                {message}
+                {message.text}
               </p>
             )}
 
-            <button type="submit" className="settings-save-button">
-              Update password
+            <button
+              type="submit"
+              className="settings-save-button"
+              disabled={savingPassword}
+            >
+              {savingPassword ? "Updating..." : "Update password"}
               <span>→</span>
             </button>
           </form>

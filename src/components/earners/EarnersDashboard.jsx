@@ -1,89 +1,188 @@
 import { useState } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import { authApi } from "../../services/auth.js";
 import "../../styles/EarnersDashboard.css";
 
-const tasks = [
-  {
-    id: 1,
-    icon: "◎",
-    iconColor: "green",
-    title: "Follow @PaySwiftNG on Instagram",
-    brand: "PaySwift",
-    type: "Social Media",
-    time: "1 min",
-    slots: "184 slots left",
-    reward: "₦10",
-    description:
-      "Follow the page and keep the follow for at least 14 days.",
-  },
-  {
-    id: 2,
-    icon: "↗",
-    iconColor: "blue",
-    title: "Retweet and comment on a launch post",
-    brand: "Naija Deals",
-    type: "Social Media",
-    time: "2 min",
-    slots: "97 slots left",
-    reward: "₦15",
-  },
-  {
-    id: 3,
-    icon: "▣",
-    iconColor: "purple",
-    title: "Install the Bloom Savings app and open it",
-    brand: "Bloom Savings",
-    type: "App Install",
-    time: "4 min",
-    slots: "62 slots left",
-    reward: "₦20",
-  },
-  {
-    id: 4,
-    icon: "✦",
-    iconColor: "orange",
-    title: "Answer a six-question data plan survey",
-    brand: "Telco Insights",
-    type: "Survey",
-    time: "5 min",
-    slots: "143 slots left",
-    reward: "₦25",
-  },
-];
+const formatNaira = (amount = 0) =>
+  `₦${Number(amount).toLocaleString("en-NG")}`;
+
+const taskColors = ["green", "blue", "purple", "orange"];
 
 const EarnersDashboard = () => {
-  const [activeTask, setActiveTask] = useState(tasks[0]);
-  const [taskStarted, setTaskStarted] = useState(false);
+  const navigate = useNavigate();
 
-  const handleTaskSelect = (task) => {
-    setActiveTask(task);
+  const {
+    dashboard,
+    setDashboard,
+    isDashboardLoading: isLoading,
+    dashboardError,
+  } = useOutletContext();
+
+  const [activeTaskId, setActiveTaskId] = useState(null);
+  const [taskStarted, setTaskStarted] = useState(false);
+  const [activeSubmissionId, setActiveSubmissionId] = useState(null);
+  const [showProofForm, setShowProofForm] = useState(false);
+  const [proofUrl, setProofUrl] = useState("");
+  const [proofNote, setProofNote] = useState("");
+  const [isTaskActionLoading, setIsTaskActionLoading] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const [actionMessage, setActionMessage] = useState("");
+
+  
+
+if (isLoading) {
+  return (
+    <div className="earner-loading" role="status" aria-live="polite">
+      <span className="earner-loading__roller" aria-hidden="true">
+        <span />
+      </span>
+      <span className="earner-loading__sr-only">
+        Loading your dashboard
+      </span>
+    </div>
+  );
+}
+
+  if (dashboardError) {
+    return (
+      <div className="earner-dashboard">
+        <div className="role-error" role="alert">
+          {dashboardError}
+        </div>
+      </div>
+    );
+  }
+
+  const stats = dashboard?.stats || {};
+  const progress = dashboard?.progress || {};
+  const tasks = dashboard?.taskQueue || [];
+  const recentSubmissions = dashboard?.recentSubmissions || [];
+
+  const activeTask =
+    tasks.find((task) => task.id === activeTaskId) || tasks[0] || null;
+
+ const handleTaskSelect = (task) => {
+  if (activeSubmissionId) return;
+
+  setActiveTaskId(task.id);
+  setTaskStarted(false);
+  setActionError("");
+  setActionMessage("");
+};
+
+  const handleStartTask = async () => {
+  if (!activeTask || isTaskActionLoading) return;
+
+  const token = sessionStorage.getItem("tecotaskToken");
+
+  if (!token) {
+    navigate("/login", { replace: true });
+    return;
+  }
+
+  setIsTaskActionLoading(true);
+  setActionError("");
+  setActionMessage("");
+
+  try {
+    const result = await authApi.startEarnerTask(
+      activeTask.id,
+      token,
+    );
+
+    setActiveSubmissionId(result.submission.id);
+    setTaskStarted(true);
+    setActionMessage(result.message || "Task started.");
+  } catch (error) {
+    setActionError(error.message || "Could not start this task.");
+  } finally {
+    setIsTaskActionLoading(false);
+  }
+};
+
+const handleSubmitProof = async (event) => {
+  event.preventDefault();
+
+  if (!activeSubmissionId || isTaskActionLoading) return;
+
+  const token = sessionStorage.getItem("tecotaskToken");
+
+  if (!token) {
+    navigate("/login", { replace: true });
+    return;
+  }
+
+  setIsTaskActionLoading(true);
+  setActionError("");
+  setActionMessage("");
+
+  try {
+    const result = await authApi.submitEarnerProof(
+      activeSubmissionId,
+      { proofUrl, proofNote },
+      token,
+    );
+
+    setActionMessage(result.message || "Proof submitted.");
+    setActiveSubmissionId(null);
     setTaskStarted(false);
-  };
+    setShowProofForm(false);
+    setProofUrl("");
+    setProofNote("");
+
+        try {
+      const updatedDashboard =
+        await authApi.getEarnerDashboard(token);
+
+      setDashboard((current) => ({
+        ...updatedDashboard,
+        stats: {
+          ...updatedDashboard.stats,
+          walletBalance:
+            current?.stats?.walletBalance ??
+            updatedDashboard.stats?.walletBalance ??
+            0,
+        },
+      }));
+
+      setActiveTaskId(updatedDashboard.taskQueue?.[0]?.id || null);
+    } catch {
+      setActionError(
+        "Proof was submitted, but the dashboard could not refresh. Reload the page to see the update.",
+      );
+    }
+  } catch (error) {
+    setActionError(error.message || "Could not submit proof.");
+  } finally {
+    setIsTaskActionLoading(false);
+  }
+};
 
   return (
     <div className="earner-dashboard">
       <section className="earner-stat-grid">
         <article className="earner-stat-card earner-stat-card--green">
           <span>Wallet balance</span>
-          <strong>₦4,235</strong>
+          <strong>{formatNaira(stats.walletBalance)}</strong>
           <small>Withdraw from ₦2,000</small>
         </article>
 
         <article className="earner-stat-card">
           <span>Earned this session</span>
-          <strong>₦0</strong>
-          <small>0 submissions sent</small>
+          <strong>{formatNaira(stats.earnedThisSession)}</strong>
+          <small>{stats.submissionsSent || 0} submissions sent</small>
         </article>
 
         <article className="earner-stat-card">
           <span>Pending review</span>
-          <strong>0</strong>
+          <strong>{stats.pendingReview || 0}</strong>
           <small>Approved within 30 minutes</small>
         </article>
 
         <article className="earner-stat-card">
           <span>Referral earnings</span>
-          <strong>₦800</strong>
-          <small>4 friends activated</small>
+          <strong>{formatNaira(stats.referralEarnings)}</strong>
+          <small>{stats.activatedReferrals || 0} friends activated</small>
         </article>
       </section>
 
@@ -93,115 +192,196 @@ const EarnersDashboard = () => {
           <p>Finish the task at the top, then move straight to the next one.</p>
         </div>
 
-        <span>0 of 5 done</span>
+        <span>
+          {progress.completed || 0} of {progress.total || 0} done
+        </span>
       </div>
 
-      <div className="earner-dashboard__grid">
-        <section>
-          <article className="earner-featured-task">
-            <div className="earner-featured-task__meta">
-              <span className="earner-task-badge">↗ Up next</span>
-              <span>{activeTask.type}</span>
-              <span>· {activeTask.time}</span>
-              <span>· {activeTask.slots}</span>
-            </div>
-
-            <div className="earner-featured-task__content">
-              <div>
-                <h3>{activeTask.title}</h3>
-
-                <p>
-                  {activeTask.brand} is looking for genuine community
-                  engagement on a new campaign launch.
-                </p>
-
-                <p>
-                  {activeTask.description ||
-                    "Complete the instructions and upload your proof when finished."}
-                </p>
+      {activeTask ? (
+        <div className="earner-dashboard__grid">
+          <section>
+            <article className="earner-featured-task">
+              <div className="earner-featured-task__meta">
+                <span className="earner-task-badge">↗ Up next</span>
+                <span>{activeTask.type}</span>
+                <span>· {activeTask.estimatedMinutes} min</span>
+                <span>· {activeTask.slotsLeft} slots left</span>
               </div>
 
-              <div className="earner-featured-task__reward">
-                <strong>{activeTask.reward}</strong>
-                <span>per approved proof</span>
+              <div className="earner-featured-task__content">
+                <div>
+                  <h3>{activeTask.title}</h3>
+
+                  <p>
+                    {activeTask.brand} is looking for genuine community
+                    engagement on a new campaign launch.
+                  </p>
+
+                  <p>
+                    {activeTask.description ||
+                      "Complete the instructions and upload your proof when finished."}
+                  </p>
+                </div>
+
+                <div className="earner-featured-task__reward">
+                  <strong>{formatNaira(activeTask.rewardAmount)}</strong>
+                  <span>per approved proof</span>
+                </div>
               </div>
+
+              <div className="earner-featured-task__actions">
+                <button
+  type="button"
+  className="earner-primary-button"
+  onClick={handleStartTask}
+  disabled={taskStarted || isTaskActionLoading}
+>
+  {isTaskActionLoading
+    ? "Starting..."
+    : taskStarted
+      ? "Task started"
+      : "Start this task"}
+  <span>→</span>
+</button>
+
+<button
+  type="button"
+  className="earner-secondary-button"
+  onClick={() => setShowProofForm(true)}
+  disabled={!activeSubmissionId || isTaskActionLoading}
+>
+  Upload proof
+</button>
+{actionError && (
+  <p className="role-error" role="alert">
+    {actionError}
+  </p>
+)}
+
+{actionMessage && (
+  <p role="status">
+    {actionMessage}
+  </p>
+)}
+
+{showProofForm && activeSubmissionId && (
+  <form onSubmit={handleSubmitProof}>
+    <label>
+      Proof link
+      <input
+        type="url"
+        value={proofUrl}
+        onChange={(event) => setProofUrl(event.target.value)}
+        placeholder="https://..."
+        required
+      />
+    </label>
+
+    <label>
+      Note (optional)
+      <textarea
+        value={proofNote}
+        onChange={(event) => setProofNote(event.target.value)}
+        maxLength={2000}
+      />
+    </label>
+
+    <button type="submit" disabled={isTaskActionLoading}>
+      {isTaskActionLoading ? "Submitting..." : "Submit proof"}
+    </button>
+  </form>
+)}
+              </div>
+            </article>
+
+            <div className="earner-task-list">
+              {tasks
+                .filter((task) => task.id !== activeTask.id)
+                .map((task, index) => (
+                  <button
+                    type="button"
+                    key={task.id}
+                    className="earner-task-row"
+                    onClick={() => handleTaskSelect(task)}
+                  >
+                    <span
+                      className={`earner-task-icon ${
+                        taskColors[index % taskColors.length]
+                      }`}
+                    >
+                      {index + 2}
+                    </span>
+
+                    <span className="earner-task-row__details">
+                      <strong>{task.title}</strong>
+                      <small>
+                        {task.brand} · {task.type} · {task.estimatedMinutes} min
+                      </small>
+                    </span>
+
+                    <span className="earner-task-row__reward">
+                      {formatNaira(task.rewardAmount)}
+                    </span>
+
+                    <span className="earner-task-row__arrow">→</span>
+                  </button>
+                ))}
             </div>
-
-            <div className="earner-featured-task__actions">
-              <button
-                type="button"
-                className="earner-primary-button"
-                onClick={() => setTaskStarted(true)}
-              >
-                {taskStarted ? "Task started" : "Start this task"}
-                <span>→</span>
-              </button>
-
-              <button type="button" className="earner-secondary-button">
-                Upload proof
-              </button>
-            </div>
-          </article>
-
-          <div className="earner-task-list">
-            {tasks.slice(1).map((task, index) => (
-              <button
-                type="button"
-                key={task.id}
-                className="earner-task-row"
-                onClick={() => handleTaskSelect(task)}
-              >
-                <span className={`earner-task-icon ${task.iconColor}`}>
-                  {index + 2}
-                </span>
-
-                <span className="earner-task-row__details">
-                  <strong>{task.title}</strong>
-                  <small>
-                    {task.brand} · {task.type} · {task.time}
-                  </small>
-                </span>
-
-                <span className="earner-task-row__reward">
-                  {task.reward}
-                </span>
-
-                <span className="earner-task-row__arrow">→</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <aside className="earner-dashboard__side">
-          <section className="earner-panel">
-            <h3>Session progress</h3>
-            <p>Clear all 5 tasks to unlock the bonus board.</p>
-
-            <strong className="earner-progress-number">0%</strong>
-
-            <div className="earner-progress-bar">
-              <span />
-            </div>
-
-            <small>
-              Potential from remaining tasks: <strong>₦100</strong>
-            </small>
           </section>
 
-          <section className="earner-panel earner-submissions">
-            <h3>Recent submissions</h3>
+          <aside className="earner-dashboard__side">
+            <section className="earner-panel">
+              <h3>Session progress</h3>
+              <p>Clear all tasks to unlock the bonus board.</p>
 
-            <div className="earner-empty-state">
-              <span>▣</span>
-              <strong>No submissions yet</strong>
-              <p>
-                Finish the task above and upload your screenshot to see it
-                here.
-              </p>
-            </div>
-          </section>
-        </aside>
-      </div>
+              <strong className="earner-progress-number">
+                {progress.percent || 0}%
+              </strong>
+
+              <div className="earner-progress-bar">
+                <span
+                  style={{
+                    width: `${progress.percent || 0}%`,
+                  }}
+                />
+              </div>
+
+              <small>
+                Potential from remaining tasks:{" "}
+                <strong>{formatNaira(progress.potentialReward)}</strong>
+              </small>
+            </section>
+
+            <section className="earner-panel earner-submissions">
+              <h3>Recent submissions</h3>
+
+              {recentSubmissions.length === 0 ? (
+                <div className="earner-empty-state">
+                  <span>▣</span>
+                  <strong>No submissions yet</strong>
+                  <p>
+                    Finish the task above and upload your proof to see it here.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  {recentSubmissions.map((submission) => (
+                    <div key={submission.id}>
+                      <strong>{submission.task?.title}</strong>
+                      <p>Status: {submission.status}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </aside>
+        </div>
+      ) : (
+        <div className="earner-empty-state">
+          <strong>No tasks are available right now.</strong>
+          <p>New tasks will appear here when they become available.</p>
+        </div>
+      )}
     </div>
   );
 };

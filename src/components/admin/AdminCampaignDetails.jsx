@@ -7,57 +7,310 @@ import {
   Megaphone,
   WalletCards,
 } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-import { adminCampaigns } from "../data/adminCampaignData";
+import {
+  approveAdminCampaign,
+  getAdminCampaign,
+  rejectAdminCampaign,
+  saveAdminCampaignReviewNotes,
+} from "../data/adminCampaignApi.js";
 
 import "../../styles/AdminCampaigns.css";
 
 const statusClasses = {
-  Published: "campaign-status campaign-status--published",
-  "Pending review": "campaign-status campaign-status--pending",
-  "Needs changes": "campaign-status campaign-status--changes",
-  Paused: "campaign-status campaign-status--paused",
+  pending_review: "campaign-status campaign-status--pending",
+  active: "campaign-status campaign-status--published",
+  paused: "campaign-status campaign-status--paused",
+  completed: "campaign-status campaign-status--published",
+  rejected: "campaign-status campaign-status--changes",
+  draft: "campaign-status campaign-status--paused",
+  cancelled: "campaign-status campaign-status--changes",
 };
+
+const statusLabels = {
+  draft: "Draft",
+  pending_review: "Pending review",
+  active: "Published",
+  paused: "Paused",
+  completed: "Completed",
+  rejected: "Rejected",
+  cancelled: "Cancelled",
+};
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-NG", {
+    dateStyle: "medium",
+  }).format(date);
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-NG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
 
 export default function AdminCampaignDetails({
   basePath = "/admin",
 }) {
   const { campaignId } = useParams();
-  const navigate = useNavigate();
 
-  const campaign = adminCampaigns.find(
-    (item) => item.id === campaignId
-  );
+  const [campaign, setCampaign] = useState(null);
+  const [adminTaskInstructions, setAdminTaskInstructions] =
+    useState("");
+  const [adminPrivateNote, setAdminPrivateNote] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
-  const [adminInstructions, setAdminInstructions] = useState(
-    campaign?.adminInstructions || ""
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCampaign() {
+      setLoading(true);
+      setError("");
+      setNotice("");
+
+      try {
+        const result = await getAdminCampaign(campaignId);
+
+        if (cancelled) {
+          return;
+        }
+
+        setCampaign(result);
+        setAdminTaskInstructions(
+          result.adminTaskInstructions || "",
+        );
+        setAdminPrivateNote(result.adminPrivateNote || "");
+        setRejectionReason(result.rejectionReason || "");
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(
+            loadError.message || "Could not load this campaign.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadCampaign();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [campaignId]);
+
+  const mergeCampaignUpdate = (updatedCampaign) => {
+    setCampaign((current) => ({
+      ...current,
+      ...updatedCampaign,
+      submissionCounts:
+        updatedCampaign.submissionCounts ||
+        current?.submissionCounts ||
+        {
+          started: 0,
+          submitted: 0,
+          approved: 0,
+          rejected: 0,
+        },
+    }));
+  };
+
+  const handleSaveNotes = async () => {
+    setBusy("save");
+    setError("");
+    setNotice("");
+
+    try {
+      const updatedCampaign =
+        await saveAdminCampaignReviewNotes(campaignId, {
+          adminTaskInstructions,
+          adminPrivateNote,
+        });
+
+      mergeCampaignUpdate(updatedCampaign);
+      setNotice("Review notes saved.");
+    } catch (saveError) {
+      setError(
+        saveError.message || "Could not save review notes.",
+      );
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const handleApprove = async () => {
+    const confirmed = window.confirm(
+      "Approve and publish this campaign? An earner task will be created.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setBusy("approve");
+    setError("");
+    setNotice("");
+
+    try {
+      const result = await approveAdminCampaign(campaignId, {
+        adminTaskInstructions,
+        adminPrivateNote,
+      });
+
+      mergeCampaignUpdate(result.campaign);
+      setNotice(
+        result.message || "Campaign approved and published.",
+      );
+    } catch (approveError) {
+      setError(
+        approveError.message || "Could not approve this campaign.",
+      );
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const handleReject = async () => {
+    const reason = rejectionReason.trim();
+
+    if (!reason) {
+      setError(
+        "Enter a rejection reason. The advertiser will be able to see it.",
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Reject this campaign? The rejection reason will be shown to the advertiser and the unused reserved funds will be refunded.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setBusy("reject");
+    setError("");
+    setNotice("");
+
+    try {
+      const result = await rejectAdminCampaign(campaignId, {
+        rejectionReason: reason,
+        adminTaskInstructions,
+        adminPrivateNote,
+      });
+
+      mergeCampaignUpdate(result.campaign);
+      setNotice(
+        result.message ||
+          "Campaign rejected and reserved funds refunded.",
+      );
+    } catch (rejectError) {
+      setError(
+        rejectError.message || "Could not reject this campaign.",
+      );
+    } finally {
+      setBusy("");
+    }
+  };
+
+if (loading) {
+  return (
+    <main className="admin-campaigns-page">
+      <div className="admin-campaigns-container">
+        <div
+          className="campaign-loading campaign-loading--page"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="campaign-loading__roller" aria-hidden="true" />
+          <span>Loading campaign details…</span>
+          <small>Fetching campaign information for review.</small>
+        </div>
+      </div>
+    </main>
   );
+}
 
   if (!campaign) {
     return (
       <main className="admin-campaigns-page">
-        <div className="campaign-not-found">
-          <h1>Campaign not found</h1>
-          <p>The campaign you are looking for does not exist.</p>
-
-          <Link to={`${basePath}/campaigns`}>
-            Return to campaigns
-          </Link>
+        <div className="admin-campaigns-container">
+          <div className="campaign-not-found">
+            <h1>Campaign not found</h1>
+            <p>{error || "This campaign could not be loaded."}</p>
+            <Link to={`${basePath}/campaigns`}>
+              Return to campaigns
+            </Link>
+          </div>
         </div>
       </main>
     );
   }
 
-  const progress = Math.round(
-    (campaign.approved / campaign.totalSlots) * 100
+  const counts = campaign.submissionCounts || {};
+  const approvedCount = Number(
+    counts.approved ?? campaign.completedQuantity ?? 0,
   );
+  const pendingCount = Number(counts.submitted || 0);
+  const rejectedCount = Number(counts.rejected || 0);
+  const totalSlots = Number(campaign.targetQuantity || 0);
 
-  const handleAction = (action) => {
-    window.alert(`Campaign ${action}.`);
-    navigate(`${basePath}/campaigns`);
-  };
+  const progress = totalSlots
+    ? Math.min(
+        Math.round((approvedCount / totalSlots) * 100),
+        100,
+      )
+    : 0;
+
+  const isPendingReview =
+    campaign.status === "pending_review";
+
+  const advertiserInstructions = Array.isArray(
+    campaign.instructions,
+  )
+    ? campaign.instructions.join("\n")
+    : String(campaign.instructions || "");
+
+  const statusLabel =
+    statusLabels[campaign.status] || campaign.status;
 
   return (
     <main className="admin-campaigns-page">
@@ -69,6 +322,33 @@ export default function AdminCampaignDetails({
           <ArrowLeft size={15} />
           Back to campaigns
         </Link>
+
+      {error && (
+  <div className="campaign-feedback campaign-feedback--error" role="alert">
+    {error}
+  </div>
+)}
+
+{notice && (
+  <div className="campaign-feedback campaign-feedback--success" role="status">
+    {notice}
+  </div>
+)}
+
+        {notice && (
+          <div
+            role="status"
+            style={{
+              margin: "12px 0",
+              padding: 12,
+              color: "#17663a",
+              background: "#edf8f0",
+              borderRadius: 8,
+            }}
+          >
+            {notice}
+          </div>
+        )}
 
         <section className="campaign-detail-header">
           <div className="campaign-detail-title">
@@ -84,34 +364,48 @@ export default function AdminCampaignDetails({
               <h1>{campaign.name}</h1>
 
               <p>
-                Submitted by {campaign.advertiser} · {campaign.created}
+                Submitted by{" "}
+                {campaign.advertiser?.fullName ||
+                  "Unknown advertiser"}{" "}
+                · {formatDate(campaign.submittedAt)}
               </p>
             </div>
           </div>
 
-          <span className={statusClasses[campaign.status]}>
+          <span
+            className={
+              statusClasses[campaign.status] ||
+              statusClasses.draft
+            }
+          >
             <i />
-            {campaign.status}
+            {statusLabel}
           </span>
         </section>
 
         <section className="campaign-detail-stat-grid">
           <article>
-            <p>Price per person</p>
-            <strong>₦{campaign.rewardPerPerson}</strong>
-            <span>Admin-approved service price</span>
+            <p>Earner reward per person</p>
+            <strong>
+              {formatCurrency(
+                campaign.pricing?.earnerRewardPerPerson,
+              )}
+            </strong>
+            <span>Reward for each approved submission</span>
           </article>
 
           <article>
             <p>Total budget</p>
-            <strong>₦{campaign.totalBudget}</strong>
-            <span>Based on available slots</span>
+            <strong>
+              {formatCurrency(campaign.pricing?.totalBudget)}
+            </strong>
+            <span>Advertiser-funded campaign budget</span>
           </article>
 
           <article>
             <p>Available slots</p>
-            <strong>{campaign.totalSlots}</strong>
-            <span>{campaign.approved} already approved</span>
+            <strong>{campaign.remainingQuantity ?? totalSlots}</strong>
+            <span>{approvedCount} already approved</span>
           </article>
 
           <article>
@@ -126,8 +420,53 @@ export default function AdminCampaignDetails({
             <article className="campaign-detail-card">
               <div className="campaign-detail-card-heading">
                 <div>
+                  <h2>Campaign brief</h2>
+                  <p>Details submitted by the advertiser.</p>
+                </div>
+
+                <Edit3 size={17} />
+              </div>
+
+              <div className="campaign-information-list">
+                <div>
+                  <span>Brief</span>
+                  <strong>{campaign.shortBrief || "—"}</strong>
+                </div>
+
+                <div>
+                  <span>Proof required</span>
+                  <strong>
+                    {campaign.proofRequirements || "—"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Advertiser</span>
+                  <strong>
+                    {campaign.advertiser?.fullName ||
+                      "Unknown advertiser"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Advertiser email</span>
+                  <strong>
+                    {campaign.advertiser?.email || "—"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Submitted</span>
+                  <strong>{formatDateTime(campaign.submittedAt)}</strong>
+                </div>
+              </div>
+            </article>
+
+            <article className="campaign-detail-card">
+              <div className="campaign-detail-card-heading">
+                <div>
                   <h2>Campaign instructions</h2>
-                  <p>Review and improve the advertiser&apos;s instructions.</p>
+                  <p>Review the advertiser’s task instructions.</p>
                 </div>
 
                 <Edit3 size={17} />
@@ -135,27 +474,63 @@ export default function AdminCampaignDetails({
 
               <div className="campaign-instruction-block">
                 <span>Advertiser instructions</span>
-                <p>{campaign.advertiserInstructions}</p>
+                <p>{advertiserInstructions || "No instructions provided."}</p>
               </div>
 
               <label className="campaign-form-field">
-                <span>Admin instructions for earners</span>
+                <span>Additional instructions for earners (optional)</span>
                 <textarea
-                  rows="7"
-                  value={adminInstructions}
+                  rows="5"
+                  maxLength={3000}
+                  value={adminTaskInstructions}
                   onChange={(event) =>
-                    setAdminInstructions(event.target.value)
+                    setAdminTaskInstructions(event.target.value)
                   }
-                  placeholder="Add clear instructions for earners..."
+                  placeholder="Add clarifying details to help earners complete the task."
+                  disabled={!isPendingReview || Boolean(busy)}
                 />
               </label>
+
+              <label className="campaign-form-field">
+                <span>Private admin note (admins only)</span>
+                <textarea
+                  rows="4"
+                  maxLength={2000}
+                  value={adminPrivateNote}
+                  onChange={(event) =>
+                    setAdminPrivateNote(event.target.value)
+                  }
+                  placeholder="Optional internal note. This is not shown to advertisers or earners."
+                  disabled={!isPendingReview || Boolean(busy)}
+                />
+              </label>
+
+              {isPendingReview && (
+                <button
+                  type="button"
+                  className="campaign-primary-button"
+                  onClick={handleSaveNotes}
+                  disabled={Boolean(busy)}
+                >
+                  {busy === "save" ? "Saving…" : "Save notes"}
+                </button>
+              )}
             </article>
 
+            {campaign.rejectionReason && (
+              <article className="campaign-detail-card">
+                <h2>Rejection reason</h2>
+                <p>{campaign.rejectionReason}</p>
+              </article>
+            )}
+          </div>
+
+          <aside className="campaign-detail-side">
             <article className="campaign-detail-card">
               <div className="campaign-detail-card-heading">
                 <div>
                   <h2>Campaign activity</h2>
-                  <p>Current submission progress.</p>
+                  <p>Submission status and progress.</p>
                 </div>
 
                 <Clock3 size={17} />
@@ -165,7 +540,7 @@ export default function AdminCampaignDetails({
                 <div className="campaign-progress-heading">
                   <strong>{progress}% complete</strong>
                   <span>
-                    {campaign.approved} of {campaign.totalSlots}
+                    {approvedCount} of {totalSlots}
                   </span>
                 </div>
 
@@ -174,53 +549,74 @@ export default function AdminCampaignDetails({
                 </div>
 
                 <div className="campaign-progress-meta">
-                  <span>{campaign.approved} approved</span>
-                  <span>{campaign.pending} pending</span>
-                  <span>{campaign.rejected} rejected</span>
+                  <span>{approvedCount} approved</span>
+                  <span>{pendingCount} pending</span>
+                  <span>{rejectedCount} rejected</span>
                 </div>
               </div>
             </article>
-          </div>
 
-          <aside className="campaign-detail-side">
             <article className="campaign-detail-card">
               <div className="campaign-detail-card-heading">
                 <div>
                   <h2>Review decision</h2>
-                  <p>Choose what happens next.</p>
+                  <p>
+                    {isPendingReview
+                      ? "Approve the campaign or reject it with a reason."
+                      : "This campaign is no longer awaiting review."}
+                  </p>
                 </div>
 
                 <WalletCards size={17} />
               </div>
 
-              <div className="campaign-review-actions">
-                <button
-                  type="button"
-                  className="campaign-primary-button"
-                  onClick={() => handleAction("approved and published")}
-                >
-                  <CheckCircle2 size={15} />
-                  Approve and publish
-                </button>
+              {isPendingReview ? (
+                <>
+                  <label className="campaign-form-field">
+                    <span>Rejection reason for advertiser</span>
+                    <textarea
+                      rows="4"
+                      maxLength={1000}
+                      value={rejectionReason}
+                      onChange={(event) =>
+                        setRejectionReason(event.target.value)
+                      }
+                      placeholder="Required if rejecting. The advertiser will see this reason."
+                      disabled={Boolean(busy)}
+                    />
+                  </label>
 
-                <button
-                  type="button"
-                  className="campaign-warning-button"
-                  onClick={() => handleAction("sent back for changes")}
-                >
-                  <Edit3 size={15} />
-                  Request changes
-                </button>
+                  <div className="campaign-review-actions">
+                    <button
+                      type="button"
+                      className="campaign-primary-button"
+                      onClick={handleApprove}
+                      disabled={Boolean(busy)}
+                    >
+                      <CheckCircle2 size={15} />
+                      {busy === "approve"
+                        ? "Approving…"
+                        : "Approve and publish"}
+                    </button>
 
-                <button
-                  type="button"
-                  className="campaign-danger-button"
-                  onClick={() => handleAction("rejected")}
-                >
-                  <AlertTriangle size={15} />
-                  Reject campaign
-                </button>
-              </div>
+                    <button
+                      type="button"
+                      className="campaign-danger-button"
+                      onClick={handleReject}
+                      disabled={Boolean(busy)}
+                    >
+                      <AlertTriangle size={15} />
+                      {busy === "reject"
+                        ? "Rejecting…"
+                        : "Reject and refund"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p>
+                  Current status: <strong>{statusLabel}</strong>
+                </p>
+              )}
             </article>
 
             <article className="campaign-detail-card">
@@ -229,22 +625,37 @@ export default function AdminCampaignDetails({
               <div className="campaign-information-list">
                 <div>
                   <span>Service</span>
-                  <strong>{campaign.service}</strong>
+                  <strong>{campaign.service?.name || "—"}</strong>
                 </div>
 
                 <div>
-                  <span>Category</span>
-                  <strong>{campaign.category}</strong>
+                  <span>Platform</span>
+                  <strong>{campaign.service?.platform || "—"}</strong>
                 </div>
 
                 <div>
-                  <span>Reward</span>
-                  <strong>₦{campaign.rewardPerPerson} per person</strong>
+                  <span>Advertiser price</span>
+                  <strong>
+                    {formatCurrency(
+                      campaign.pricing?.advertiserPricePerPerson,
+                    )}{" "}
+                    per person
+                  </strong>
                 </div>
 
                 <div>
-                  <span>Advertiser</span>
-                  <strong>{campaign.advertiser}</strong>
+                  <span>Platform fee</span>
+                  <strong>
+                    {formatCurrency(
+                      campaign.pricing?.platformFeePerPerson,
+                    )}{" "}
+                    per person
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Campaign slots</span>
+                  <strong>{totalSlots}</strong>
                 </div>
               </div>
             </article>

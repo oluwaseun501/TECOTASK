@@ -635,3 +635,690 @@
     justify-content: center;
   }
 }
+
+/* Moderator overview polish */
+.moderator-overview {
+  background: #f4f7f5;
+  padding: clamp(20px, 2.5vw, 36px);
+}
+
+.moderator-overview__inner {
+  max-width: 1600px;
+  container-name: moderator-overview-layout;
+  container-type: inline-size;
+}
+
+.moderator-overview__eyebrow {
+  font-size: 11px;
+}
+
+.moderator-queue-header h1 {
+  font-size: 30px;
+  letter-spacing: -0.035em;
+}
+
+.moderator-queue-header p {
+  color: #718078;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.moderator-icon-button,
+.moderator-queue-avatar {
+  height: 38px;
+  width: 38px;
+}
+
+.moderator-session-grid {
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.moderator-session-card {
+  min-height: 124px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 5px 18px rgba(23, 34, 29, 0.04);
+}
+
+.moderator-session-card__top {
+  font-size: 10px;
+}
+
+.moderator-session-card > strong {
+  margin-top: 16px;
+  font-size: 25px;
+}
+
+.moderator-session-card > p {
+  color: #7f8d85;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.moderator-review-workspace {
+  grid-template-columns:
+    minmax(230px, 0.82fr)
+    minmax(0, 1.45fr)
+    minmax(250px, 0.9fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.moderator-pending-panel,
+.moderator-review-panel,
+.moderator-guide-panel {
+  border-color: #e2eae5;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(23, 34, 29, 0.055);
+}
+
+.moderator-panel-heading {
+  padding: 18px;
+}
+
+.moderator-panel-heading h2,
+.moderator-guide-panel h2 {
+  font-size: 14px;
+}
+
+.moderator-panel-heading p,
+.moderator-guide-panel__heading p {
+  color: #7f8d85;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.moderator-pending-row {
+  gap: 11px;
+  padding: 13px 15px;
+}
+
+.moderator-review-avatar {
+  height: 32px;
+  width: 32px;
+  font-size: 10px;
+}
+
+.moderator-pending-row__content strong {
+  color: #34433b;
+  font-size: 12px;
+}
+
+.moderator-pending-row__content small {
+  color: #7f8d85;
+  font-size: 10px;
+}
+
+.moderator-pending-row__amount {
+  font-size: 12px;
+}
+
+.moderator-review-panel__header {
+  padding: 20px 22px;
+}
+
+.moderator-review-status {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.moderator-review-panel__header h2 {
+  font-size: 19px;
+}
+
+.moderator-review-panel__header p {
+  color: #7f8d85;
+  font-size: 11px;
+}
+
+.moderator-review-summary {
+  gap: 14px;
+  padding: 16px 22px;
+}
+
+.moderator-review-summary span {
+  font-size: 10px;
+}
+
+.moderator-review-summary strong {
+  color: #34433b;
+  font-size: 11px;
+}
+
+.moderator-proof-section,
+.moderator-checklist {
+  padding: 20px 22px;
+}
+
+.moderator-proof-heading h3,
+.moderator-checklist h3,
+.moderator-guide-section h3 {
+  font-size: 13px;
+}
+
+.moderator-proof-heading p,
+.moderator-guide-section p {
+  color: #718078;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.moderator-proof-preview {
+  min-height: 170px;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.moderator-proof-preview strong {
+  font-size: 12px;
+}
+
+.moderator-proof-preview span {
+  font-size: 10px;
+  text-align: center;
+}
+
+.moderator-checklist__item {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.moderator-review-actions {
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 22px;
+}
+
+.moderator-action-button {
+  min-height: 40px;
+  border-radius: 9px;
+  font-size: 11px;
+  padding: 10px 14px;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.moderator-action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.moderator-review-actions > span {
+  flex: 1 1 100%;
+  color: #7f8d85;
+  font-size: 10px;
+}
+
+.moderator-guide-panel {
+  padding: 20px;
+}
+
+.moderator-guide-note {
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.moderator-guide-note p {
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.moderator-guide-section {
+  margin-top: 20px;
+  padding-top: 18px;
+}
+
+.moderator-context-row {
+  padding: 11px 0;
+}
+
+.moderator-context-row span,
+.moderator-context-row strong,
+.moderator-guide-status {
+  font-size: 11px;
+}
+
+.moderator-toast {
+  font-size: 12px;
+}
+
+/* Loading, empty, and error states */
+.moderator-live-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 18px;
+  color: #718078;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.moderator-pending-list > .moderator-live-state {
+  min-height: 130px;
+  text-align: center;
+}
+
+.moderator-review-panel > .moderator-live-state {
+  min-height: 240px;
+  padding: 32px;
+  text-align: center;
+}
+
+.moderator-rejection-form .moderator-live-state {
+  min-height: 0;
+  justify-content: flex-start;
+  padding: 8px 0;
+}
+
+.moderator-live-state--error,
+.moderator-action-error {
+  border-radius: 8px;
+  background: #fff5f4;
+  color: #b54747;
+}
+
+/* Proof and rejection form */
+.moderator-proof-image {
+  display: block;
+  width: 100%;
+  max-height: 440px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.moderator-proof-link {
+  color: #12813d;
+  font-size: 11px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.moderator-proof-link:hover {
+  text-decoration: underline;
+}
+
+.moderator-proof-note {
+  margin-top: 14px;
+  border: 1px solid #e2eae5;
+  border-radius: 10px;
+  background: #fbfcfb;
+  padding: 13px;
+}
+
+.moderator-proof-note strong {
+  color: #34433b;
+  font-size: 11px;
+}
+
+.moderator-proof-note p,
+.moderator-task-instructions {
+  margin: 7px 0 0;
+  color: #526158;
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.moderator-rejection-form {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid #edf1ee;
+  padding: 18px 22px;
+}
+
+.moderator-rejection-form__field {
+  display: grid;
+  gap: 7px;
+}
+
+.moderator-rejection-form__field label {
+  color: #34433b;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.moderator-rejection-form__field select,
+.moderator-rejection-form__field textarea {
+  width: 100%;
+  border: 1px solid #d7e1da;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #34433b;
+  font: inherit;
+  font-size: 12px;
+  padding: 11px 12px;
+}
+
+.moderator-rejection-form__field select:focus,
+.moderator-rejection-form__field textarea:focus {
+  outline: 3px solid rgba(21, 148, 71, 0.14);
+  border-color: #159447;
+}
+
+.moderator-rejection-form__field textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.moderator-rejection-form__field small {
+  color: #718078;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.moderator-rejection-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.moderator-action-button--cancel {
+  border: 1px solid #dfe7e2;
+  background: #ffffff;
+  color: #526158;
+}
+
+.moderator-action-error {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* Pagination */
+.moderator-pending-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid #edf1ee;
+  padding: 12px 15px;
+  color: #718078;
+  font-size: 11px;
+}
+
+.moderator-pending-pagination button {
+  border: 1px solid #dfe7e2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #34433b;
+  cursor: pointer;
+  font: inherit;
+  padding: 8px 11px;
+}
+
+.moderator-pending-pagination button:hover:not(:disabled) {
+  border-color: #159447;
+  color: #159447;
+}
+
+.moderator-pending-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.moderator-action-button--cancel:hover:not(:disabled) {
+  border-color: #b8c9bd;
+  background: #f8fbf9;
+}
+
+.moderator-action-button:focus-visible,
+.moderator-icon-button:focus-visible,
+.moderator-pending-pagination button:focus-visible {
+  outline: 3px solid rgba(21, 148, 71, 0.2);
+  outline-offset: 2px;
+}
+
+/* Adapt to the actual content width, including the app's sidebar */
+@container moderator-overview-layout (max-width: 1180px) {
+  .moderator-review-workspace {
+    grid-template-columns:
+      minmax(210px, 0.75fr)
+      minmax(0, 1.25fr);
+  }
+
+  .moderator-guide-panel {
+    grid-column: 1 / -1;
+  }
+
+  .moderator-review-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .moderator-review-summary__avatar {
+    display: none;
+  }
+}
+
+@container moderator-overview-layout (max-width: 760px) {
+  .moderator-overview {
+    padding: 18px 14px;
+  }
+
+  .moderator-queue-header {
+    align-items: flex-start;
+  }
+
+  .moderator-queue-header h1 {
+    font-size: 26px;
+  }
+
+  .moderator-session-grid,
+  .moderator-review-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .moderator-guide-panel {
+    grid-column: auto;
+  }
+
+  .moderator-review-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .moderator-review-actions,
+  .moderator-rejection-form__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .moderator-action-button {
+    justify-content: center;
+  }
+
+  .moderator-review-actions > span {
+    text-align: center;
+  }
+}
+
+/* Match the earner dashboard's TecoTask colors, type, and motion */
+.moderator-overview {
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: "Poppins", sans-serif;
+}
+
+.moderator-overview__eyebrow {
+  color: #16a34a;
+}
+
+.moderator-queue-header h1 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.moderator-queue-header p,
+.moderator-panel-heading p,
+.moderator-guide-panel__heading p,
+.moderator-session-card > p {
+  color: #64748b;
+}
+
+.moderator-session-card,
+.moderator-pending-panel,
+.moderator-review-panel,
+.moderator-guide-panel {
+  border-color: #e8edf2;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
+}
+
+.moderator-session-card--green {
+  border-color: #bbf7d0;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+.moderator-session-card--green .moderator-session-card__top,
+.moderator-session-card--green > strong {
+  color: #166534;
+}
+
+.moderator-session-card--green > p {
+  color: #4b7c58;
+}
+
+.moderator-session-card--blue {
+  border-color: #dbeafe;
+  background: #eff6ff;
+}
+
+.moderator-session-card--amber {
+  border-color: #fef3c7;
+  background: #fffbeb;
+}
+
+.moderator-review-summary {
+  background: #f8fafc;
+}
+
+.moderator-pending-row--active {
+  background: #f0fdf4;
+}
+
+.moderator-pending-row:hover {
+  background: #f8fafc;
+}
+
+.moderator-action-button--approve {
+  border-color: #16a34a;
+  background: #16a34a;
+}
+
+.moderator-action-button--approve:hover:not(:disabled) {
+  background: #15803d;
+}
+
+/* Gentle entrance and staggered glide-in */
+.moderator-overview {
+  animation: moderator-page-enter 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.moderator-queue-header,
+.moderator-session-grid > *,
+.moderator-review-workspace > * {
+  animation: moderator-content-enter 460ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.moderator-session-grid > *:nth-child(2) {
+  animation-delay: 55ms;
+}
+
+.moderator-session-grid > *:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.moderator-review-workspace > *:nth-child(2) {
+  animation-delay: 80ms;
+}
+
+.moderator-review-workspace > *:nth-child(3) {
+  animation-delay: 125ms;
+}
+
+.moderator-session-card {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.moderator-session-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.07);
+}
+
+@keyframes moderator-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes moderator-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Centered rolling loader */
+.moderator-loading-roller {
+  display: inline-block;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border: 2px solid #dcfce7;
+  border-right-color: #16a34a;
+  border-radius: 50%;
+  animation: moderator-roll 900ms linear infinite;
+}
+
+.moderator-loading-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@keyframes moderator-roll {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .moderator-overview,
+  .moderator-queue-header,
+  .moderator-session-grid > *,
+  .moderator-review-workspace > *,
+  .moderator-session-card,
+  .moderator-loading-roller {
+    animation: none !important;
+    transition: none !important;
+  }
+}

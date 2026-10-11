@@ -1,24 +1,65 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Bell,
   ChevronDown,
   ChevronRight,
+  ClipboardList,
+  LogOut,
   Menu,
-  RefreshCw,
+  Settings,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
+import { authApi } from "../../services/auth.js";
 import "../../styles/ModeratorTopBar.css";
+
+function getStoredValue(key) {
+  if (typeof window === "undefined") return "";
+
+  return (
+    window.sessionStorage.getItem(key) ||
+    window.localStorage.getItem(key) ||
+    ""
+  );
+}
+
+function getCachedUser() {
+  try {
+    const storedUser = getStoredValue("tecotaskUser");
+    return storedUser ? JSON.parse(storedUser) : null;
+  } catch {
+    return null;
+  }
+}
+
+function getInitials(name = "") {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "MO"
+  );
+}
+
+function clearStoredAuth() {
+  for (const storage of [window.sessionStorage, window.localStorage]) {
+    storage.removeItem("tecotaskToken");
+    storage.removeItem("tecotaskUser");
+  }
+}
 
 export default function ModeratorTopBar({
   basePath = "/moderator",
-  unreadCount = 2,
-  refreshing = false,
   onMenu,
-  onRefresh,
 }) {
   const { pathname } = useLocation();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState(getCachedUser);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   const normalizedPath = pathname.replace(/\/$/, "") || "/";
 
@@ -35,6 +76,49 @@ export default function ModeratorTopBar({
               ? "Settings"
               : "Moderator workspace";
 
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadAccount() {
+      const token = getStoredValue("tecotaskToken");
+      if (!token) return;
+
+      try {
+        const result = await authApi.getCurrentUser(token);
+        const currentUser = result.user;
+
+        if (!isActive || !currentUser) return;
+
+        setUser(currentUser);
+
+        try {
+          window.sessionStorage.setItem(
+            "tecotaskUser",
+            JSON.stringify(currentUser),
+          );
+        } catch {
+          // Continue showing the account even if browser storage is unavailable.
+        }
+      } catch (error) {
+        console.error("Could not load moderator account:", error);
+      }
+    }
+
+    loadAccount();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  function handleLogout() {
+    clearStoredAuth();
+    navigate("/login", { replace: true });
+  }
+
+  const fullName = user?.fullName || "Moderator account";
+  const email = user?.email || "";
+
   return (
     <header className="moderator-topbar">
       <button
@@ -47,109 +131,65 @@ export default function ModeratorTopBar({
       </button>
 
       <div className="moderator-breadcrumb">
-        <span className="moderator-breadcrumb-root">
-          TecoTask
-        </span>
-
+        <span className="moderator-breadcrumb-root">TecoTask</span>
         <ChevronRight size={13} />
-
         <span>Moderator workspace</span>
-
         <ChevronRight size={13} />
-
         <strong>{pageTitle}</strong>
       </div>
 
       <div className="moderator-topbar-actions">
-        <button
-          type="button"
-          className="moderator-refresh-button"
-          onClick={onRefresh}
-        >
-          <RefreshCw
-            size={14}
-            className={refreshing ? "moderator-spin" : ""}
-          />
-
-          <span>
-            {refreshing ? "Refreshing" : "Refresh"}
-          </span>
-        </button>
-
-        <div className="moderator-notification-wrapper">
+        <div className="moderator-profile-wrapper">
           <button
             type="button"
-            className={`moderator-notification-button ${
-              notificationsOpen
-                ? "moderator-notification-button--active"
-                : ""
-            }`}
-            onClick={() =>
-              setNotificationsOpen((value) => !value)
-            }
-            aria-label="Open notifications"
+            className="moderator-topbar-avatar"
+            aria-label="Open account menu"
+            aria-haspopup="menu"
+            aria-expanded={accountOpen}
+            onClick={() => setAccountOpen((open) => !open)}
           >
-            <Bell size={17} />
-
-            {unreadCount > 0 ? (
-              <span className="moderator-notification-dot" />
-            ) : null}
+            <span className="moderator-topbar-avatar__initials">
+              {getInitials(fullName)}
+            </span>
+            <ChevronDown size={13} />
           </button>
 
-          {notificationsOpen ? (
-            <div className="moderator-notification-popover">
-              <div className="moderator-popover-heading">
-                <strong>Notifications</strong>
-                <span>{unreadCount} unread</span>
-              </div>
-
-              <div className="moderator-popover-item">
-                <span className="moderator-popover-dot moderator-popover-dot--red" />
-
-                <div>
-                  <strong>New task awaiting review</strong>
-                  <small>Product review campaign</small>
-                </div>
-
-                <time>8m</time>
-              </div>
-
-              <div className="moderator-popover-item">
-                <span className="moderator-popover-dot moderator-popover-dot--green" />
-
-                <div>
-                  <strong>Review target completed</strong>
-                  <small>You reached today&apos;s review target</small>
-                </div>
-
-                <time>26m</time>
+          {accountOpen ? (
+            <div className="moderator-account-menu" role="menu">
+              <div className="moderator-account-menu__identity">
+                <strong>{fullName}</strong>
+                {email ? <span>{email}</span> : null}
               </div>
 
               <Link
                 to={`${basePath}/reviews`}
-                className="moderator-popover-link"
-                onClick={() => setNotificationsOpen(false)}
+                role="menuitem"
+                onClick={() => setAccountOpen(false)}
               >
-                Open review queue
-                <ChevronRight size={13} />
+                <ClipboardList size={15} />
+                View tasks
               </Link>
+
+              <Link
+                to={`${basePath}/settings`}
+                role="menuitem"
+                onClick={() => setAccountOpen(false)}
+              >
+                <Settings size={15} />
+                Settings
+              </Link>
+
+              <button
+                type="button"
+                role="menuitem"
+                onClick={handleLogout}
+              >
+                <LogOut size={15} />
+                Log out
+              </button>
             </div>
           ) : null}
         </div>
-
-        <span className="moderator-topbar-divider" />
-
-        <button
-          type="button"
-          className="moderator-topbar-avatar"
-          aria-label="Open account menu"
-          onClick={() =>
-            window.alert("Profile settings will be added next.")
-          }
-        >
-          MO
-          <ChevronDown size={12} />
-        </button>
       </div>
     </header>
   );

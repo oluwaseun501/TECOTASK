@@ -1,49 +1,99 @@
 import {
   BarChart3,
-  CheckCircle2,
   ChevronRight,
   ClipboardList,
-  Clock3,
   Plus,
   Settings2,
   WalletCards,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
-  adminCampaigns,
-  serviceTemplates,
-} from "../data/adminCampaignData";
+  getAdminCampaigns,
+  getAdminServices,
+} from "../data/adminCampaignApi.js";
 
 import "../../styles/AdminCampaigns.css";
 
 const tabs = [
-  {
-    key: "campaigns",
-    label: "Campaign list",
-    icon: ClipboardList,
-  },
-  {
-    key: "progress",
-    label: "Campaign progress",
-    icon: BarChart3,
-  },
-  {
-    key: "services",
-    label: "Service pricing",
-    icon: Settings2,
-  },
+  { key: "campaigns", label: "Campaign list", icon: ClipboardList },
+  { key: "progress", label: "Campaign progress", icon: BarChart3 },
+  { key: "services", label: "Service pricing", icon: Settings2 },
 ];
 
-const statusClasses = {
-  Published: "campaign-status campaign-status--published",
-  "Pending review": "campaign-status campaign-status--pending",
-  "Needs changes": "campaign-status campaign-status--changes",
-  Paused: "campaign-status campaign-status--paused",
+const statusLabels = {
+  draft: "Draft",
+  pending_review: "Pending review",
+  active: "Published",
+  paused: "Paused",
+  completed: "Completed",
+  rejected: "Rejected",
+  cancelled: "Cancelled",
 };
 
-function SummaryCard({ label, value, detail, tone = "default" }) {
+const statusClasses = {
+  draft: "campaign-status campaign-status--paused",
+  pending_review: "campaign-status campaign-status--pending",
+  active: "campaign-status campaign-status--published",
+  paused: "campaign-status campaign-status--paused",
+  completed: "campaign-status campaign-status--published",
+  rejected: "campaign-status campaign-status--changes",
+  cancelled: "campaign-status campaign-status--changes",
+};
+
+const statusFilters = [
+  ["pending_review", "Pending review"],
+  ["active", "Published"],
+  ["paused", "Paused"],
+  ["completed", "Completed"],
+  ["rejected", "Rejected"],
+  ["draft", "Draft"],
+  ["cancelled", "Cancelled"],
+];
+
+function formatNumber(value) {
+  return new Intl.NumberFormat("en-NG").format(Number(value || 0));
+}
+
+function toCampaignViewModel(campaign) {
+  const submissionCounts = campaign.submissionCounts || {};
+
+  return {
+    ...campaign,
+    advertiser:
+      campaign.advertiser?.fullName || "Unknown advertiser",
+    serviceName:
+      campaign.service?.name || "Service unavailable",
+    platform:
+      campaign.service?.platform || "",
+    rewardPerPerson: Number(
+      campaign.pricing?.earnerRewardPerPerson ||
+        campaign.service?.earnerRewardPerPerson ||
+        0,
+    ),
+    totalBudget: Number(
+      campaign.pricing?.totalBudget || 0,
+    ),
+    totalSlots: Number(campaign.targetQuantity || 0),
+    approved: Number(
+      submissionCounts.approved ??
+        campaign.completedQuantity ??
+        0,
+    ),
+    pending: Number(submissionCounts.submitted || 0),
+    rejected: Number(submissionCounts.rejected || 0),
+    statusLabel:
+      statusLabels[campaign.status] || campaign.status,
+  };
+}
+
+function SummaryCard({
+  label,
+  value,
+  detail,
+  tone = "default",
+}) {
   return (
     <article
       className={`campaign-summary-card campaign-summary-card--${tone}`}
@@ -55,15 +105,37 @@ function SummaryCard({ label, value, detail, tone = "default" }) {
   );
 }
 
-function CampaignList({ basePath }) {
-  const [statusFilter, setStatusFilter] = useState("All statuses");
+function CampaignLoader({ label, compact = false }) {
+  return (
+    <div
+      className={`campaign-loading ${
+        compact ? "campaign-loading--compact" : ""
+      }`}
+      role="status"
+      aria-live="polite"
+    >
+      <span className="campaign-loading__roller" aria-hidden="true" />
+      <span>{label}</span>
+    </div>
+  );
+}
 
-  const filteredCampaigns =
-    statusFilter === "All statuses"
-      ? adminCampaigns
-      : adminCampaigns.filter(
-          (campaign) => campaign.status === statusFilter
-        );
+function CampaignList({
+  campaigns,
+  basePath,
+  loading,
+}) {
+  const [statusFilter, setStatusFilter] = useState("");
+
+  const filteredCampaigns = useMemo(() => {
+    if (!statusFilter) {
+      return campaigns;
+    }
+
+    return campaigns.filter(
+      (campaign) => campaign.status === statusFilter,
+    );
+  }, [campaigns, statusFilter]);
 
   return (
     <section className="campaign-content-card">
@@ -76,13 +148,17 @@ function CampaignList({ basePath }) {
         <select
           className="campaign-status-filter"
           value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
+          onChange={(event) =>
+            setStatusFilter(event.target.value)
+          }
+          aria-label="Filter campaigns by status"
         >
-          <option>All statuses</option>
-          <option>Pending review</option>
-          <option>Published</option>
-          <option>Needs changes</option>
-          <option>Paused</option>
+          <option value="">All statuses</option>
+          {statusFilters.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -100,73 +176,100 @@ function CampaignList({ basePath }) {
           </thead>
 
           <tbody>
-            {filteredCampaigns.map((campaign) => {
-              const progress = Math.round(
-                (campaign.approved / campaign.totalSlots) * 100
-              );
+            {loading ? (
+             <tr>
+  <td colSpan={6}>
+    <CampaignLoader label="Loading campaigns…" compact />
+  </td>
+</tr>
+            ) : filteredCampaigns.length === 0 ? (
+              <tr>
+                <td colSpan="6">
+                  No campaigns match this status.
+                </td>
+              </tr>
+            ) : (
+              filteredCampaigns.map((campaign) => {
+                const progress = campaign.totalSlots
+                  ? Math.min(
+                      Math.round(
+                        (campaign.approved /
+                          campaign.totalSlots) *
+                          100,
+                      ),
+                      100,
+                    )
+                  : 0;
 
-              return (
-                <tr key={campaign.id}>
-                  <td>
-                    <div className="campaign-name-cell">
-                      <span className="campaign-list-icon">
-                        <ClipboardList size={15} />
+                return (
+                  <tr key={campaign.id}>
+                    <td>
+                      <div className="campaign-name-cell">
+                        <span className="campaign-list-icon">
+                          <ClipboardList size={15} />
+                        </span>
+
+                        <div>
+                          <strong>{campaign.name}</strong>
+                          <small>{campaign.serviceName}</small>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span className="campaign-muted-text">
+                        {campaign.advertiser}
                       </span>
+                    </td>
 
-                      <div>
-                        <strong>{campaign.name}</strong>
-                        <small>{campaign.service}</small>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    <span className="campaign-muted-text">
-                      {campaign.advertiser}
-                    </span>
-                  </td>
-
-                  <td>
-                    <strong className="campaign-price">
-                      ₦{campaign.rewardPerPerson}
-                    </strong>
-                    <small className="campaign-per-person">
-                      per person
-                    </small>
-                  </td>
-
-                  <td>
-                    <div className="campaign-progress-cell">
-                      <div className="campaign-progress-track">
-                        <span
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                      <small>
-                        {campaign.approved}/{campaign.totalSlots}
+                    <td>
+                      <strong className="campaign-price">
+                        ₦{formatNumber(campaign.rewardPerPerson)}
+                      </strong>
+                      <small className="campaign-per-person">
+                        per person
                       </small>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td>
-                    <span className={statusClasses[campaign.status]}>
-                      <i />
-                      {campaign.status}
-                    </span>
-                  </td>
+                    <td>
+                      <div className="campaign-progress-cell">
+                        <div className="campaign-progress-track">
+                          <span
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                        <small>
+                          {campaign.approved}/
+                          {campaign.totalSlots}
+                        </small>
+                      </div>
+                    </td>
 
-                  <td>
-                    <Link
-                      to={`${basePath}/campaigns/${campaign.id}`}
-                      className="campaign-view-link"
-                    >
-                      View
-                      <ChevronRight size={14} />
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
+                    <td>
+                      <span
+                        className={
+                          statusClasses[campaign.status] ||
+                          statusClasses.draft
+                        }
+                      >
+                        <i />
+                        {campaign.statusLabel}
+                      </span>
+                    </td>
+
+                    <td>
+                      <Link
+                        to={`${basePath}/campaigns/${campaign.id}`}
+                        className="campaign-view-link"
+                      >
+                        View
+                        <ChevronRight size={14} />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
@@ -174,11 +277,11 @@ function CampaignList({ basePath }) {
   );
 }
 
-function CampaignProgress() {
-  const progressItems = adminCampaigns.filter(
-    (campaign) =>
-      campaign.status === "Published" ||
-      campaign.status === "Paused"
+function CampaignProgress({ campaigns, loading }) {
+  const progressItems = campaigns.filter((campaign) =>
+    ["active", "paused", "completed"].includes(
+      campaign.status,
+    ),
   );
 
   return (
@@ -190,42 +293,66 @@ function CampaignProgress() {
         </div>
       </div>
 
-      <div className="campaign-progress-list">
-        {progressItems.map((campaign) => {
-          const percentage = Math.round(
-            (campaign.approved / campaign.totalSlots) * 100
-          );
+      {loading ? (
+        <CampaignLoader label="Loading campaign progress…" />
+      ) : progressItems.length === 0 ? (
+        <p style={{ padding: 16 }}>
+          No published campaigns to show yet.
+        </p>
+      ) : (
+        <div className="campaign-progress-list">
+          {progressItems.map((campaign) => {
+            const percentage = campaign.totalSlots
+              ? Math.min(
+                  Math.round(
+                    (campaign.approved /
+                      campaign.totalSlots) *
+                      100,
+                  ),
+                  100,
+                )
+              : 0;
 
-          return (
-            <div className="campaign-progress-item" key={campaign.id}>
-              <div className="campaign-progress-heading">
-                <div>
-                  <strong>{campaign.name}</strong>
-                  <small>{campaign.advertiser}</small>
+            return (
+              <div
+                className="campaign-progress-item"
+                key={campaign.id}
+              >
+                <div className="campaign-progress-heading">
+                  <div>
+                    <strong>{campaign.name}</strong>
+                    <small>{campaign.advertiser}</small>
+                  </div>
+
+                  <span>{percentage}% complete</span>
                 </div>
 
-                <span>{percentage}% complete</span>
-              </div>
+                <div className="campaign-large-progress-track">
+                  <span
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
 
-              <div className="campaign-large-progress-track">
-                <span style={{ width: `${percentage}%` }} />
+                <div className="campaign-progress-meta">
+                  <span>{campaign.approved} approved</span>
+                  <span>{campaign.pending} pending</span>
+                  <span>{campaign.rejected} rejected</span>
+                  <span>{campaign.totalSlots} total slots</span>
+                </div>
               </div>
-
-              <div className="campaign-progress-meta">
-                <span>{campaign.approved} approved</span>
-                <span>{campaign.pending} pending</span>
-                <span>{campaign.rejected} rejected</span>
-                <span>{campaign.totalSlots} total slots</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
 
-function ServicePricing({ basePath }) {
+function ServicePricing({
+  services,
+  basePath,
+  loading,
+}) {
   return (
     <section className="campaign-content-card">
       <div className="campaign-content-header">
@@ -245,38 +372,60 @@ function ServicePricing({ basePath }) {
         </Link>
       </div>
 
-      <div className="service-pricing-list">
-        {serviceTemplates.map((service) => (
-          <div className="service-pricing-row" key={service.id}>
-            <div className="service-pricing-icon">
-              <WalletCards size={17} />
-            </div>
+      {loading ? (
+        <CampaignLoader label="Loading services…" />
+      ) : services.length === 0 ? (
+        <p style={{ padding: 16 }}>
+          No services have been added yet.
+        </p>
+      ) : (
+        <div className="service-pricing-list">
+          {services.map((service) => (
+            <div className="service-pricing-row" key={service.id}>
+              <div className="service-pricing-icon">
+                <WalletCards size={17} />
+              </div>
 
-            <div className="service-pricing-details">
-              <strong>{service.name}</strong>
-              <small>
-                {service.category} · {service.description}
-              </small>
-            </div>
+              <div className="service-pricing-details">
+                <strong>{service.name}</strong>
+                <small>
+                  {service.platform}
+                  {service.description
+                    ? ` · ${service.description}`
+                    : ""}
+                </small>
+                <small>
+                  Earner reward: ₦
+                  {formatNumber(service.earnerRewardPerPerson)}
+                  {" · "}Platform fee: ₦
+                  {formatNumber(service.platformFeePerPerson)}
+                </small>
+              </div>
 
-            <div className="service-price">
-              <strong>₦{service.pricePerPerson}</strong>
-              <small>per person</small>
-            </div>
+              <div className="service-price">
+                <strong>
+                  ₦
+                  {formatNumber(
+                    service.advertiserPricePerPerson,
+                  )}
+                </strong>
+                <small>per person</small>
+              </div>
 
-            <span
-              className={
-                service.status === "Active"
-                  ? "campaign-status campaign-status--published"
-                  : "campaign-status campaign-status--paused"
-              }
-            >
-              <i />
-              {service.status}
-            </span>
-          </div>
-        ))}
-      </div>
+              <span
+                className={
+                  service.isActive
+                    ? "campaign-status campaign-status--published"
+                    : "campaign-status campaign-status--paused"
+                }
+              >
+                <i />
+                {service.isActive ? "Active" : "Inactive"}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -285,6 +434,67 @@ export default function AdminCampaigns({
   basePath = "/admin",
 }) {
   const [activeTab, setActiveTab] = useState("campaigns");
+  const [campaigns, setCampaigns] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [serviceError, setServiceError] = useState("");
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    setServiceError("");
+
+    const [campaignResult, serviceResult] =
+      await Promise.allSettled([
+        getAdminCampaigns(),
+        getAdminServices(),
+      ]);
+
+    if (campaignResult.status === "fulfilled") {
+      setCampaigns(
+        campaignResult.value.map(toCampaignViewModel),
+      );
+    } else {
+      setCampaigns([]);
+      setError(
+        campaignResult.reason?.message ||
+          "Could not load campaigns.",
+      );
+    }
+
+    if (serviceResult.status === "fulfilled") {
+      setServices(serviceResult.value || []);
+    } else {
+      setServices([]);
+      setServiceError(
+        serviceResult.reason?.message ||
+          "Could not load services.",
+      );
+    }
+
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const summary = useMemo(
+    () => ({
+      activeServices: services.filter(
+        (service) => service.isActive,
+      ).length,
+      pendingReview: campaigns.filter(
+        (campaign) => campaign.status === "pending_review",
+      ).length,
+      published: campaigns.filter(
+        (campaign) => campaign.status === "active",
+      ).length,
+      total: campaigns.length,
+    }),
+    [campaigns, services],
+  );
 
   return (
     <main className="admin-campaigns-page">
@@ -298,7 +508,8 @@ export default function AdminCampaigns({
             <h1>Campaigns</h1>
 
             <p>
-              Set service pricing, review campaigns, and monitor progress.
+              Set service pricing, review campaigns, and monitor
+              progress.
             </p>
           </div>
 
@@ -311,37 +522,46 @@ export default function AdminCampaigns({
           </Link>
         </header>
 
+        {error && (
+          <div
+            role="alert"
+            style={{
+              marginBottom: 16,
+              padding: 12,
+              color: "#9f2424",
+              background: "#fff0f0",
+              borderRadius: 8,
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         <section className="campaign-summary-grid">
           <SummaryCard
             label="Active services"
-            value={serviceTemplates.filter(
-              (service) => service.status === "Active"
-            ).length}
+            value={loading ? "—" : summary.activeServices}
             detail="Available to advertisers"
             tone="green"
           />
 
           <SummaryCard
             label="Pending review"
-            value={adminCampaigns.filter(
-              (campaign) => campaign.status === "Pending review"
-            ).length}
+            value={loading ? "—" : summary.pendingReview}
             detail="Waiting for admin approval"
             tone="amber"
           />
 
           <SummaryCard
             label="Published campaigns"
-            value={adminCampaigns.filter(
-              (campaign) => campaign.status === "Published"
-            ).length}
+            value={loading ? "—" : summary.published}
             detail="Currently visible to earners"
             tone="blue"
           />
 
           <SummaryCard
             label="Total campaigns"
-            value={adminCampaigns.length}
+            value={loading ? "—" : summary.total}
             detail="Across all statuses"
             tone="default"
           />
@@ -369,13 +589,43 @@ export default function AdminCampaigns({
         </div>
 
         {activeTab === "campaigns" && (
-          <CampaignList basePath={basePath} />
+          <CampaignList
+            campaigns={campaigns}
+            basePath={basePath}
+            loading={loading}
+          />
         )}
 
-        {activeTab === "progress" && <CampaignProgress />}
+        {activeTab === "progress" && (
+          <CampaignProgress
+            campaigns={campaigns}
+            loading={loading}
+          />
+        )}
 
         {activeTab === "services" && (
-          <ServicePricing basePath={basePath} />
+          <>
+            {serviceError && (
+              <div
+                role="alert"
+                style={{
+                  marginBottom: 12,
+                  padding: 12,
+                  color: "#9f2424",
+                  background: "#fff0f0",
+                  borderRadius: 8,
+                }}
+              >
+                {serviceError}
+              </div>
+            )}
+
+            <ServicePricing
+              services={services}
+              basePath={basePath}
+              loading={loading}
+            />
+          </>
         )}
       </div>
     </main>

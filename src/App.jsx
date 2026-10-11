@@ -1,5 +1,10 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-
+import { useEffect, useRef } from "react";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import TrustBar from "./components/TrustBar";
@@ -14,6 +19,9 @@ import ChooseRole from "./pages/ChooseRole";
 import Login from "./pages/Login";
 import ForgotPassword from "./components/ForgotPassword";
 
+import RequireAuth from "./components/auth/RequireAuth";
+import RequireRole from "./components/auth/RequireRole";
+
 /* Earner workspace */
 import EarnersLayout from "./components/earners/EarnersLayout";
 import EarnersDashboard from "./components/earners/EarnersDashboard";
@@ -26,19 +34,17 @@ import EarnersActivation from "./components/earners/EarnersActivation";
 import AdvertisersLayout from "./components/advertisers/AdvertisersLayout";
 import AdvertiserCampaigns from "./components/advertisers/AdvertiserCampaigns";
 import AdvertiserWallet from "./components/advertisers/AdvertiserWallet";
-
 import AdvertiserTransactions from "./components/advertisers/AdvertiserTransactions";
 import AdvertiserTransactionDetails from "./components/advertisers/AdvertiserTransactionDetails";
-
 import AdvertiserReferrals from "./components/advertisers/AdvertiserReferrals";
 import AdvertiserSettings from "./components/advertisers/AdvertiserSettings";
-
 import AdvertiserCreateCampaign from "./components/advertisers/AdvertiserCreateCampaign";
+
+/* Admin workspace */
 import AdminDashboard from "./components/admin/AdminDashboard.jsx";
 import AdminUsers from "./components/admin/AdminUsers.jsx";
 import AdminUserDetails from "./components/admin/AdminUserDetails.jsx";
 import AdminOverview from "./components/admin/AdminOverview.jsx";
-
 import AdminCampaigns from "./components/admin/AdminCampaigns.jsx";
 import AdminServiceSetup from "./components/admin/AdminServiceSetup.jsx";
 import AdminCampaignDetails from "./components/admin/AdminCampaignDetails.jsx";
@@ -46,7 +52,9 @@ import AdminTransactions from "./components/admin/AdminTransactions.jsx";
 import AdminWithdrawals from "./components/admin/AdminWithdrawals.jsx";
 import AdminModeration from "./components/admin/AdminModeration.jsx";
 import AdminSettings from "./components/admin/AdminSettings.jsx";
+import AdminOverviewPage from "./components/admin/AdminOverviewPage.jsx";
 
+/* Moderator workspace */
 import ModeratorDashboard from "./components/moderator/ModeratorDashboard.jsx";
 import ModeratorOverview from "./components/moderator/ModeratorOverview.jsx";
 import ModeratorReviewQueue from "./components/moderator/ModeratorReviewQueue.jsx";
@@ -55,11 +63,11 @@ import ModeratorWithdrawals from "./components/moderator/ModeratorWithdrawals.js
 import ModeratorInstructions from "./components/moderator/ModeratorInstructions.jsx";
 import ModeratorSettings from "./components/moderator/ModeratorSettings.jsx";
 
+/* Staff login pages */
 import AdminLogin from "./pages/AdminLogin";
 import ModeratorLogin from "./pages/ModeratorLogin";
 
 import SupportWidget from "./components/SupportWidget";
-
 
 const Home = () => {
   return (
@@ -80,276 +88,187 @@ const Home = () => {
   );
 };
 
-const AdvertiserComingSoon = ({ title }) => {
-  return (
-    <section
-      style={{
-        maxWidth: "1380px",
-        margin: "0 auto",
-        padding: "40px 30px",
-      }}
-    >
-      <h2 style={{ margin: 0, color: "#0f172a" }}>{title}</h2>
-
-      <p style={{ color: "#94a3b8", fontSize: "13px" }}>
-        This advertiser page is coming soon.
-      </p>
-    </section>
-  );
-};
-
-
-const AdminComingSoon = ({ title }) => {
-  return (
-    <section
-      style={{
-        padding: "32px",
-        minHeight: "400px",
-        borderRadius: "16px",
-        background: "#ffffff",
-        border: "1px solid #e1e9e4",
-      }}
-    >
-      <p
-        style={{
-          margin: 0,
-          color: "#159447",
-          fontSize: "11px",
-          fontWeight: 500,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-        }}
-      >
-        Admin workspace
-      </p>
-
-      <h1
-        style={{
-          margin: "8px 0 0",
-          color: "#17221d",
-          fontSize: "26px",
-          fontWeight: 600,
-        }}
-      >
-        {title}
-      </h1>
-
-      <p
-        style={{
-          marginTop: "8px",
-          color: "#89978f",
-          fontSize: "14px",
-        }}
-      >
-        This page will be added next.
-      </p>
-    </section>
-  );
-};
 const App = () => {
+  const location = useLocation();
+  const routeContentRef = useRef(null);
+
+  useEffect(() => {
+    const element = routeContentRef.current;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    let animation;
+
+    if (element && !reduceMotion && typeof element.animate === "function") {
+      animation = element.animate(
+        [
+          { opacity: 0, transform: "translateY(8px)" },
+          { opacity: 1, transform: "translateY(0)" },
+        ],
+        {
+          duration: 380,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        },
+      );
+    }
+
+    window.scrollTo({
+      top: 0,
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+
+    return () => animation?.cancel();
+  }, [location.pathname]);
+
   return (
-  <>
-    <Routes>
-      {/* Public website */}
-      <Route path="/" element={<Home />} />
+    <>
+      <div ref={routeContentRef}>
+        <Routes>
+        {/* Public website */}
+        <Route path="/" element={<Home />} />
 
-      {/* Authentication */}
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/choose-role" element={<ChooseRole />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/admin/accessmeadmin" element={<AdminLogin />} />
-<Route
-  path="/moderator/accessmemoderator"
-  element={<ModeratorLogin />}
-/>
+        {/* Public authentication pages */}
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/admin/accessmeadmin" element={<AdminLogin />} />
+        <Route
+          path="/moderator/accessmemoderator"
+          element={<ModeratorLogin />}
+        />
 
-      {/* Earner activation page */}
-      <Route
-        path="/earners/activate"
-        element={<EarnersActivation />}
-      />
+        {/* All normal user private routes */}
+        <Route element={<RequireAuth />}>
+          {/* A logged-in user can choose a role */}
+          <Route path="/choose-role" element={<ChooseRole />} />
 
-      {/* Earner workspace */}
-      <Route path="/earners" element={<EarnersLayout />}>
-        <Route index element={<EarnersDashboard />} />
-        <Route path="wallet" element={<EarnersWallet />} />
-        <Route path="referrals" element={<EarnersReferrals />} />
-        <Route path="settings" element={<EarnersSettings />} />
-      </Route>
+          {/* Earner-only routes */}
+          <Route element={<RequireRole allowedRoles={["earner"]} />}>
+            <Route path="/earners/activate" element={<EarnersActivation />} />
 
-     <Route path="/advertisers" element={<AdvertisersLayout />}>
-  <Route index element={<AdvertiserCampaigns />} />
-  <Route path="campaigns" element={<AdvertiserCampaigns />} />
-  <Route path="wallet" element={<AdvertiserWallet />} />
+            <Route path="/earners" element={<EarnersLayout />}>
+              <Route index element={<EarnersDashboard />} />
+              <Route path="wallet" element={<EarnersWallet />} />
+              <Route path="referrals" element={<EarnersReferrals />} />
+              <Route path="settings" element={<EarnersSettings />} />
+            </Route>
+          </Route>
 
+          {/* Advertiser-only routes */}
+          <Route element={<RequireRole allowedRoles={["advertiser"]} />}>
+            <Route path="/advertisers" element={<AdvertisersLayout />}>
+              <Route index element={<AdvertiserCampaigns />} />
+              <Route path="campaigns" element={<AdvertiserCampaigns />} />
+              <Route path="wallet" element={<AdvertiserWallet />} />
+              <Route
+                path="campaigns/new"
+                element={<AdvertiserCreateCampaign />}
+              />
+              <Route path="transactions" element={<AdvertiserTransactions />} />
+              <Route
+                path="transactions/:transactionId"
+                element={<AdvertiserTransactionDetails />}
+              />
+              <Route path="referrals" element={<AdvertiserReferrals />} />
+              <Route path="settings" element={<AdvertiserSettings />} />
+            </Route>
+          </Route>
+        </Route>
+
+        {/* Staff workspaces
+            Unauthorized visitors are sent to the landing page.
+        */}
+       <Route element={<RequireAuth redirectTo="/" />}>
+  <Route element={<RequireRole allowedRoles={["moderator"]} />}>
     <Route
-    path="campaigns/new"
-    element={<AdvertiserCreateCampaign />}
-  />
-
-  <Route
-    path="transactions/:transactionId"
-    element={<AdvertiserTransactionDetails />}
-  />
-
-  <Route
-    path="transactions"
-    element={<AdvertiserTransactions />}
-  />
-
- <Route
-  path="referrals"
-  element={<AdvertiserReferrals />}
-/>
-
-<Route
-  path="settings"
-  element={<AdvertiserSettings />}
-/>
-</Route>
-
-{/* moderator */}
-<Route
-  path="/moderator"
-  element={<ModeratorDashboard basePath="/moderator" />}
->
-  <Route index element={<ModeratorOverview />} />
-
-  <Route
-    path="reviews"
-    element={<ModeratorReviewQueue />}
-  />
-
-  <Route
-    path="reviews/:reviewId"
-    element={<ModeratorReviewDetails />}
-  />
-
-  <Route
-  path="withdrawals"
-  element={<ModeratorWithdrawals />}
-/>
-
-<Route
-  path="instructions"
-  element={<ModeratorInstructions />}
-/>
-
-<Route
-  path="settings"
-  element={<ModeratorSettings />}
-/>
-</Route>
-{/* Admin */}
-
-<Route
-  path="/admin"
-  element={<AdminDashboard basePath="/admin" />}
->
-  <Route index element={<AdminOverview />} />
-
-  <Route
-    path="users"
-    element={
-      <AdminUsers
-        role="all"
-        basePath="/admin"
-      />
-    }
-  />
-
-  <Route
-    path="earners"
-    element={
-      <AdminUsers
-        role="earner"
-        basePath="/admin"
-      />
-    }
-  />
-
-  <Route
-    path="advertisers"
-    element={
-      <AdminUsers
-        role="advertiser"
-        basePath="/admin"
-      />
-    }
-  />
-
-  <Route
-    path="moderators"
-    element={
-      <AdminUsers
-        role="moderator"
-        basePath="/admin"
-      />
-    }
-  />
-
-  <Route
-    path="users/:userId"
-    element={
-      <AdminUserDetails
-        basePath="/admin"
-      />
-    }
-  />
-
-  <Route
-    path="campaigns"
-    element={<AdminCampaigns basePath="/admin" />}
-  />
-
-  <Route
-    path="campaigns/new-service"
-    element={<AdminServiceSetup basePath="/admin" />}
-  />
-
-  <Route
-    path="campaigns/:campaignId"
-    element={<AdminCampaignDetails basePath="/admin" />}
-  />
-
-  <Route
-    path="campaign-progress"
-    element={<Navigate to="campaigns" replace />}
-  />
-
-<Route
-  path="transactions"
-  element={<AdminTransactions />}
-/>
-<Route
-  path="moderation"
-  element={<AdminModeration />}
-/>
-
-  <Route
-  path="withdrawals"
-  element={<AdminWithdrawals />}
-/>
-
- <Route
-  path="settings"
-  element={<AdminSettings />}
-/>
-</Route>
-
-
-      {/* Other pages */}
+      path="/moderator"
+      element={<ModeratorDashboard basePath="/moderator" />}
+    >
+      <Route index element={<ModeratorOverview />} />
+      <Route path="reviews" element={<ModeratorReviewQueue />} />
       <Route
-        path="/support"
-        element={<div>Support page coming soon.</div>}
+        path="reviews/:reviewId"
+        element={<ModeratorReviewDetails />}
       />
+      <Route path="withdrawals" element={<ModeratorWithdrawals />} />
+      <Route path="instructions" element={<ModeratorInstructions />} />
+      <Route path="settings" element={<ModeratorSettings />} />
+    </Route>
+  </Route>
 
-      {/* Unknown routes */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-        <SupportWidget />
-  </>
+
+          {/* Admin workspace */}
+          <Route element={<RequireRole allowedRoles={["admin"]} />}>
+            <Route path="/admin" element={<AdminDashboard basePath="/admin" />}>
+              <Route index element={<AdminOverviewPage />} />
+
+              <Route
+                path="users"
+                element={<AdminUsers role="all" basePath="/admin" />}
+              />
+
+              <Route
+                path="earners"
+                element={<AdminUsers role="earner" basePath="/admin" />}
+              />
+
+              <Route
+                path="advertisers"
+                element={<AdminUsers role="advertiser" basePath="/admin" />}
+              />
+
+              <Route
+                path="moderators"
+                element={<AdminUsers role="moderator" basePath="/admin" />}
+              />
+
+              <Route
+                path="users/:userId"
+                element={<AdminUserDetails basePath="/admin" />}
+              />
+
+              <Route
+                path="campaigns"
+                element={<AdminCampaigns basePath="/admin" />}
+              />
+
+              <Route
+                path="campaigns/new-service"
+                element={<AdminServiceSetup basePath="/admin" />}
+              />
+
+              <Route
+                path="campaigns/:campaignId"
+                element={<AdminCampaignDetails basePath="/admin" />}
+              />
+
+              <Route
+                path="campaign-progress"
+                element={<Navigate to="campaigns" replace />}
+              />
+
+              <Route path="transactions" element={<AdminTransactions />} />
+
+              <Route path="moderation" element={<AdminModeration />} />
+
+              <Route path="withdrawals" element={<AdminWithdrawals />} />
+
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+          </Route>
+        </Route>
+
+        {/* Public support page */}
+        <Route path="/support" element={<div>Support page coming soon.</div>} />
+
+        {/* Unknown routes return to landing page */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+      </div>
+
+      <SupportWidget />
+    </>
   );
 };
 

@@ -1,29 +1,174 @@
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import {
+  ChevronDown,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
-const EarnersTopBar = ({ isActivated = false }) => {
+const formatNaira = (amount = 0) =>
+  `₦${Number(amount).toLocaleString("en-NG")}`;
+
+function getFirstName(fullName = "") {
+  return (fullName || "").trim().split(/\s+/)[0] || "there";
+}
+
+function getInitials(fullName = "") {
+  const initials = (fullName || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((name) => name[0])
+    .join("");
+
+  return initials.toUpperCase() || "TT";
+}
+
+function clearStoredAuth() {
+  for (const storageName of ["sessionStorage", "localStorage"]) {
+    try {
+      window[storageName].removeItem("tecotaskToken");
+      window[storageName].removeItem("tecotaskUser");
+    } catch {
+      // Continue to login if browser storage is unavailable.
+    }
+  }
+}
+
+const EarnersTopBar = ({
+  user,
+  stats,
+  openTaskCount = 0,
+  isActivated = false,
+}) => {
+  const navigate = useNavigate();
+  const profileMenuRef = useRef(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  useEffect(() => {
+    function closeMenuOnOutsideClick(event) {
+      if (!profileMenuRef.current?.contains(event.target)) {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", closeMenuOnOutsideClick);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeMenuOnOutsideClick);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return undefined;
+
+    function closeMenuOnEscape(event) {
+      if (event.key === "Escape") {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", closeMenuOnEscape);
+
+    return () => {
+      document.removeEventListener("keydown", closeMenuOnEscape);
+    };
+  }, [accountMenuOpen]);
+
+  function handleLogout() {
+    clearStoredAuth();
+    setAccountMenuOpen(false);
+    navigate("/login", { replace: true });
+  }
+
+  const firstName = getFirstName(user?.fullName);
+  const initials = getInitials(user?.fullName);
+  const accountName = user?.fullName || "Earner account";
+  const accountEmail = user?.email || "";
+
   return (
     <header className="earner-topbar">
       <div className="earner-topbar__main">
         <div>
-          <h1>Good day, Chinedu</h1>
-          <p>5 tasks open for you right now</p>
+          <h1>Good day, {firstName}</h1>
+
+          <p>
+            {openTaskCount}{" "}
+            {openTaskCount === 1 ? "task is" : "tasks are"} open for you right
+            now
+          </p>
         </div>
 
         <div className="earner-topbar__actions">
           <span className="earner-topbar__balance">
-            Balance <strong>₦4,235</strong>
+            Balance{" "}
+            <strong>{formatNaira(stats?.walletBalance || 0)}</strong>
           </span>
 
-          <button
-            type="button"
-            className="earner-topbar__notification"
-            aria-label="Notifications"
-          >
-            ♧
-            <span />
-          </button>
+          <div className="earner-profile-dropdown" ref={profileMenuRef}>
+            <button
+              type="button"
+              className="earner-topbar__avatar"
+              onClick={() => setAccountMenuOpen((open) => !open)}
+              aria-label={
+                accountMenuOpen
+                  ? "Close earner account menu"
+                  : "Open earner account menu"
+              }
+              aria-haspopup="menu"
+              aria-expanded={accountMenuOpen}
+              aria-controls="earner-account-menu"
+              title={accountEmail || accountName}
+            >
+              <span className="earner-topbar__avatar-initials">
+                {initials}
+              </span>
+              <ChevronDown size={13} aria-hidden="true" />
+            </button>
 
-          <span className="earner-topbar__avatar">CO</span>
+            {accountMenuOpen && (
+              <div
+                className="earner-account-menu"
+                id="earner-account-menu"
+                role="menu"
+                aria-label="Earner account menu"
+              >
+                <div className="earner-account-menu__identity">
+                  <strong>{accountName}</strong>
+                  {accountEmail && <span>{accountEmail}</span>}
+                </div>
+
+                <Link
+                  to="/earners"
+                  role="menuitem"
+                  onClick={() => setAccountMenuOpen(false)}
+                >
+                  <LayoutDashboard size={15} />
+                  Dashboard
+                </Link>
+
+                <Link
+                  to="/earners/settings"
+                  role="menuitem"
+                  onClick={() => setAccountMenuOpen(false)}
+                >
+                  <Settings size={15} />
+                  Settings
+                </Link>
+
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleLogout}
+                >
+                  <LogOut size={15} />
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

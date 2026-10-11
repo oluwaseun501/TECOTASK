@@ -167,3 +167,14 @@
     transition: none;
   }
 }
+
+.login-card__brand--image {
+  justify-content: center;
+}
+
+.login-card__brand-logo {
+  display: block;
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+}

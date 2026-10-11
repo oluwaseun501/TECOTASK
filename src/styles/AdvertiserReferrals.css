@@ -428,3 +428,168 @@
     font-size: 8px;
   }
 }
+
+/* Spinner-only loading state, centered near the top of the page */
+.advertiser-referrals--loading {
+  display: grid;
+  min-height: min(55vh, 420px);
+  place-items: start center;
+}
+
+.advertiser-referral-loader {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  padding-top: 42px;
+}
+
+.advertiser-referral-loader__roller {
+  position: relative;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 3px solid #dcfce7;
+  border-right-color: #149e4b;
+  border-radius: 50%;
+  animation: advertiserReferralRoll 850ms linear infinite;
+}
+
+.advertiser-referral-loader__roller::before {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #149e4b;
+  content: "";
+  transform: translateX(-50%);
+}
+
+.advertiser-referral-loader__roller > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #86efac;
+}
+
+.advertiser-referrals-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes advertiserReferralRoll {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Glide-in and staggered card entrance */
+.advertiser-referral-stat-grid > *,
+.advertiser-referrals__grid > *,
+.advertiser-referral-person {
+  animation: advertiserReferralGlide 460ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.advertiser-referral-stat-grid > *:nth-child(2) {
+  animation-delay: 55ms;
+}
+
+.advertiser-referral-stat-grid > *:nth-child(3) {
+  animation-delay: 110ms;
+}
+
+.advertiser-referrals__grid > * {
+  animation-delay: 90ms;
+}
+
+.advertiser-referral-people-card {
+  animation: advertiserReferralGlide 460ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 145ms;
+}
+
+.advertiser-referral-side > *:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.advertiser-referral-person:nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.advertiser-referral-person:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.advertiser-referral-person:nth-child(4) {
+  animation-delay: 135ms;
+}
+
+.advertiser-referral-person:nth-child(5) {
+  animation-delay: 180ms;
+}
+
+@keyframes advertiserReferralGlide {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Gentle hover and keyboard-focus feedback */
+.advertiser-referral-stat-card,
+.advertiser-referral-invite-card,
+.advertiser-referral-people-card,
+.advertiser-referral-how-card,
+.advertiser-referral-rules-card {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.advertiser-referral-copy-button:focus-visible,
+.advertiser-referral-share-button:focus-visible {
+  outline: 3px solid rgba(22, 163, 74, 0.25);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .advertiser-referral-stat-card:hover,
+  .advertiser-referral-invite-card:hover,
+  .advertiser-referral-people-card:hover,
+  .advertiser-referral-how-card:hover,
+  .advertiser-referral-rules-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advertiser-referral-loader__roller,
+  .advertiser-referral-stat-grid > *,
+  .advertiser-referrals__grid > *,
+  .advertiser-referral-people-card,
+  .advertiser-referral-person {
+    animation: none;
+  }
+
+  .advertiser-referral-stat-card,
+  .advertiser-referral-invite-card,
+  .advertiser-referral-people-card,
+  .advertiser-referral-how-card,
+  .advertiser-referral-rules-card {
+    transition: none;
+  }
+}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   ArrowDownLeft,
@@ -16,164 +16,9 @@ import {
 
 import "../../styles/AdminTransactions.css";
 
-const transactions = [
-  {
-    id: "TX-10482",
-    date: "2025-02-14T10:42:00",
-    description: "Campaign balance funded",
-    reference: "CMP-7821",
-    user: "Maya Chen",
-    role: "Advertiser",
-    type: "Campaign funding",
-    amount: 1250,
-    direction: "credit",
-    status: "Completed",
-    channel: "Card •••• 4821",
-  },
-  {
-    id: "TX-10481",
-    date: "2025-02-14T09:18:00",
-    description: "Service payout — product review",
-    reference: "SRV-4910",
-    user: "Jon Bell",
-    role: "Earner",
-    type: "Earning payout",
-    amount: 84.5,
-    direction: "debit",
-    status: "Completed",
-    channel: "Teco wallet",
-  },
-  {
-    id: "TX-10480",
-    date: "2025-02-14T08:56:00",
-    description: "Earner withdrawal request",
-    reference: "WDR-2304",
-    user: "Priya Nair",
-    role: "Earner",
-    type: "Withdrawal",
-    amount: 210,
-    direction: "debit",
-    status: "Pending",
-    channel: "Bank •••• 7732",
-  },
-  {
-    id: "TX-10479",
-    date: "2025-02-13T16:44:00",
-    description: "Platform service fee",
-    reference: "FEE-8832",
-    user: "Maya Chen",
-    role: "Advertiser",
-    type: "Platform fee",
-    amount: 18.75,
-    direction: "credit",
-    status: "Completed",
-    channel: "Campaign wallet",
-  },
-  {
-    id: "TX-10478",
-    date: "2025-02-13T15:20:00",
-    description: "Campaign funding reversed",
-    reference: "CMP-7814",
-    user: "Northstar Labs",
-    role: "Advertiser",
-    type: "Refund",
-    amount: 400,
-    direction: "debit",
-    status: "Reversed",
-    channel: "Card •••• 9014",
-  },
-  {
-    id: "TX-10477",
-    date: "2025-02-13T12:08:00",
-    description: "Service payout — app testing",
-    reference: "SRV-4887",
-    user: "Luis Romero",
-    role: "Earner",
-    type: "Earning payout",
-    amount: 52.25,
-    direction: "debit",
-    status: "Completed",
-    channel: "Teco wallet",
-  },
-  {
-    id: "TX-10476",
-    date: "2025-02-13T11:34:00",
-    description: "Campaign balance funded",
-    reference: "CMP-7810",
-    user: "Bramble & Co.",
-    role: "Advertiser",
-    type: "Campaign funding",
-    amount: 890,
-    direction: "credit",
-    status: "Completed",
-    channel: "Bank •••• 1180",
-  },
-  {
-    id: "TX-10475",
-    date: "2025-02-12T17:09:00",
-    description: "Earner withdrawal request",
-    reference: "WDR-2298",
-    user: "Aisha Okafor",
-    role: "Earner",
-    type: "Withdrawal",
-    amount: 125,
-    direction: "debit",
-    status: "Failed",
-    channel: "Bank •••• 3201",
-  },
-  {
-    id: "TX-10474",
-    date: "2025-02-12T14:26:00",
-    description: "Campaign payment refund",
-    reference: "REF-1109",
-    user: "Greenline Studio",
-    role: "Advertiser",
-    type: "Refund",
-    amount: 75,
-    direction: "debit",
-    status: "Completed",
-    channel: "Card •••• 6540",
-  },
-  {
-    id: "TX-10473",
-    date: "2025-02-12T10:02:00",
-    description: "Service payout — data tagging",
-    reference: "SRV-4871",
-    user: "Jon Bell",
-    role: "Earner",
-    type: "Earning payout",
-    amount: 31.2,
-    direction: "debit",
-    status: "Completed",
-    channel: "Teco wallet",
-  },
-  {
-    id: "TX-10472",
-    date: "2025-02-11T18:37:00",
-    description: "Platform service fee",
-    reference: "FEE-8815",
-    user: "Northstar Labs",
-    role: "Advertiser",
-    type: "Platform fee",
-    amount: 9.5,
-    direction: "credit",
-    status: "Completed",
-    channel: "Campaign wallet",
-  },
-  {
-    id: "TX-10471",
-    date: "2025-02-11T13:41:00",
-    description: "Campaign balance funded",
-    reference: "CMP-7799",
-    user: "Kitehouse Media",
-    role: "Advertiser",
-    type: "Campaign funding",
-    amount: 2100,
-    direction: "credit",
-    status: "Completed",
-    channel: "Card •••• 1277",
-  },
-];
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
 
 const statusOptions = [
   "All",
@@ -185,34 +30,64 @@ const statusOptions = [
 
 const typeOptions = [
   "All types",
-  "Campaign funding",
+  "Wallet funding",
+  "Campaign reservation",
+  "Campaign spend",
+  "Refund",
   "Earning payout",
   "Withdrawal",
-  "Refund",
-  "Platform fee",
+  "Moderator reward",
+  "Admin adjustment",
 ];
 
 const formatCurrency = (amount) =>
-  new Intl.NumberFormat("en-US", {
+  new Intl.NumberFormat("en-NG", {
     style: "currency",
-    currency: "USD",
+    currency: "NGN",
     minimumFractionDigits: 2,
-  }).format(amount);
+  }).format(Number(amount || 0));
 
-const formatDate = (date) =>
-  new Intl.DateTimeFormat("en-US", {
+const formatSignedAmount = (transaction) => {
+  const amount = formatCurrency(transaction.amount);
+
+  if (transaction.direction === "credit") return `+${amount}`;
+  if (transaction.direction === "debit") return `-${amount}`;
+
+  // A transfer moves money between wallet balances rather than in or out.
+  return `↔ ${amount}`;
+};
+
+const getDirectionClass = (direction) =>
+  direction === "credit" ? "credit" : "debit";
+
+const formatDate = (date) => {
+  if (!date) return "—";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("en-NG", {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(date));
+  }).format(parsedDate);
+};
 
-const formatDateTime = (date) =>
-  new Intl.DateTimeFormat("en-US", {
+const formatDateTime = (date) => {
+  if (!date) return "—";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("en-NG", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(date));
+  }).format(parsedDate);
+};
 
-function getStatusClass(status) {
+function getStatusClass(status = "") {
   return status.toLowerCase();
 }
 
@@ -224,35 +99,51 @@ function StatusBadge({ status }) {
       )}`}
     >
       <span className="transaction-status-dot" />
-      {status}
+      {status || "Unknown"}
     </span>
   );
 }
 
 function RoleBadge({ role }) {
+  const safeRole = role || "Unknown";
+
   return (
     <span
-      className={`transaction-role transaction-role--${role.toLowerCase()}`}
+      className={`transaction-role transaction-role--${safeRole.toLowerCase()}`}
     >
-      {role}
+      {safeRole}
     </span>
   );
 }
 
+function DirectionIcon({ direction }) {
+  if (direction === "credit") {
+    return <ArrowDownLeft size={15} />;
+  }
+
+  return <ArrowUpRight size={15} />;
+}
+
 function TransactionDetails({ transaction, onClose }) {
   return (
-    <div className="transaction-drawer-overlay" onClick={onClose}>
-      <aside
-        className="transaction-drawer"
-        onClick={(event) => event.stopPropagation()}
+    <div
+      className="transaction-modal-overlay"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        className="transaction-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="transaction-modal-title"
       >
         <div className="transaction-drawer-header">
           <div>
             <span className="transaction-drawer-eyebrow">
               Transaction details
             </span>
-
-            <h2>{transaction.id}</h2>
+            <h2 id="transaction-modal-title">{transaction.id}</h2>
           </div>
 
           <button
@@ -268,12 +159,7 @@ function TransactionDetails({ transaction, onClose }) {
         <div className="transaction-drawer-body">
           <div className="transaction-amount-card">
             <span>Recorded amount</span>
-
-            <strong>
-              {transaction.direction === "credit" ? "+" : "-"}
-              {formatCurrency(transaction.amount)}
-            </strong>
-
+            <strong>{formatSignedAmount(transaction)}</strong>
             <StatusBadge status={transaction.status} />
           </div>
 
@@ -285,34 +171,28 @@ function TransactionDetails({ transaction, onClose }) {
             <dl className="transaction-detail-list">
               <div>
                 <dt>Description</dt>
-                <dd>{transaction.description}</dd>
+                <dd>{transaction.description || "—"}</dd>
               </div>
-
               <div>
                 <dt>Reference</dt>
-                <dd>{transaction.reference}</dd>
+                <dd>{transaction.reference || "—"}</dd>
               </div>
-
               <div>
                 <dt>Initiated by</dt>
-                <dd>{transaction.user}</dd>
+                <dd>{transaction.user || "Unknown user"}</dd>
               </div>
-
               <div>
                 <dt>Account role</dt>
-                <dd>{transaction.role}</dd>
+                <dd>{transaction.role || "—"}</dd>
               </div>
-
               <div>
                 <dt>Transaction type</dt>
-                <dd>{transaction.type}</dd>
+                <dd>{transaction.type || "—"}</dd>
               </div>
-
               <div>
                 <dt>Channel</dt>
-                <dd>{transaction.channel}</dd>
+                <dd>{transaction.channel || "—"}</dd>
               </div>
-
               <div>
                 <dt>Date and time</dt>
                 <dd>{formatDateTime(transaction.date)}</dd>
@@ -322,10 +202,9 @@ function TransactionDetails({ transaction, onClose }) {
 
           <div className="transaction-drawer-note">
             <FileText size={16} />
-
             <p>
-              This transaction is available for administrative review. Future
-              processor events and settlement records can be displayed here.
+              Details shown here come from the recorded wallet or withdrawal
+              information available to the admin system.
             </p>
           </div>
         </div>
@@ -339,73 +218,164 @@ function TransactionDetails({ transaction, onClose }) {
             Done
           </button>
         </div>
-      </aside>
+      </section>
     </div>
   );
 }
 
 export default function AdminTransactions() {
+  const [transactions, setTransactions] = useState([]);
+  const [summary, setSummary] = useState({
+    all: 0,
+    completed: 0,
+    pending: 0,
+    exceptions: 0,
+  });
+  const [statusCounts, setStatusCounts] = useState({});
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 25,
+    total: 0,
+    pages: 0,
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeStatus, setActiveStatus] = useState("All");
   const [activeType, setActiveType] = useState("All types");
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [page, setPage] = useState(1);
 
-  const summary = useMemo(
-    () => ({
-      all: transactions.length,
-      completed: transactions.filter(
-        (transaction) => transaction.status === "Completed"
-      ).length,
-      pending: transactions.filter(
-        (transaction) => transaction.status === "Pending"
-      ).length,
-      exceptions: transactions.filter(
-        (transaction) =>
-          transaction.status === "Failed" ||
-          transaction.status === "Reversed"
-      ).length,
-    }),
-    []
-  );
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const filteredTransactions = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+  useEffect(() => {
+    let cancelled = false;
 
-    return transactions.filter((transaction) => {
-      const matchesSearch =
-        !query ||
-        [
-          transaction.id,
-          transaction.reference,
-          transaction.user,
-          transaction.description,
-        ].some((value) => value.toLowerCase().includes(query));
+    setLoading(true);
 
-      const matchesStatus =
-        activeStatus === "All" || transaction.status === activeStatus;
+    const timer = window.setTimeout(async () => {
+      try {
+        const token =
+          sessionStorage.getItem("tecotaskToken") ||
+          localStorage.getItem("tecotaskToken");
 
-      const matchesType =
-        activeType === "All types" || transaction.type === activeType;
+        if (!token) {
+          throw new Error(
+            "Your login session is missing. Please sign in again."
+          );
+        }
 
-      return matchesSearch && matchesStatus && matchesType;
-    });
-  }, [searchQuery, activeStatus, activeType]);
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: "25",
+          status: activeStatus,
+          type: activeType === "All types" ? "All" : activeType,
+          search: searchQuery.trim(),
+        });
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/admin/transactions?${params.toString()}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.message || "Could not load transactions.");
+        }
+
+        if (cancelled) return;
+
+        setTransactions(data.transactions || []);
+        setSummary(
+          data.summary || {
+            all: 0,
+            completed: 0,
+            pending: 0,
+            exceptions: 0,
+          }
+        );
+        setStatusCounts(data.statusCounts || {});
+        setPagination(
+          data.pagination || {
+            page: 1,
+            limit: 25,
+            total: 0,
+            pages: 0,
+          }
+        );
+        setLoadError("");
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(error.message || "Could not load transactions.");
+          setTransactions([]);
+          setSummary({
+            all: 0,
+            completed: 0,
+            pending: 0,
+            exceptions: 0,
+          });
+          setStatusCounts({});
+          setPagination({
+            page: 1,
+            limit: 25,
+            total: 0,
+            pages: 0,
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [
+    page,
+    activeStatus,
+    activeType,
+    searchQuery,
+    refreshKey,
+  ]);
+  useEffect(() => {
+    if (!selectedTransaction) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") {
+        setSelectedTransaction(null);
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [selectedTransaction]);
+
+  
 
   const hasFilters =
-    searchQuery || activeStatus !== "All" || activeType !== "All types";
+    Boolean(searchQuery) ||
+    activeStatus !== "All" ||
+    activeType !== "All types";
 
   const clearFilters = () => {
     setSearchQuery("");
     setActiveStatus("All");
     setActiveType("All types");
+    setPage(1);
   };
 
-  const getStatusCount = (status) => {
-    if (status === "All") return summary.all;
+  const getStatusCount = (status) =>
+    status === "All" ? summary.all : statusCounts[status] || 0;
 
-    return transactions.filter(
-      (transaction) => transaction.status === status
-    ).length;
+  const retryLoading = () => {
+    setRefreshKey((current) => current + 1);
   };
 
   return (
@@ -420,13 +390,19 @@ export default function AdminTransactions() {
             <h1>All transactions</h1>
 
             <p>
-              Review and audit every movement across the TecoTask marketplace.
+              Review and audit recorded wallet and withdrawal activity across
+              the TecoTask marketplace.
             </p>
           </div>
 
-          <button type="button" className="transactions-date-button">
+          <button
+            type="button"
+            className="transactions-date-button"
+            disabled
+            title="Date range filtering is not available yet"
+          >
             <CalendarDays size={15} />
-            <span>Feb 11 – Feb 14, 2025</span>
+            <span>All dates</span>
             <ChevronDown size={14} />
           </button>
         </header>
@@ -482,10 +458,12 @@ export default function AdminTransactions() {
                 className={`transaction-tab ${
                   activeStatus === status ? "transaction-tab--active" : ""
                 }`}
-                onClick={() => setActiveStatus(status)}
+                onClick={() => {
+                  setActiveStatus(status);
+                  setPage(1);
+                }}
               >
                 {status}
-
                 <span>{getStatusCount(status)}</span>
               </button>
             ))}
@@ -498,14 +476,20 @@ export default function AdminTransactions() {
               <input
                 type="search"
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setPage(1);
+                }}
                 placeholder="Search reference, name or description"
               />
 
               {searchQuery && (
                 <button
                   type="button"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setSearchQuery("");
+                    setPage(1);
+                  }}
                   aria-label="Clear search"
                 >
                   <X size={14} />
@@ -519,7 +503,10 @@ export default function AdminTransactions() {
 
                 <select
                   value={activeType}
-                  onChange={(event) => setActiveType(event.target.value)}
+                  onChange={(event) => {
+                    setActiveType(event.target.value);
+                    setPage(1);
+                  }}
                 >
                   {typeOptions.map((type) => (
                     <option value={type} key={type}>
@@ -544,7 +531,36 @@ export default function AdminTransactions() {
             </div>
           </div>
 
-          {filteredTransactions.length > 0 ? (
+     {loading ? (
+  <div
+    className="transactions-loading"
+    role="status"
+    aria-live="polite"
+  >
+    <div
+      className="transactions-loading__roller"
+      aria-hidden="true"
+    />
+    <strong>Loading transactions</strong>
+    <p>Getting the latest transaction records from the server.</p>
+  </div>
+) : loadError ? (
+  // Keep your existing error branch here
+            <div className="transactions-empty-state" role="alert">
+              <span>
+                <AlertTriangle size={19} />
+              </span>
+              <h2>Could not load transactions</h2>
+              <p>{loadError}</p>
+              <button
+                type="button"
+                className="campaign-primary-button"
+                onClick={retryLoading}
+              >
+                Try again
+              </button>
+            </div>
+          ) : transactions.length > 0 ? (
             <>
               <div className="transactions-table-wrapper">
                 <table className="transactions-table">
@@ -562,24 +578,32 @@ export default function AdminTransactions() {
                   </thead>
 
                   <tbody>
-                    {filteredTransactions.map((transaction) => (
+                    {transactions.map((transaction) => (
                       <tr key={transaction.id}>
                         <td>
                           <div className="transaction-name">
                             <span
-                              className={`transaction-direction transaction-direction--${transaction.direction}`}
+                              className={`transaction-direction transaction-direction--${getDirectionClass(
+                                transaction.direction
+                              )}`}
+                              title={
+                                transaction.direction === "transfer"
+                                  ? "Wallet balance transfer"
+                                  : transaction.direction
+                              }
                             >
-                              {transaction.direction === "credit" ? (
-                                <ArrowDownLeft size={15} />
-                              ) : (
-                                <ArrowUpRight size={15} />
-                              )}
+                              <DirectionIcon
+                                direction={transaction.direction}
+                              />
                             </span>
 
                             <div>
-                              <strong>{transaction.description}</strong>
+                              <strong>
+                                {transaction.description || "Transaction"}
+                              </strong>
                               <small>
-                                {transaction.id} · {transaction.reference}
+                                {transaction.id} ·{" "}
+                                {transaction.reference || "No reference"}
                               </small>
                             </div>
                           </div>
@@ -591,7 +615,7 @@ export default function AdminTransactions() {
 
                         <td>
                           <div className="transaction-user">
-                            <strong>{transaction.user}</strong>
+                            <strong>{transaction.user || "Unknown user"}</strong>
                             <RoleBadge role={transaction.role} />
                           </div>
                         </td>
@@ -602,10 +626,11 @@ export default function AdminTransactions() {
 
                         <td>
                           <strong
-                            className={`transaction-amount transaction-amount--${transaction.direction}`}
+                            className={`transaction-amount transaction-amount--${getDirectionClass(
+                              transaction.direction
+                            )}`}
                           >
-                            {transaction.direction === "credit" ? "+" : "-"}
-                            {formatCurrency(transaction.amount)}
+                            {formatSignedAmount(transaction)}
                           </strong>
                         </td>
 
@@ -614,7 +639,7 @@ export default function AdminTransactions() {
                         </td>
 
                         <td className="transaction-channel">
-                          {transaction.channel}
+                          {transaction.channel || "—"}
                         </td>
 
                         <td>
@@ -636,7 +661,7 @@ export default function AdminTransactions() {
               </div>
 
               <div className="transactions-mobile-list">
-                {filteredTransactions.map((transaction) => (
+                {transactions.map((transaction) => (
                   <button
                     type="button"
                     key={transaction.id}
@@ -644,28 +669,30 @@ export default function AdminTransactions() {
                     onClick={() => setSelectedTransaction(transaction)}
                   >
                     <span
-                      className={`transaction-direction transaction-direction--${transaction.direction}`}
+                      className={`transaction-direction transaction-direction--${getDirectionClass(
+                        transaction.direction
+                      )}`}
                     >
-                      {transaction.direction === "credit" ? (
-                        <ArrowDownLeft size={15} />
-                      ) : (
-                        <ArrowUpRight size={15} />
-                      )}
+                      <DirectionIcon direction={transaction.direction} />
                     </span>
 
                     <span className="transaction-mobile-main">
-                      <strong>{transaction.description}</strong>
+                      <strong>
+                        {transaction.description || "Transaction"}
+                      </strong>
                       <small>
-                        {transaction.user} · {formatDate(transaction.date)}
+                        {transaction.user || "Unknown user"} ·{" "}
+                        {formatDate(transaction.date)}
                       </small>
                     </span>
 
                     <span className="transaction-mobile-side">
                       <strong
-                        className={`transaction-amount transaction-amount--${transaction.direction}`}
+                        className={`transaction-amount transaction-amount--${getDirectionClass(
+                          transaction.direction
+                        )}`}
                       >
-                        {transaction.direction === "credit" ? "+" : "-"}
-                        {formatCurrency(transaction.amount)}
+                        {formatSignedAmount(transaction)}
                       </strong>
 
                       <StatusBadge status={transaction.status} />
@@ -675,8 +702,44 @@ export default function AdminTransactions() {
               </div>
 
               <footer className="transactions-footer">
-                Showing <strong>{filteredTransactions.length}</strong> of{" "}
-                {transactions.length} transactions
+                <span>
+                  Showing <strong>{transactions.length}</strong> of{" "}
+                  {pagination.total} transactions
+                </span>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    alignItems: "center",
+                  }}
+                >
+                  <button
+                    type="button"
+                    disabled={page <= 1 || loading}
+                    onClick={() =>
+                      setPage((currentPage) => Math.max(1, currentPage - 1))
+                    }
+                  >
+                    Previous
+                  </button>
+
+                  <span>
+                    Page {page} of {Math.max(1, pagination.pages)}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={
+                      pagination.pages === 0 ||
+                      page >= pagination.pages ||
+                      loading
+                    }
+                    onClick={() => setPage((currentPage) => currentPage + 1)}
+                  >
+                    Next
+                  </button>
+                </div>
               </footer>
             </>
           ) : (
@@ -691,13 +754,15 @@ export default function AdminTransactions() {
                 Try a different search term or remove one of the active filters.
               </p>
 
-              <button
-                type="button"
-                className="campaign-primary-button"
-                onClick={clearFilters}
-              >
-                Clear filters
-              </button>
+              {hasFilters && (
+                <button
+                  type="button"
+                  className="campaign-primary-button"
+                  onClick={clearFilters}
+                >
+                  Clear filters
+                </button>
+              )}
             </div>
           )}
         </section>

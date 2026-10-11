@@ -1,8 +1,21 @@
+:root {
+  --navbar-height: 68px;
+}
+
+html {
+  scroll-padding-top: calc(var(--navbar-height) + 12px);
+}
+
+.navbar-spacer {
+  height: var(--navbar-height);
+}
+
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 50;
-  width: 100%;
+  right: 0;
+  left: 0;
+  z-index: 1000;
   border-bottom: 1px solid #f1f5f9;
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(14px);
@@ -153,6 +166,10 @@
 }
 
 @media (max-width: 768px) {
+  :root {
+    --navbar-height: 62px;
+  }
+
   .navbar__inner {
     width: min(100% - 32px, 1120px);
     height: 62px;
@@ -284,6 +301,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   .navbar__menu-button,
   .navbar__menu-button span,
   .navbar__mobile-menu,
@@ -291,4 +312,11 @@
   .navbar__mobile-actions {
     transition: none;
   }
+}
+
+.navbar__brand-logo {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }

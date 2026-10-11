@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 
 import ModeratorSidebar from "./ModeratorSidebar";
 import ModeratorTopBar from "./ModeratorTopBar";
@@ -10,15 +10,18 @@ export default function ModeratorDashboard({
   basePath = "/moderator",
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const { pathname } = useLocation();
 
-  const handleRefresh = () => {
-    setRefreshing(true);
+  useEffect(() => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
-    window.setTimeout(() => {
-      setRefreshing(false);
-    }, 700);
-  };
+    window.scrollTo({
+      top: 0,
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  }, [pathname]);
 
   return (
     <div className="moderator-shell">
@@ -31,9 +34,7 @@ export default function ModeratorDashboard({
       <div className="moderator-main">
         <ModeratorTopBar
           basePath={basePath}
-          refreshing={refreshing}
           onMenu={() => setMobileOpen(true)}
-          onRefresh={handleRefresh}
         />
 
         <main className="moderator-main-content">

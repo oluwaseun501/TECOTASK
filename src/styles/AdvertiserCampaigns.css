@@ -306,3 +306,170 @@
     font-size: 10px;
   }
 }
+
+/* Rolling dashboard loader */
+.advertiser-campaigns--loading {
+  display: grid;
+  min-height: min(55vh, 440px);
+  place-items: start center;
+  padding-top: clamp(36px, 8vh, 76px);
+}
+
+.advertiser-campaigns__loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  text-align: center;
+}
+
+.advertiser-campaigns__loader strong {
+  color: #334155;
+  font-size: 12px;
+}
+
+.advertiser-campaigns__loader p {
+  margin: 0;
+  font-size: 10px;
+}
+
+.advertiser-campaigns__roller {
+  position: relative;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 5px;
+  place-items: center;
+  border: 3px solid #dcfce7;
+  border-right-color: #149e4b;
+  border-radius: 50%;
+  animation: advertiserRoll 850ms linear infinite;
+}
+
+.advertiser-campaigns__roller::before {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #149e4b;
+  content: "";
+  transform: translateX(-50%);
+}
+
+.advertiser-campaigns__roller > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #86efac;
+}
+
+@keyframes advertiserRoll {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Bring dashboard cards in with a short stagger */
+.advertiser-stat-grid > .advertiser-stat-card,
+.advertiser-campaign-list {
+  animation: advertiserContentEnter 440ms
+    cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.advertiser-stat-grid > .advertiser-stat-card:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.advertiser-stat-grid > .advertiser-stat-card:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.advertiser-campaign-list {
+  animation-delay: 160ms;
+}
+
+.advertiser-campaign-items > * {
+  animation: advertiserContentEnter 380ms
+    cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.advertiser-campaign-items > *:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.advertiser-campaign-items > *:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+@keyframes advertiserContentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slightly improve dashboard text readability */
+.advertiser-stat-card > span,
+.advertiser-stat-card > small {
+  font-size: 9px;
+}
+
+.advertiser-stat-card > strong {
+  font-size: 21px;
+}
+
+.advertiser-section-heading h2 {
+  font-size: 13px;
+}
+
+.advertiser-section-heading p,
+.advertiser-section-heading > span {
+  font-size: 9px;
+}
+
+.advertiser-campaign-card h3 {
+  font-size: 10px;
+}
+
+.advertiser-campaign-card__meta,
+.advertiser-campaign-card__progress-row {
+  font-size: 8px;
+}
+
+.advertiser-campaign-card__budget strong {
+  font-size: 10px;
+}
+
+/* Gentle lift for the metric cards on devices with hover */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .advertiser-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advertiser-campaigns__roller,
+  .advertiser-stat-grid > .advertiser-stat-card,
+  .advertiser-campaign-list,
+  .advertiser-campaign-items > * {
+    animation: none;
+  }
+
+  .advertiser-campaign-card,
+  .advertiser-campaign-card__progress span,
+  .advertiser-stat-card {
+    transition: none;
+  }
+}

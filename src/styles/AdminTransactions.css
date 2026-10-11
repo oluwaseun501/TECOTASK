@@ -1013,3 +1013,300 @@
     padding-left: 17px;
   }
 }
+
+/* Smooth page entry and restrained interaction motion */
+html {
+  scroll-behavior: smooth;
+}
+
+.admin-transactions-container {
+  animation: transactions-page-enter 420ms
+    cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.transaction-summary-card,
+.transaction-content-card {
+  animation: transactions-content-enter 440ms
+    cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.transaction-summary-grid > .transaction-summary-card:nth-child(2) {
+  animation-delay: 55ms;
+}
+
+.transaction-summary-grid > .transaction-summary-card:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.transaction-summary-grid > .transaction-summary-card:nth-child(4) {
+  animation-delay: 145ms;
+}
+
+.transaction-content-card {
+  animation-delay: 180ms;
+}
+
+.transaction-summary-card,
+.transaction-view-button,
+.transaction-mobile-card {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.transactions-table tbody tr {
+  animation: transactions-row-enter 340ms
+    cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.transactions-table tbody tr:nth-child(2) {
+  animation-delay: 35ms;
+}
+
+.transactions-table tbody tr:nth-child(3) {
+  animation-delay: 70ms;
+}
+
+.transactions-table tbody tr:nth-child(4) {
+  animation-delay: 105ms;
+}
+
+.transactions-table tbody tr:nth-child(5) {
+  animation-delay: 140ms;
+}
+
+.transactions-table tbody tr:nth-child(6) {
+  animation-delay: 175ms;
+}
+
+.transaction-drawer-overlay {
+  animation: transaction-overlay-enter 180ms ease both;
+}
+
+.transaction-drawer {
+  animation: transaction-drawer-enter 260ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (hover: hover) {
+  .transaction-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.075);
+  }
+
+  .transaction-view-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .transaction-mobile-card:hover {
+    transform: translateY(-1px);
+    box-shadow: inset 0 0 0 1px #e1e9e4;
+  }
+}
+
+@keyframes transactions-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes transactions-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes transactions-row-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes transaction-overlay-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes transaction-drawer-enter {
+  from {
+    opacity: 0.75;
+    transform: translateX(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .admin-transactions-container,
+  .transaction-summary-card,
+  .transaction-content-card,
+  .transactions-table tbody tr,
+  .transaction-drawer-overlay,
+  .transaction-drawer,
+  .transaction-view-button,
+  .transaction-mobile-card {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.transaction-modal-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(25, 38, 30, 0.42);
+  backdrop-filter: blur(3px);
+  animation: transaction-overlay-enter 180ms ease both;
+}
+
+.transaction-modal {
+  display: flex;
+  width: min(620px, 100%);
+  max-height: min(88vh, 760px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e1e9e4;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.2);
+  animation: transaction-modal-pop-in 240ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.transaction-modal .transaction-drawer-header,
+.transaction-modal .transaction-drawer-footer {
+  flex: 0 0 auto;
+}
+
+.transaction-modal .transaction-drawer-header h2 {
+  overflow-wrap: anywhere;
+}
+
+.transaction-modal .transaction-drawer-body {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.transactions-loading {
+  display: flex;
+  min-height: 320px;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #64736a;
+  text-align: center;
+}
+
+.transactions-loading__roller {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 12px;
+  border: 3px solid #dcfce7;
+  border-right-color: #159447;
+  border-radius: 50%;
+  animation: transaction-loading-roll 850ms linear infinite;
+}
+
+.transactions-loading__roller::before {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #159447;
+  content: "";
+  transform: translateX(-50%);
+}
+
+.transactions-loading strong {
+  color: #435149;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.transactions-loading p {
+  margin: 6px 0 0;
+  color: #89978f;
+  font-size: 10px;
+}
+
+@keyframes transaction-modal-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes transaction-loading-roll {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .transaction-modal-overlay {
+    padding: 12px;
+  }
+
+  .transaction-modal {
+    max-height: 92vh;
+    border-radius: 14px;
+  }
+
+  .transaction-modal .transaction-drawer-header,
+  .transaction-modal .transaction-drawer-body,
+  .transaction-modal .transaction-drawer-footer {
+    padding-right: 17px;
+    padding-left: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transaction-modal-overlay,
+  .transaction-modal,
+  .transactions-loading__roller {
+    animation: none !important;
+  }
+}

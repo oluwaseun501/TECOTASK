@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -10,9 +10,37 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
+import { authApi } from "../../services/auth.js";
 import "../../styles/ModeratorSettings.css";
+
+function getStoredToken() {
+  if (typeof window === "undefined") return "";
+
+  return (
+    window.sessionStorage.getItem("tecotaskToken") ||
+    window.localStorage.getItem("tecotaskToken") ||
+    ""
+  );
+}
+
+function getInitials(fullName = "") {
+  return (
+    fullName
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "MO"
+  );
+}
+
+function displayRole(role = "") {
+  return role ? role.charAt(0).toUpperCase() + role.slice(1) : "Moderator";
+}
 
 function PasswordField({
   label,
@@ -34,6 +62,7 @@ function PasswordField({
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
+          required
         />
 
         <button
@@ -49,20 +78,58 @@ function PasswordField({
 }
 
 export default function ModeratorSettings() {
+  const navigate = useNavigate();
+
+  const [account, setAccount] = useState(null);
+  const [loadingAccount, setLoadingAccount] = useState(true);
+  const [accountError, setAccountError] = useState("");
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [showCurrentPassword, setShowCurrentPassword] =
-    useState(false);
-
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSettings() {
+     const token = getStoredToken();
+
+      if (!token) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      try {
+        const data = await authApi.getSettings(token);
+
+        if (isMounted) {
+          setAccount(data.account || null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setAccountError(error.message || "Could not load account settings.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingAccount(false);
+        }
+      }
+    }
+
+    loadSettings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const passwordRequirements = useMemo(
     () => [
@@ -79,12 +146,12 @@ export default function ModeratorSettings() {
         valid: /\d/.test(newPassword),
       },
     ],
-    [newPassword]
+    [newPassword],
   );
 
   const passwordStrength = useMemo(() => {
     const completed = passwordRequirements.filter(
-      (requirement) => requirement.valid
+      (requirement) => requirement.valid,
     ).length;
 
     if (!newPassword) {
@@ -96,38 +163,24 @@ export default function ModeratorSettings() {
     }
 
     if (completed === 1) {
-      return {
-        label: "Weak password",
-        width: "33%",
-        tone: "weak",
-      };
+      return { label: "Weak password", width: "33%", tone: "weak" };
     }
 
     if (completed === 2) {
-      return {
-        label: "Fair password",
-        width: "66%",
-        tone: "fair",
-      };
+      return { label: "Fair password", width: "66%", tone: "fair" };
     }
 
-    return {
-      label: "Strong password",
-      width: "100%",
-      tone: "strong",
-    };
+    return { label: "Strong password", width: "100%", tone: "strong" };
   }, [newPassword, passwordRequirements]);
 
-  const clearMessages = () => {
+  function clearMessages() {
     setErrorMessage("");
     setSuccessMessage("");
-  };
+  }
 
-  const handlePasswordChange = (event) => {
+  async function handlePasswordChange(event) {
     event.preventDefault();
-
-    setErrorMessage("");
-    setSuccessMessage("");
+    clearMessages();
 
     if (!currentPassword) {
       setErrorMessage("Enter your current password.");
@@ -135,23 +188,19 @@ export default function ModeratorSettings() {
     }
 
     if (newPassword.length < 8) {
-      setErrorMessage(
-        "Your new password must contain at least 8 characters."
-      );
+      setErrorMessage("Your new password must contain at least 8 characters.");
       return;
     }
 
     if (!/[A-Z]/.test(newPassword)) {
       setErrorMessage(
-        "Your new password must contain at least one uppercase letter."
+        "Your new password must contain at least one uppercase letter.",
       );
       return;
     }
 
     if (!/\d/.test(newPassword)) {
-      setErrorMessage(
-        "Your new password must contain at least one number."
-      );
+      setErrorMessage("Your new password must contain at least one number.");
       return;
     }
 
@@ -162,17 +211,46 @@ export default function ModeratorSettings() {
 
     if (currentPassword === newPassword) {
       setErrorMessage(
-        "Your new password must be different from your current password."
+        "Your new password must be different from your current password.",
       );
       return;
     }
 
-    setSuccessMessage("Your password has been updated successfully.");
+    const token = getStoredToken();
+    
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
 
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-  };
+    setSavingPassword(true);
+
+    try {
+      const result = await authApi.updatePassword(
+        {
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        },
+        token,
+      );
+
+      setSuccessMessage(
+        result.message || "Your password has been updated successfully.",
+      );
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      setErrorMessage(error.message || "Could not update your password.");
+    } finally {
+      setSavingPassword(false);
+    }
+  }
+
+  const fullName = account?.fullName || "Moderator account";
+  const email = account?.email || "—";
+  const role = displayRole(account?.role);
 
   return (
     <main className="moderator-settings-page">
@@ -185,9 +263,7 @@ export default function ModeratorSettings() {
 
             <h1>Settings</h1>
 
-            <p>
-              Manage your moderator account and update your password.
-            </p>
+            <p>Manage your moderator account and update your password.</p>
           </div>
         </header>
 
@@ -204,12 +280,24 @@ export default function ModeratorSettings() {
               </div>
             </div>
 
+            {accountError ? (
+              <div
+                className="moderator-settings-message moderator-settings-message--error"
+                role="alert"
+              >
+                <AlertCircle size={16} />
+                <span>{accountError}</span>
+              </div>
+            ) : null}
+
             <div className="moderator-account-profile">
-              <span className="moderator-account-avatar">MO</span>
+              <span className="moderator-account-avatar">
+                {getInitials(account?.fullName)}
+              </span>
 
               <div>
-                <strong>Moderator account</strong>
-                <span>moderator@tecotask.com</span>
+                <strong>{loadingAccount ? "Loading…" : fullName}</strong>
+                <span>{loadingAccount ? "Loading…" : email}</span>
               </div>
             </div>
 
@@ -220,7 +308,7 @@ export default function ModeratorSettings() {
                   Email address
                 </span>
 
-                <strong>moderator@tecotask.com</strong>
+                <strong>{loadingAccount ? "Loading…" : email}</strong>
               </div>
 
               <div className="moderator-account-detail">
@@ -231,7 +319,7 @@ export default function ModeratorSettings() {
 
                 <span className="moderator-role-badge">
                   <ShieldCheck size={12} />
-                  Moderator
+                  {loadingAccount ? "Loading…" : role}
                 </span>
               </div>
             </div>
@@ -241,8 +329,8 @@ export default function ModeratorSettings() {
 
               <p>
                 Your moderator role allows you to review task submissions,
-                approve valid proofs, reject invalid submissions, and
-                manage your withdrawals.
+                approve valid proofs, reject invalid submissions, and manage
+                your withdrawals.
               </p>
             </div>
           </section>
@@ -255,9 +343,7 @@ export default function ModeratorSettings() {
 
               <div>
                 <h2>Change password</h2>
-                <p>
-                  Use a strong password to protect your moderator account.
-                </p>
+                <p>Use a strong password to protect your moderator account.</p>
               </div>
             </div>
 
@@ -286,9 +372,7 @@ export default function ModeratorSettings() {
                 onChange={setCurrentPassword}
                 placeholder="Enter your current password"
                 visible={showCurrentPassword}
-                onToggle={() =>
-                  setShowCurrentPassword((current) => !current)
-                }
+                onToggle={() => setShowCurrentPassword((visible) => !visible)}
                 autoComplete="current-password"
               />
 
@@ -298,9 +382,7 @@ export default function ModeratorSettings() {
                 onChange={setNewPassword}
                 placeholder="Enter your new password"
                 visible={showNewPassword}
-                onToggle={() =>
-                  setShowNewPassword((current) => !current)
-                }
+                onToggle={() => setShowNewPassword((visible) => !visible)}
                 autoComplete="new-password"
               />
 
@@ -331,9 +413,7 @@ export default function ModeratorSettings() {
                 onChange={setConfirmPassword}
                 placeholder="Repeat your new password"
                 visible={showConfirmPassword}
-                onToggle={() =>
-                  setShowConfirmPassword((current) => !current)
-                }
+                onToggle={() => setShowConfirmPassword((visible) => !visible)}
                 autoComplete="new-password"
               />
 
@@ -360,8 +440,8 @@ export default function ModeratorSettings() {
               <div className="moderator-password-form-footer">
                 <div>
                   <p>
-                    You will need to use your new password the next time
-                    you sign in.
+                    You will need to use your new password the next time you
+                    sign in.
                   </p>
 
                   <Link to="/forgot-password">
@@ -372,9 +452,10 @@ export default function ModeratorSettings() {
                 <button
                   type="submit"
                   className="moderator-save-password-button"
+                  disabled={savingPassword}
                 >
                   <Save size={15} />
-                  Update password
+                  {savingPassword ? "Updating…" : "Update password"}
                 </button>
               </div>
             </form>

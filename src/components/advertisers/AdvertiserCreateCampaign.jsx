@@ -1,34 +1,114 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { authApi } from "../../services/auth.js";
 import "../../styles/AdvertiserCreateCampaign.css";
 
-const categories = [
-  "Social Media",
-  "App Install",
-  "Survey",
-  "Review",
-  "Website Visit",
-];
+const campaignListPath = "/advertisers";
+
+const formatNaira = (amount = 0) =>
+  `₦${Number(amount || 0).toLocaleString("en-NG")}`;
 
 const AdvertiserCreateCampaign = () => {
+  const navigate = useNavigate();
+
   const [step, setStep] = useState(1);
+  const [services, setServices] = useState([]);
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("error");
+  const [savingAction, setSavingAction] = useState("");
+  const [draftCampaignId, setDraftCampaignId] = useState("");
 
   const [campaign, setCampaign] = useState({
-    name: "Instagram community push",
-    category: "Social Media",
-    brief: "Follow our Instagram page and keep the follow for 14 days.",
-    proof:
-      "Screenshot that shows the following button and the username is visible.",
-    pricePerPerson: "1000",
+    name: "",
+    serviceId: "",
+    brief: "",
+    proof: "",
     numberOfPeople: "5",
   });
 
-  const [instructions, setInstructions] = useState([
-    "Open the link and tap Follow",
-    "Screenshot the result",
-  ]);
+  const [instructions, setInstructions] = useState([""]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadFormData() {
+      const token = sessionStorage.getItem("tecotaskToken");
+
+      if (!token) {
+        navigate("/login", { replace: true });
+        if (isMounted) setIsLoadingData(false);
+        return;
+      }
+
+      try {
+        const [serviceData, dashboard] = await Promise.all([
+          authApi.getAdvertiserServices(token),
+          authApi.getAdvertiserDashboard(token),
+        ]);
+
+        if (!isMounted) return;
+
+        const activeServices = serviceData.services || [];
+
+        setServices(activeServices);
+
+        const firstService = activeServices[0];
+
+        setInstructions(
+          Array.isArray(firstService?.defaultInstructions) &&
+            firstService.defaultInstructions.length > 0
+            ? [...firstService.defaultInstructions]
+            : [""],
+        );
+
+        setAvailableBalance(Number(dashboard.wallet?.availableBalance || 0));
+
+        setCampaign((current) => ({
+          ...current,
+          serviceId: current.serviceId || activeServices[0]?.id || "",
+        }));
+
+        if (activeServices.length === 0) {
+          setLoadError("No active campaign services are available right now.");
+        }
+      } catch (requestError) {
+        if (isMounted) {
+          setLoadError(
+            requestError.message || "Could not load campaign options.",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingData(false);
+        }
+      }
+    }
+
+    loadFormData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  const selectedService = services.find(
+    (service) => service.id === campaign.serviceId,
+  );
+
+  const targetQuantity = Number(campaign.numberOfPeople);
+  const hasValidQuantity =
+    Number.isSafeInteger(targetQuantity) && targetQuantity > 0;
+
+  const pricePerPerson = Number(selectedService?.advertiserPricePerPerson || 0);
+  const rewardPerPerson = Number(selectedService?.earnerRewardPerPerson || 0);
+  const feePerPerson = Number(selectedService?.platformFeePerPerson || 0);
+
+  const totalBudget = hasValidQuantity ? pricePerPerson * targetQuantity : 0;
+  const rewardTotal = hasValidQuantity ? rewardPerPerson * targetQuantity : 0;
+  const feeTotal = hasValidQuantity ? feePerPerson * targetQuantity : 0;
   const handleCampaignChange = (event) => {
     const { name, value } = event.target;
 
@@ -36,6 +116,15 @@ const AdvertiserCreateCampaign = () => {
       ...previousCampaign,
       [name]: value,
     }));
+
+    if (name === "serviceId") {
+      const selected = services.find((service) => service.id === value);
+      const defaults = selected?.defaultInstructions;
+
+      setInstructions(
+        Array.isArray(defaults) && defaults.length > 0 ? [...defaults] : [""],
+      );
+    }
 
     setMessage("");
   };
@@ -51,28 +140,33 @@ const AdvertiserCreateCampaign = () => {
   };
 
   const addInstruction = () => {
-    setInstructions((previousInstructions) => [
-      ...previousInstructions,
-      "",
-    ]);
+    if (instructions.length >= 20) {
+      setMessage("A campaign can have no more than 20 instruction steps.");
+      setMessageType("error");
+      return;
+    }
+
+    setInstructions((previousInstructions) => [...previousInstructions, ""]);
+
+    setMessage("");
   };
 
   const removeInstruction = (index) => {
-    if (instructions.length === 1) {
-      return;
-    }
+    if (instructions.length === 1) return;
 
     setInstructions((previousInstructions) =>
       previousInstructions.filter(
         (_, instructionIndex) => instructionIndex !== index,
       ),
     );
+
+    setMessage("");
   };
 
   const validateTaskDetails = () => {
-    const hasEmptyInstruction = instructions.some(
-      (instruction) => !instruction.trim(),
-    );
+    if (!campaign.serviceId || !selectedService) {
+      return "Please select an available service.";
+    }
 
     if (!campaign.name.trim()) {
       return "Please enter a campaign name.";
@@ -82,8 +176,12 @@ const AdvertiserCreateCampaign = () => {
       return "Please add a short brief for earners.";
     }
 
-    if (hasEmptyInstruction) {
-      return "Please complete every instruction step.";
+    if (
+      instructions.length < 1 ||
+      instructions.length > 20 ||
+      instructions.some((instruction) => !instruction.trim())
+    ) {
+      return "Add between 1 and 20 complete instruction steps.";
     }
 
     if (!campaign.proof.trim()) {
@@ -93,6 +191,27 @@ const AdvertiserCreateCampaign = () => {
     return "";
   };
 
+  const validateCompleteCampaign = () => {
+    const detailError = validateTaskDetails();
+
+    if (detailError) return detailError;
+
+    if (!hasValidQuantity) {
+      return "Number of people must be a positive whole number.";
+    }
+
+    return "";
+  };
+
+  const buildCampaignPayload = () => ({
+    serviceId: campaign.serviceId,
+    name: campaign.name.trim(),
+    shortBrief: campaign.brief.trim(),
+    instructions: instructions.map((instruction) => instruction.trim()),
+    proofRequirements: campaign.proof.trim(),
+    targetQuantity,
+  });
+
   const handleContinue = (event) => {
     event.preventDefault();
 
@@ -100,6 +219,7 @@ const AdvertiserCreateCampaign = () => {
 
     if (validationMessage) {
       setMessage(validationMessage);
+      setMessageType("error");
       return;
     }
 
@@ -112,20 +232,119 @@ const AdvertiserCreateCampaign = () => {
     setStep(1);
   };
 
-  const handlePublishCampaign = (event) => {
+  const saveCurrentDraft = async (token, payload) => {
+    if (draftCampaignId) {
+      await authApi.updateAdvertiserCampaign(draftCampaignId, payload, token);
+
+      return draftCampaignId;
+    }
+
+    const result = await authApi.createAdvertiserCampaign(payload, token);
+
+    const newDraftId = result.campaign?.id;
+
+    if (!newDraftId) {
+      throw new Error("The campaign draft was created without an ID.");
+    }
+
+    setDraftCampaignId(newDraftId);
+    return newDraftId;
+  };
+
+  const handleSaveAndExit = async () => {
+    const validationMessage = validateCompleteCampaign();
+
+    if (validationMessage) {
+      setMessage(validationMessage);
+      setMessageType("error");
+      return;
+    }
+
+    const token = sessionStorage.getItem("tecotaskToken");
+
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    setSavingAction("draft");
+    setMessage("");
+
+    try {
+      await saveCurrentDraft(token, buildCampaignPayload());
+      navigate(campaignListPath);
+    } catch (requestError) {
+      setMessage(requestError.message || "Could not save the campaign draft.");
+      setMessageType("error");
+    } finally {
+      setSavingAction("");
+    }
+  };
+
+  const handlePublishCampaign = async (event) => {
     event.preventDefault();
 
-    setMessage(
-      "Campaign is ready to publish. Backend submission will be connected later.",
-    );
+    const validationMessage = validateCompleteCampaign();
+
+    if (validationMessage) {
+      setMessage(validationMessage);
+      setMessageType("error");
+      return;
+    }
+
+    const token = sessionStorage.getItem("tecotaskToken");
+
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    setSavingAction("publish");
+    setMessage("");
+
+    try {
+      const campaignId = await saveCurrentDraft(token, buildCampaignPayload());
+
+      await authApi.submitAdvertiserCampaign(campaignId, token);
+
+      navigate(campaignListPath);
+    } catch (requestError) {
+      setMessage(
+        requestError.message || "Could not submit the campaign for review.",
+      );
+      setMessageType("error");
+    } finally {
+      setSavingAction("");
+    }
   };
+
+  if (isLoadingData) {
+    return (
+      <section className="advertiser-create-campaign advertiser-create-campaign--loading">
+        <div
+          className="advertiser-create-campaign__loader"
+          role="status"
+          aria-live="polite"
+        >
+          <span
+            className="advertiser-create-campaign__roller"
+            aria-hidden="true"
+          >
+            <span />
+          </span>
+          <strong>Preparing your campaign builder</strong>
+          <p>Loading services and wallet balance...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="advertiser-create-campaign">
       <div className="advertiser-create-campaign__top">
         <div>
           <Link
-            to="/advertisers/campaigns"
+            to={campaignListPath}
             className="advertiser-create-campaign__back"
           >
             ← Back to campaigns
@@ -137,20 +356,19 @@ const AdvertiserCreateCampaign = () => {
 
           <h1>Create a campaign</h1>
 
-          <p>
-            Publish a task and only pay for approved work.
-          </p>
+          <p>Publish a task and only pay for approved work.</p>
         </div>
       </div>
 
-      <div
-        className="advertiser-campaign-stepper"
-        aria-label="Campaign steps"
-      >
+      {loadError && (
+        <p className="advertiser-create-campaign__message" role="alert">
+          {loadError}
+        </p>
+      )}
+
+      <div className="advertiser-campaign-stepper" aria-label="Campaign steps">
         <div
-          className={`advertiser-campaign-step ${
-            step >= 1 ? "is-active" : ""
-          }`}
+          className={`advertiser-campaign-step ${step >= 1 ? "is-active" : ""}`}
         >
           <span>1</span>
           <strong>Task details</strong>
@@ -159,9 +377,7 @@ const AdvertiserCreateCampaign = () => {
         <div className="advertiser-campaign-step-line" />
 
         <div
-          className={`advertiser-campaign-step ${
-            step >= 2 ? "is-active" : ""
-          }`}
+          className={`advertiser-campaign-step ${step >= 2 ? "is-active" : ""}`}
         >
           <span>2</span>
           <strong>Budget &amp; review</strong>
@@ -170,10 +386,7 @@ const AdvertiserCreateCampaign = () => {
 
       {step === 1 ? (
         <div className="advertiser-create-campaign__layout">
-          <form
-            className="advertiser-campaign-form"
-            onSubmit={handleContinue}
-          >
+          <form className="advertiser-campaign-form" onSubmit={handleContinue}>
             <div className="advertiser-campaign-form__heading">
               <h2>Task details</h2>
               <p>Tell earners exactly what they need to complete.</p>
@@ -189,6 +402,7 @@ const AdvertiserCreateCampaign = () => {
                 value={campaign.name}
                 onChange={handleCampaignChange}
                 placeholder="Example: Instagram community push"
+                required
               />
             </div>
 
@@ -197,22 +411,25 @@ const AdvertiserCreateCampaign = () => {
 
               <select
                 id="campaignCategory"
-                name="category"
-                value={campaign.category}
+                name="serviceId"
+                value={campaign.serviceId}
                 onChange={handleCampaignChange}
+                disabled={isLoadingData || services.length === 0}
+                required
               >
-                {categories.map((category) => (
-                  <option value={category} key={category}>
-                    {category}
+                <option value="">Choose a service</option>
+
+                {services.map((service) => (
+                  <option value={service.id} key={service.id}>
+                    {service.name}
+                    {service.platform ? ` · ${service.platform}` : ""}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="advertiser-form-field">
-              <label htmlFor="campaignBrief">
-                Short brief for earners
-              </label>
+              <label htmlFor="campaignBrief">Short brief for earners</label>
 
               <textarea
                 id="campaignBrief"
@@ -221,11 +438,12 @@ const AdvertiserCreateCampaign = () => {
                 value={campaign.brief}
                 onChange={handleCampaignChange}
                 placeholder="Explain what the earner needs to do."
+                required
               />
 
               <small>
-                Plain language works best. Earners decide in seconds whether
-                to take your task.
+                Plain language works best. Earners decide in seconds whether to
+                take your task.
               </small>
             </div>
 
@@ -256,6 +474,7 @@ const AdvertiserCreateCampaign = () => {
                           ? "Open the link and tap Follow"
                           : "Describe the next step"
                       }
+                      required
                     />
 
                     <button
@@ -274,15 +493,14 @@ const AdvertiserCreateCampaign = () => {
                 type="button"
                 className="advertiser-add-instruction"
                 onClick={addInstruction}
+                disabled={instructions.length >= 20}
               >
                 + Add step
               </button>
             </div>
 
             <div className="advertiser-form-field">
-              <label htmlFor="proofRequirement">
-                Proof requirement
-              </label>
+              <label htmlFor="proofRequirement">Proof requirement</label>
 
               <input
                 id="proofRequirement"
@@ -291,6 +509,7 @@ const AdvertiserCreateCampaign = () => {
                 value={campaign.proof}
                 onChange={handleCampaignChange}
                 placeholder="Explain the screenshot or proof an earner must submit."
+                required
               />
 
               <small>
@@ -299,22 +518,28 @@ const AdvertiserCreateCampaign = () => {
             </div>
 
             {message && (
-              <p className="advertiser-create-campaign__message" role="alert">
+              <p
+                className="advertiser-create-campaign__message"
+                role={messageType === "error" ? "alert" : "status"}
+              >
                 {message}
               </p>
             )}
 
             <div className="advertiser-create-campaign__actions">
-              <Link
-                to="/advertisers/campaigns"
+              <button
+                type="button"
                 className="advertiser-campaign-secondary-button"
+                onClick={handleSaveAndExit}
+                disabled={isLoadingData || savingAction !== ""}
               >
-                Save and exit
-              </Link>
+                {savingAction === "draft" ? "Saving..." : "Save and exit"}
+              </button>
 
               <button
                 type="submit"
                 className="advertiser-campaign-primary-button"
+                disabled={isLoadingData || savingAction !== ""}
               >
                 Continue
                 <span>→</span>
@@ -322,7 +547,15 @@ const AdvertiserCreateCampaign = () => {
             </div>
           </form>
 
-          <CampaignCostSidebar />
+          <CampaignCostSidebar
+            selectedService={selectedService}
+            quantity={targetQuantity}
+            hasValidQuantity={hasValidQuantity}
+            totalBudget={totalBudget}
+            rewardTotal={rewardTotal}
+            feeTotal={feeTotal}
+            availableBalance={availableBalance}
+          />
         </div>
       ) : (
         <div className="advertiser-create-campaign__layout">
@@ -333,36 +566,35 @@ const AdvertiserCreateCampaign = () => {
             <div className="advertiser-campaign-form__heading">
               <h2>Budget &amp; review</h2>
               <p>
-                Set your budget, then check the campaign before publishing it.
+                Set your target, then check the campaign before publishing it.
               </p>
             </div>
 
             <div className="advertiser-form-grid">
               <div className="advertiser-form-field">
-                <label htmlFor="pricePerPerson">
-                  Price per person
-                </label>
+                <label htmlFor="pricePerPerson">Price per person</label>
 
                 <div className="advertiser-input-with-prefix">
                   <span>₦</span>
 
                   <input
                     id="pricePerPerson"
-                    name="pricePerPerson"
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={campaign.pricePerPerson}
-                    onChange={handleCampaignChange}
-                    placeholder="1000"
+                    type="text"
+                    value={
+                      selectedService
+                        ? pricePerPerson.toLocaleString("en-NG")
+                        : ""
+                    }
+                    placeholder="Choose a service"
+                    readOnly
                   />
                 </div>
+
+                <small>Price is set by the selected service.</small>
               </div>
 
               <div className="advertiser-form-field">
-                <label htmlFor="numberOfPeople">
-                  Number of people / slots
-                </label>
+                <label htmlFor="numberOfPeople">Number of people / slots</label>
 
                 <input
                   id="numberOfPeople"
@@ -373,6 +605,7 @@ const AdvertiserCreateCampaign = () => {
                   value={campaign.numberOfPeople}
                   onChange={handleCampaignChange}
                   placeholder="5"
+                  required
                 />
               </div>
             </div>
@@ -391,12 +624,14 @@ const AdvertiserCreateCampaign = () => {
 
                 <div>
                   <dt>Category</dt>
-                  <dd>{campaign.category || "—"}</dd>
+                  <dd>
+                    {selectedService?.platform || selectedService?.name || "—"}
+                  </dd>
                 </div>
 
                 <div>
                   <dt>Number of people</dt>
-                  <dd>{campaign.numberOfPeople || "—"}</dd>
+                  <dd>{hasValidQuantity ? targetQuantity : "—"}</dd>
                 </div>
 
                 <div>
@@ -407,7 +642,10 @@ const AdvertiserCreateCampaign = () => {
             </section>
 
             {message && (
-              <p className="advertiser-create-campaign__message" role="alert">
+              <p
+                className="advertiser-create-campaign__message"
+                role={messageType === "error" ? "alert" : "status"}
+              >
                 {message}
               </p>
             )}
@@ -417,6 +655,7 @@ const AdvertiserCreateCampaign = () => {
                 type="button"
                 className="advertiser-campaign-secondary-button"
                 onClick={handleBack}
+                disabled={savingAction !== ""}
               >
                 ← Back
               </button>
@@ -424,65 +663,97 @@ const AdvertiserCreateCampaign = () => {
               <button
                 type="submit"
                 className="advertiser-campaign-primary-button"
+                disabled={isLoadingData || savingAction !== ""}
               >
-                Publish campaign
+                {savingAction === "publish"
+                  ? "Publishing..."
+                  : "Publish campaign"}
                 <span>→</span>
               </button>
             </div>
           </form>
 
-          <CampaignCostSidebar />
+          <CampaignCostSidebar
+            selectedService={selectedService}
+            quantity={targetQuantity}
+            hasValidQuantity={hasValidQuantity}
+            totalBudget={totalBudget}
+            rewardTotal={rewardTotal}
+            feeTotal={feeTotal}
+            availableBalance={availableBalance}
+          />
         </div>
       )}
     </section>
   );
 };
 
-const CampaignCostSidebar = () => (
-  <aside className="advertiser-campaign-preview">
-    <section className="advertiser-campaign-cost-card">
-      <span>Campaign cost</span>
+const CampaignCostSidebar = ({
+  selectedService,
+  quantity,
+  hasValidQuantity,
+  totalBudget,
+  rewardTotal,
+  feeTotal,
+  availableBalance,
+}) => {
+  const hasEstimate =
+    Boolean(selectedService) &&
+    hasValidQuantity &&
+    Number.isSafeInteger(quantity);
 
-      <strong>₦5,500</strong>
+  return (
+    <aside className="advertiser-campaign-preview">
+      <section className="advertiser-campaign-cost-card">
+        <span>Campaign cost</span>
 
-      <div className="advertiser-campaign-cost-line">
-        <span>Rewards to earners</span>
-        <strong>₦5,000</strong>
-      </div>
+        <strong>{formatNaira(hasEstimate ? totalBudget : 0)}</strong>
 
-      <div className="advertiser-campaign-cost-line">
-        <span>Moderation &amp; service fee</span>
-        <strong>₦500</strong>
-      </div>
+        <div className="advertiser-campaign-cost-line">
+          <span>Rewards to earners</span>
+          <strong>{formatNaira(hasEstimate ? rewardTotal : 0)}</strong>
+        </div>
 
-      <div className="advertiser-campaign-cost-line">
-        <span>Wallet balance</span>
-        <strong>₦62,580</strong>
-      </div>
+        <div className="advertiser-campaign-cost-line">
+          <span>Moderation &amp; service fee</span>
+          <strong>{formatNaira(hasEstimate ? feeTotal : 0)}</strong>
+        </div>
 
-      <p>
-        Unused budget stays in your wallet — you only pay for approved proofs.
-      </p>
-    </section>
+        <div className="advertiser-campaign-cost-line">
+          <span>Wallet balance</span>
+          <strong>{formatNaira(availableBalance)}</strong>
+        </div>
 
-    <section className="advertiser-publish-info">
-      <h2>Before you publish</h2>
+        {hasEstimate && totalBudget > availableBalance && (
+          <p className="advertiser-create-campaign__message" role="status">
+            The campaign cost is higher than your available balance.
+          </p>
+        )}
 
-      <p>
-        Campaigns go through a short moderation review, usually under two
-        hours.
-      </p>
+        <p>
+          Unused budget stays in your wallet — you only pay for approved proofs.
+        </p>
+      </section>
 
-      <p>
-        Be specific about your proof rule to avoid duplicate submissions and
-        slow approvals.
-      </p>
+      <section className="advertiser-publish-info">
+        <h2>Before you publish</h2>
 
-      <p>
-        You can pause a campaign at any time and keep the remaining budget.
-      </p>
-    </section>
-  </aside>
-);
+        <p>
+          Campaigns go through a short moderation review, usually under two
+          hours.
+        </p>
+
+        <p>
+          Be specific about your proof rule to avoid duplicate submissions and
+          slow approvals.
+        </p>
+
+        <p>
+          You can pause a campaign at any time and keep the remaining budget.
+        </p>
+      </section>
+    </aside>
+  );
+};
 
 export default AdvertiserCreateCampaign;

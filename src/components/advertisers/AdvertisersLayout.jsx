@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import AdvertisersSidebar from "./AdvertisersSidebar";
 import AdvertisersTopBar from "./AdvertisersTopBar";
+import AdvertisersBottomNav from "./AdvertisersBottomNav";
 import "../../styles/AdvertisersLayout.css";
 
 const AdvertisersLayout = () => {
@@ -12,6 +13,8 @@ const AdvertisersLayout = () => {
         <AdvertisersTopBar />
         <Outlet />
       </main>
+
+      <AdvertisersBottomNav />
     </div>
   );
 };

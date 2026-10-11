@@ -1,17 +1,22 @@
 .moderator-shell {
   min-height: 100vh;
-  background: #f6f8f7;
-  color: #1e293b;
+  min-height: 100dvh;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: "Poppins", sans-serif;
 }
 
 .moderator-main {
   min-width: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   margin-left: 248px;
 }
 
 .moderator-main-content {
   min-height: calc(100vh - 68px);
+  min-height: calc(100dvh - 68px);
+  background: #f8fafc;
 }
 
 @media (max-width: 900px) {

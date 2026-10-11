@@ -1,5 +1,4 @@
-
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   ArrowDownToLine,
@@ -13,422 +12,357 @@ import {
 } from "lucide-react";
 
 import "../../styles/AdminWithdrawals.css";
-
-const allowedWithdrawalRoles = ["Earner", "Moderator"];
+import {
+  getAdminWithdrawals,
+  updateAdminWithdrawal,
+} from "../data/adminWithdrawalsApi.js";
 
 const roleTabs = [
-  {
-    key: "All",
-    label: "All withdrawals",
-  },
-  {
-    key: "Earner",
-    label: "Earner withdrawals",
-  },
-  {
-    key: "Moderator",
-    label: "Moderator withdrawals",
-  },
+  { key: "All", label: "All withdrawals" },
+  { key: "Earner", label: "Earner withdrawals" },
+  { key: "Moderator", label: "Moderator withdrawals" },
 ];
 
-const statusTabs = ["All", "Pending", "Approved", "Rejected"];
-
-const initialWithdrawals = [
-  {
-    id: "WD-2304",
-    requester: "Priya Nair",
-    email: "priya.nair@example.com",
-    role: "Earner",
-    amount: 210,
-    method: "Bank transfer",
-    account: "•••• 7732",
-    requestedAt: "2025-02-14T08:56:00",
-    status: "Pending",
-    note: "Regular weekly withdrawal",
-  },
-  {
-    id: "WD-2303",
-    requester: "Aisha Okafor",
-    email: "aisha.okafor@example.com",
-    role: "Earner",
-    amount: 125,
-    method: "Bank transfer",
-    account: "•••• 3201",
-    requestedAt: "2025-02-13T17:09:00",
-    status: "Pending",
-    note: "Withdrawal after completed campaign tasks",
-  },
-  {
-    id: "WD-2302",
-    requester: "Daniel Mensah",
-    email: "daniel.mensah@example.com",
-    role: "Moderator",
-    amount: 480,
-    method: "Bank transfer",
-    account: "•••• 1190",
-    requestedAt: "2025-02-13T14:22:00",
-    status: "Pending",
-    note: "Monthly moderator compensation",
-  },
-  {
-    id: "WD-2301",
-    requester: "Jon Bell",
-    email: "jon.bell@example.com",
-    role: "Earner",
-    amount: 84.5,
-    method: "Teco wallet",
-    account: "Wallet balance",
-    requestedAt: "2025-02-12T11:18:00",
-    status: "Approved",
-    note: "Service payout withdrawal",
-  },
-  {
-    id: "WD-2300",
-    requester: "Grace Williams",
-    email: "grace.williams@example.com",
-    role: "Moderator",
-    amount: 350,
-    method: "Bank transfer",
-    account: "•••• 4501",
-    requestedAt: "2025-02-11T16:43:00",
-    status: "Approved",
-    note: "Moderator monthly payout",
-  },
-  {
-    id: "WD-2299",
-    requester: "Luis Romero",
-    email: "luis.romero@example.com",
-    role: "Earner",
-    amount: 52.25,
-    method: "Teco wallet",
-    account: "Wallet balance",
-    requestedAt: "2025-02-11T12:08:00",
-    status: "Rejected",
-    note: "Account verification incomplete",
-  },
-  {
-    id: "WD-2298",
-    requester: "Mariam Bello",
-    email: "mariam.bello@example.com",
-    role: "Earner",
-    amount: 180,
-    method: "Bank transfer",
-    account: "•••• 6767",
-    requestedAt: "2025-02-10T09:40:00",
-    status: "Approved",
-    note: "Completed service withdrawal",
-  },
-  {
-    id: "WD-2297",
-    requester: "Samuel Adeyemi",
-    email: "samuel.adeyemi@example.com",
-    role: "Moderator",
-    amount: 275,
-    method: "Bank transfer",
-    account: "•••• 8855",
-    requestedAt: "2025-02-09T14:12:00",
-    status: "Rejected",
-    note: "Duplicate withdrawal request",
-  },
+const statusTabs = [
+  "All",
+  "Pending",
+  "Processing",
+  "Paid",
+  "Rejected",
+  "Failed",
 ];
+
+const statusValues = {
+  Pending: "pending",
+  Processing: "processing",
+  Paid: "paid",
+  Rejected: "rejected",
+  Failed: "failed",
+};
 
 const formatCurrency = (amount) =>
-  new Intl.NumberFormat("en-US", {
+  new Intl.NumberFormat("en-NG", {
     style: "currency",
-    currency: "USD",
+    currency: "NGN",
     minimumFractionDigits: 2,
-  }).format(amount);
+  }).format(Number(amount || 0));
 
 const formatDate = (date) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
+  date
+    ? new Intl.DateTimeFormat("en-NG", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).format(new Date(date))
+    : "—";
 
 const formatDateTime = (date) =>
-  new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(date));
+  date
+    ? new Intl.DateTimeFormat("en-NG", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(date))
+    : "—";
 
 function StatusBadge({ status }) {
+  const labels = {
+    pending: "Pending",
+    processing: "Processing",
+    paid: "Paid",
+    rejected: "Rejected",
+    failed: "Failed",
+  };
+
+  const styleStatus =
+    {
+      processing: "pending",
+      paid: "approved",
+      failed: "rejected",
+    }[status] || status;
+
   return (
-    <span
-      className={`withdrawal-status withdrawal-status--${status.toLowerCase()}`}
-    >
+    <span className={`withdrawal-status withdrawal-status--${styleStatus}`}>
       <span className="withdrawal-status-dot" />
-      {status}
+      {labels[status] || status}
     </span>
   );
 }
 
 function RoleBadge({ role }) {
   return (
-    <span
-      className={`withdrawal-role withdrawal-role--${role.toLowerCase()}`}
-    >
+    <span className={`withdrawal-role withdrawal-role--${role.toLowerCase()}`}>
       {role === "Moderator" ? (
         <ShieldCheck size={12} />
       ) : (
         <UserRound size={12} />
       )}
-
       {role}
     </span>
   );
 }
 
-function WithdrawalDetails({ withdrawal, onClose }) {
+function WithdrawalDetails({ withdrawal }) {
   return (
-    <div className="withdrawal-drawer-overlay" onClick={onClose}>
-      <aside
-        className="withdrawal-drawer"
-        onClick={(event) => event.stopPropagation()}
+    <section
+      className="withdrawal-hover-details"
+      aria-label={`Details for withdrawal ${withdrawal.id}`}
+    >
+      <div className="withdrawal-hover-details__header">
+        <div>
+          <span
+            className="withdrawal-hover-details__eyebrow"
+            id="withdrawal-modal-title"
+          >
+            Withdrawal details
+          </span>
+          <strong>{withdrawal.requester}</strong>
+        </div>
+
+        <StatusBadge status={withdrawal.status} />
+      </div>
+
+      <div className="withdrawal-hover-details__grid">
+        <div className="withdrawal-hover-details__item">
+          <span>Request ID</span>
+          <strong>{withdrawal.id || "—"}</strong>
+        </div>
+
+        <div className="withdrawal-hover-details__item">
+          <span>Email</span>
+          <strong>{withdrawal.email || "—"}</strong>
+        </div>
+
+        <div className="withdrawal-hover-details__item">
+          <span>Role</span>
+          <strong>{withdrawal.role || "—"}</strong>
+        </div>
+
+        <div className="withdrawal-hover-details__item">
+          <span>Amount</span>
+          <strong>{formatCurrency(withdrawal.amount)}</strong>
+        </div>
+
+        <div className="withdrawal-hover-details__item">
+          <span>Payment method</span>
+          <strong>{withdrawal.method || "—"}</strong>
+        </div>
+
+        <div className="withdrawal-hover-details__item">
+          <span>Account / destination</span>
+          <strong>{withdrawal.account || "—"}</strong>
+        </div>
+
+        <div className="withdrawal-hover-details__item">
+          <span>Requested</span>
+          <strong>{formatDateTime(withdrawal.requestedAt)}</strong>
+        </div>
+
+        <div className="withdrawal-hover-details__item">
+          <span>Payment reference</span>
+          <strong>{withdrawal.paymentReference || "Not recorded"}</strong>
+        </div>
+
+        {withdrawal.reviewNote && (
+          <div className="withdrawal-hover-details__item withdrawal-hover-details__item--note">
+            <span>Review note</span>
+            <strong>{withdrawal.reviewNote}</strong>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function WithdrawalRowActions({
+  withdrawal,
+  busy,
+  onAction,
+  mobile = false,
+}) {
+  const pending = withdrawal.status === "pending";
+  const processing = withdrawal.status === "processing";
+
+  if (!pending && !processing) {
+    return mobile ? null : <span className="withdrawal-no-action">—</span>;
+  }
+
+  return (
+    <div
+      className={
+        mobile ? "withdrawal-mobile-actions" : "withdrawal-row-actions"
+      }
+    >
+      <button
+        type="button"
+        className="withdrawal-row-reject"
+        disabled={busy}
+        onClick={() => onAction(withdrawal, "reject")}
       >
-        <div className="withdrawal-drawer-header">
-          <div>
-            <span className="withdrawal-drawer-eyebrow">
-              Withdrawal request
-            </span>
+        Reject
+      </button>
 
-            <h2>{withdrawal.id}</h2>
-          </div>
+      <button
+        type="button"
+        className="withdrawal-row-approve"
+        disabled={busy}
+        onClick={() => onAction(withdrawal, pending ? "process" : "pay")}
+      >
+        {pending ? "Process" : "Mark paid"}
+      </button>
 
-          <button
-            type="button"
-            className="withdrawal-close-button"
-            onClick={onClose}
-            aria-label="Close withdrawal details"
-          >
-            <XCircle size={19} />
-          </button>
-        </div>
-
-        <div className="withdrawal-drawer-body">
-          <div className="withdrawal-detail-amount">
-            <span>Requested amount</span>
-
-            <strong>{formatCurrency(withdrawal.amount)}</strong>
-
-            <StatusBadge status={withdrawal.status} />
-          </div>
-
-          <div className="withdrawal-detail-section">
-            <span className="withdrawal-section-label">
-              Request information
-            </span>
-
-            <dl className="withdrawal-detail-list">
-              <div>
-                <dt>Requester</dt>
-                <dd>{withdrawal.requester}</dd>
-              </div>
-
-              <div>
-                <dt>Email</dt>
-                <dd>{withdrawal.email}</dd>
-              </div>
-
-              <div>
-                <dt>Account role</dt>
-                <dd>
-                  <RoleBadge role={withdrawal.role} />
-                </dd>
-              </div>
-
-              <div>
-                <dt>Payment method</dt>
-                <dd>{withdrawal.method}</dd>
-              </div>
-
-              <div>
-                <dt>Account</dt>
-                <dd>{withdrawal.account}</dd>
-              </div>
-
-              <div>
-                <dt>Requested</dt>
-                <dd>{formatDateTime(withdrawal.requestedAt)}</dd>
-              </div>
-
-              <div>
-                <dt>Note</dt>
-                <dd>{withdrawal.note}</dd>
-              </div>
-            </dl>
-          </div>
-
-          {withdrawal.status === "Pending" && (
-            <div className="withdrawal-drawer-actions">
-              <button
-                type="button"
-                className="withdrawal-reject-button"
-                onClick={() => {
-                  withdrawal.onReject(withdrawal.id);
-                  onClose();
-                }}
-              >
-                <XCircle size={15} />
-                Reject request
-              </button>
-
-              <button
-                type="button"
-                className="withdrawal-approve-button"
-                onClick={() => {
-                  withdrawal.onApprove(withdrawal.id);
-                  onClose();
-                }}
-              >
-                <CheckCircle2 size={15} />
-                Approve withdrawal
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="withdrawal-drawer-footer">
-          <button
-            type="button"
-            className="withdrawal-secondary-button"
-            onClick={onClose}
-          >
-            Close
-          </button>
-        </div>
-      </aside>
+      {processing && (
+        <button
+          type="button"
+          className="withdrawal-row-fail"
+          disabled={busy}
+          onClick={() => onAction(withdrawal, "fail")}
+        >
+          Mark failed
+        </button>
+      )}
     </div>
   );
 }
 
 export default function AdminWithdrawals() {
-  const [withdrawals, setWithdrawals] = useState(initialWithdrawals);
+  const [withdrawals, setWithdrawals] = useState([]);
   const [activeRole, setActiveRole] = useState("All");
   const [activeStatus, setActiveStatus] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState("");
+  const [error, setError] = useState("");
 
-  const eligibleWithdrawals = useMemo(
-    () =>
-      withdrawals.filter((withdrawal) =>
-        allowedWithdrawalRoles.includes(withdrawal.role)
-      ),
-    [withdrawals]
-  );
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      setWithdrawals(await getAdminWithdrawals());
+    } catch (err) {
+      setError(err.message || "Could not load withdrawals.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    if (!selectedWithdrawal) return undefined;
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") {
+        setSelectedWithdrawal(null);
+      }
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [selectedWithdrawal]);
 
   const summary = useMemo(() => {
-    const pending = eligibleWithdrawals.filter(
-      (withdrawal) => withdrawal.status === "Pending"
-    );
-
-    const approved = eligibleWithdrawals.filter(
-      (withdrawal) => withdrawal.status === "Approved"
-    );
+    const pending = withdrawals.filter((item) => item.status === "pending");
+    const paid = withdrawals.filter((item) => item.status === "paid");
 
     return {
-      total: eligibleWithdrawals.length,
+      total: withdrawals.length,
       pending: pending.length,
-      approved: approved.length,
+      paid: paid.length,
       pendingAmount: pending.reduce(
-        (total, withdrawal) => total + withdrawal.amount,
-        0
+        (sum, item) => sum + Number(item.amount || 0),
+        0,
       ),
-      approvedAmount: approved.reduce(
-        (total, withdrawal) => total + withdrawal.amount,
-        0
+      paidAmount: paid.reduce(
+        (sum, item) => sum + Number(item.amount || 0),
+        0,
       ),
+      earners: withdrawals.filter((item) => item.role === "Earner").length,
+      moderators: withdrawals.filter((item) => item.role === "Moderator")
+        .length,
     };
-  }, [eligibleWithdrawals]);
+  }, [withdrawals]);
 
-  const filteredWithdrawals = useMemo(() => {
+  const filtered = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return eligibleWithdrawals.filter((withdrawal) => {
-      const matchesSearch =
+    return withdrawals.filter((item) => {
+      const roleMatches =
+        activeRole === "All" || item.role === activeRole;
+
+      const statusMatches =
+        activeStatus === "All" ||
+        item.status === statusValues[activeStatus];
+
+      const searchMatches =
         !query ||
         [
-          withdrawal.id,
-          withdrawal.requester,
-          withdrawal.email,
-          withdrawal.method,
-        ].some((value) => value.toLowerCase().includes(query));
+          item.id,
+          item.requester,
+          item.email,
+          item.method,
+          item.paymentReference,
+        ].some((value) =>
+          String(value || "").toLowerCase().includes(query),
+        );
 
-      const matchesRole =
-        activeRole === "All" || withdrawal.role === activeRole;
-
-      const matchesStatus =
-        activeStatus === "All" || withdrawal.status === activeStatus;
-
-      return matchesSearch && matchesRole && matchesStatus;
+      return roleMatches && statusMatches && searchMatches;
     });
-  }, [
-    eligibleWithdrawals,
-    searchQuery,
-    activeRole,
-    activeStatus,
-  ]);
+  }, [withdrawals, activeRole, activeStatus, searchQuery]);
 
-  const updateWithdrawalStatus = (id, status) => {
-    setWithdrawals((currentWithdrawals) =>
-      currentWithdrawals.map((withdrawal) =>
-        withdrawal.id === id
-          ? {
-              ...withdrawal,
-              status,
-            }
-          : withdrawal
-      )
-    );
+  const runAction = async (withdrawal, action) => {
+    const body = {};
 
-    setSelectedWithdrawal(null);
-  };
+    if (action === "pay") {
+      const paymentReference = window.prompt(
+        "Enter the payment reference after sending the payout:",
+      );
 
-  const approveWithdrawal = (id) => {
-    updateWithdrawalStatus(id, "Approved");
-  };
-
-  const rejectWithdrawal = (id) => {
-    updateWithdrawalStatus(id, "Rejected");
-  };
-
-  const getStatusCount = (status) => {
-    if (status === "All") {
-      return eligibleWithdrawals.length;
+      if (!paymentReference?.trim()) return;
+      body.paymentReference = paymentReference.trim();
     }
 
-    return eligibleWithdrawals.filter(
-      (withdrawal) => withdrawal.status === status
-    ).length;
-  };
+    if (action === "reject" || action === "fail") {
+      const reviewNote = window.prompt(
+        `Enter a reason to ${action} this withdrawal:`,
+      );
 
-  const getRoleCount = (role) => {
-    if (role === "All") {
-      return eligibleWithdrawals.length;
+      if (!reviewNote?.trim()) return;
+      body.reviewNote = reviewNote.trim();
     }
 
-    return eligibleWithdrawals.filter(
-      (withdrawal) => withdrawal.role === role
-    ).length;
+    setBusyId(withdrawal.id);
+    setError("");
+
+    try {
+      await updateAdminWithdrawal(withdrawal, action, body);
+      await load();
+    } catch (err) {
+      setError(err.message || "Could not update withdrawal.");
+    } finally {
+      setBusyId("");
+    }
   };
 
-  const hasFilters =
-    searchQuery ||
-    activeRole !== "All" ||
-    activeStatus !== "All";
+  const countForRole = (role) =>
+    role === "All"
+      ? withdrawals.length
+      : withdrawals.filter((item) => item.role === role).length;
+
+  const countForStatus = (status) =>
+    status === "All"
+      ? withdrawals.length
+      : withdrawals.filter(
+          (item) => item.status === statusValues[status],
+        ).length;
 
   const clearFilters = () => {
     setSearchQuery("");
     setActiveRole("All");
     setActiveStatus("All");
-  };
-
-  const openDetails = (withdrawal) => {
-    setSelectedWithdrawal({
-      ...withdrawal,
-      onApprove: approveWithdrawal,
-      onReject: rejectWithdrawal,
-    });
   };
 
   return (
@@ -439,18 +373,10 @@ export default function AdminWithdrawals() {
             <span className="admin-withdrawals-eyebrow">
               Finance operations
             </span>
-
             <h1>All withdrawals</h1>
-
             <p>
-              Review, approve, and reject withdrawal requests from earners and
-              moderators.
+              Review, process, and record payouts for earners and moderators.
             </p>
-          </div>
-
-          <div className="withdrawals-live-indicator">
-            <span />
-            Live withdrawal queue
           </div>
         </header>
 
@@ -459,9 +385,8 @@ export default function AdminWithdrawals() {
             <div>
               <span>Total requests</span>
               <strong>{summary.total}</strong>
-              <small>earner and moderator requests</small>
+              <small>Earner and moderator requests</small>
             </div>
-
             <ArrowDownToLine size={18} />
           </article>
 
@@ -473,31 +398,24 @@ export default function AdminWithdrawals() {
                 {formatCurrency(summary.pendingAmount)} awaiting review
               </small>
             </div>
-
             <Clock3 size={18} />
           </article>
 
           <article className="withdrawal-summary-card withdrawal-summary-card--green">
             <div>
-              <span>Approved requests</span>
-              <strong>{summary.approved}</strong>
-              <small>
-                {formatCurrency(summary.approvedAmount)} approved
-              </small>
+              <span>Paid requests</span>
+              <strong>{summary.paid}</strong>
+              <small>{formatCurrency(summary.paidAmount)} paid</small>
             </div>
-
             <CheckCircle2 size={18} />
           </article>
 
           <article className="withdrawal-summary-card withdrawal-summary-card--blue">
             <div>
               <span>Earner requests</span>
-              <strong>{getRoleCount("Earner")}</strong>
-              <small>
-                {getRoleCount("Moderator")} moderator requests
-              </small>
+              <strong>{summary.earners}</strong>
+              <small>{summary.moderators} moderator requests</small>
             </div>
-
             <Users size={18} />
           </article>
         </section>
@@ -514,7 +432,7 @@ export default function AdminWithdrawals() {
                 onClick={() => setActiveRole(role.key)}
               >
                 {role.label}
-                <span>{getRoleCount(role.key)}</span>
+                <span>{countForRole(role.key)}</span>
               </button>
             ))}
           </div>
@@ -530,7 +448,7 @@ export default function AdminWithdrawals() {
                 onClick={() => setActiveStatus(status)}
               >
                 {status}
-                <span>{getStatusCount(status)}</span>
+                <span>{countForStatus(status)}</span>
               </button>
             ))}
           </div>
@@ -538,7 +456,6 @@ export default function AdminWithdrawals() {
           <div className="withdrawal-toolbar">
             <div className="withdrawal-search">
               <Search size={15} />
-
               <input
                 type="search"
                 value={searchQuery}
@@ -558,7 +475,9 @@ export default function AdminWithdrawals() {
             </div>
 
             <div className="withdrawal-filter-actions">
-              {hasFilters && (
+              {(searchQuery ||
+                activeRole !== "All" ||
+                activeStatus !== "All") && (
                 <button
                   type="button"
                   className="withdrawal-clear-button"
@@ -567,10 +486,46 @@ export default function AdminWithdrawals() {
                   Clear filters
                 </button>
               )}
+
+              <button
+                type="button"
+                className="withdrawal-clear-button"
+                onClick={load}
+                disabled={loading}
+              >
+                Refresh
+              </button>
             </div>
           </div>
 
-          {filteredWithdrawals.length > 0 ? (
+          {error && (
+            <div
+              role="alert"
+              style={{
+                margin: "12px 16px",
+                padding: 12,
+                color: "#9f2424",
+                background: "#fff0f0",
+                borderRadius: 8,
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div
+              className="withdrawals-empty-state withdrawal-loading"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className="withdrawal-loading__roller"
+                aria-hidden="true"
+              />
+              <p>Loading withdrawal requests…</p>
+            </div>
+          ) : filtered.length ? (
             <>
               <div className="withdrawals-table-wrapper">
                 <table className="withdrawals-table">
@@ -587,84 +542,72 @@ export default function AdminWithdrawals() {
                   </thead>
 
                   <tbody>
-                    {filteredWithdrawals.map((withdrawal) => (
-                      <tr key={withdrawal.id}>
+                    {filtered.map((item) => (
+                      <tr
+                        key={`${item.role}-${item.id}`}
+                        className="withdrawal-data-row"
+                      >
                         <td>
-                          <div className="withdrawal-requester">
+                          <button
+                            type="button"
+                            className="withdrawal-requester withdrawal-requester-trigger"
+                            aria-label={`View withdrawal details for ${item.requester}`}
+                            aria-haspopup="dialog"
+                            onClick={() => setSelectedWithdrawal(item)}
+                          >
                             <span className="withdrawal-avatar">
-                              {withdrawal.requester
+                              {item.requester
                                 .split(" ")
-                                .map((name) => name[0])
+                                .map((part) => part[0])
                                 .join("")
                                 .slice(0, 2)}
                             </span>
-
-                            <div>
-                              <strong>{withdrawal.requester}</strong>
+                            <span className="withdrawal-requester__text">
+                              <strong>{item.requester}</strong>
                               <small>
-                                {withdrawal.id} · {withdrawal.email}
+                                {item.id} · {item.email}
                               </small>
-                            </div>
-                          </div>
+                            </span>
+                          </button>
                         </td>
 
-                        <td>
-                          <RoleBadge role={withdrawal.role} />
-                        </td>
+                        <td><RoleBadge role={item.role} /></td>
 
                         <td>
                           <strong className="withdrawal-amount">
-                            {formatCurrency(withdrawal.amount)}
+                            {formatCurrency(item.amount)}
                           </strong>
                         </td>
 
                         <td>
                           <div className="withdrawal-payment-method">
-                            <strong>{withdrawal.method}</strong>
-                            <small>{withdrawal.account}</small>
+                            <strong>{item.method}</strong>
+                            <small>{item.account}</small>
                           </div>
                         </td>
 
                         <td className="withdrawal-date">
-                          {formatDate(withdrawal.requestedAt)}
+                          {formatDate(item.requestedAt)}
                         </td>
 
-                        <td>
-                          <StatusBadge status={withdrawal.status} />
-                        </td>
+                        <td><StatusBadge status={item.status} /></td>
 
                         <td>
-                          {withdrawal.status === "Pending" ? (
-                            <div className="withdrawal-row-actions">
-                              <button
-                                type="button"
-                                className="withdrawal-row-reject"
-                                onClick={() =>
-                                  rejectWithdrawal(withdrawal.id)
-                                }
-                              >
-                                Reject
-                              </button>
-
-                              <button
-                                type="button"
-                                className="withdrawal-row-approve"
-                                onClick={() =>
-                                  approveWithdrawal(withdrawal.id)
-                                }
-                              >
-                                Approve
-                              </button>
-                            </div>
-                          ) : (
+                          <div className="withdrawal-row-actions">
                             <button
                               type="button"
                               className="withdrawal-view-button"
-                              onClick={() => openDetails(withdrawal)}
+                              onClick={() => setSelectedWithdrawal(item)}
                             >
                               View
                             </button>
-                          )}
+
+                            <WithdrawalRowActions
+                              withdrawal={item}
+                              busy={busyId === item.id}
+                              onAction={runAction}
+                            />
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -673,86 +616,63 @@ export default function AdminWithdrawals() {
               </div>
 
               <div className="withdrawals-mobile-list">
-                {filteredWithdrawals.map((withdrawal) => (
+                {filtered.map((item) => (
                   <article
                     className="withdrawal-mobile-card"
-                    key={withdrawal.id}
+                    key={`mobile-${item.role}-${item.id}`}
                   >
                     <div className="withdrawal-mobile-top">
                       <div className="withdrawal-requester">
                         <span className="withdrawal-avatar">
-                          {withdrawal.requester
+                          {item.requester
                             .split(" ")
-                            .map((name) => name[0])
+                            .map((part) => part[0])
                             .join("")
                             .slice(0, 2)}
                         </span>
-
                         <div>
-                          <strong>{withdrawal.requester}</strong>
-                          <small>{withdrawal.id}</small>
+                          <strong>{item.requester}</strong>
+                          <small>{item.id}</small>
                         </div>
                       </div>
 
-                      <StatusBadge status={withdrawal.status} />
+                      <StatusBadge status={item.status} />
                     </div>
 
                     <div className="withdrawal-mobile-info">
-                      <span>{withdrawal.role}</span>
-                      <strong>{formatCurrency(withdrawal.amount)}</strong>
-                      <small>{formatDate(withdrawal.requestedAt)}</small>
+                      <span>{item.role}</span>
+                      <strong>{formatCurrency(item.amount)}</strong>
+                      <small>{formatDate(item.requestedAt)}</small>
                     </div>
 
-                    {withdrawal.status === "Pending" && (
-                      <div className="withdrawal-mobile-actions">
-                        <button
-                          type="button"
-                          className="withdrawal-row-reject"
-                          onClick={() => rejectWithdrawal(withdrawal.id)}
-                        >
-                          Reject
-                        </button>
+                    <button
+                      type="button"
+                      className="withdrawal-view-button"
+                      onClick={() => setSelectedWithdrawal(item)}
+                    >
+                      View details
+                    </button>
 
-                        <button
-                          type="button"
-                          className="withdrawal-row-approve"
-                          onClick={() => approveWithdrawal(withdrawal.id)}
-                        >
-                          Approve
-                        </button>
-                      </div>
-                    )}
-
-                    {withdrawal.status !== "Pending" && (
-                      <button
-                        type="button"
-                        className="withdrawal-view-button"
-                        onClick={() => openDetails(withdrawal)}
-                      >
-                        View details
-                      </button>
-                    )}
+                    <WithdrawalRowActions
+                      withdrawal={item}
+                      busy={busyId === item.id}
+                      onAction={runAction}
+                      mobile
+                    />
                   </article>
                 ))}
               </div>
 
               <footer className="withdrawals-footer">
-                Showing <strong>{filteredWithdrawals.length}</strong> of{" "}
-                {eligibleWithdrawals.length} withdrawal requests
+                Showing <strong>{filtered.length}</strong> of{" "}
+                <strong>{withdrawals.length}</strong> withdrawal requests
               </footer>
             </>
           ) : (
             <div className="withdrawals-empty-state">
-              <span>
-                <AlertCircle size={19} />
-              </span>
-
+              <span><AlertCircle size={19} /></span>
               <h2>No withdrawal requests found</h2>
-
-              <p>
-                Try another search or remove one of the active filters.
-              </p>
-
+              <p>Try another search or remove an active filter.</p>
               <button
                 type="button"
                 className="withdrawal-primary-button"
@@ -766,10 +686,32 @@ export default function AdminWithdrawals() {
       </div>
 
       {selectedWithdrawal && (
-        <WithdrawalDetails
-          withdrawal={selectedWithdrawal}
-          onClose={() => setSelectedWithdrawal(null)}
-        />
+        <div
+          className="withdrawal-modal-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedWithdrawal(null);
+            }
+          }}
+        >
+          <div
+            className="withdrawal-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="withdrawal-modal-title"
+          >
+            <button
+              type="button"
+              className="withdrawal-modal-close"
+              aria-label="Close withdrawal details"
+              onClick={() => setSelectedWithdrawal(null)}
+            >
+              <XCircle size={18} />
+            </button>
+
+            <WithdrawalDetails withdrawal={selectedWithdrawal} />
+          </div>
+        </div>
       )}
     </main>
   );

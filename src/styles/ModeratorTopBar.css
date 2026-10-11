@@ -272,3 +272,170 @@
     width: min(310px, calc(100vw - 28px));
   }
 }
+
+.moderator-profile-wrapper {
+  position: relative;
+}
+
+.moderator-account-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 50;
+  width: 230px;
+  padding: 8px;
+  border: 1px solid #e7ece8;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(18, 36, 25, 0.14);
+}
+
+.moderator-account-menu__identity {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.moderator-account-menu__identity strong {
+  color: #23352a;
+  font-size: 12px;
+}
+
+.moderator-account-menu__identity span {
+  overflow: hidden;
+  color: #7b8780;
+  font-size: 11px;
+  text-overflow: ellipsis;
+}
+
+.moderator-account-menu > a,
+.moderator-account-menu > button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #46544b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  text-decoration: none;
+}
+
+.moderator-account-menu > a:hover,
+.moderator-account-menu > button:hover {
+  background: #f2f7f3;
+  color: #159447;
+}
+
+.moderator-notification-empty {
+  padding: 16px;
+  color: #7b8780;
+  font-size: 12px;
+}
+
+.moderator-topbar {
+  border-bottom-color: #e8edf2;
+  background: rgba(255, 255, 255, 0.97);
+  color: #0f172a;
+  font-family: "Poppins", sans-serif;
+}
+
+.moderator-menu-button {
+  color: #64748b;
+}
+
+.moderator-breadcrumb {
+  color: #94a3b8;
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+}
+
+.moderator-breadcrumb-root {
+  color: #64748b;
+}
+
+.moderator-breadcrumb strong {
+  color: #0f172a;
+}
+
+.moderator-profile-wrapper {
+  position: relative;
+}
+
+.moderator-topbar-avatar {
+  gap: 6px;
+  color: #64748b;
+}
+
+.moderator-topbar-avatar__initials {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.moderator-account-menu {
+  border-color: #e8edf2;
+  font-family: "Poppins", sans-serif;
+  animation: moderator-menu-enter 160ms ease-out both;
+}
+
+.moderator-account-menu__identity {
+  border-bottom-color: #e8edf2;
+}
+
+.moderator-account-menu__identity strong {
+  color: #0f172a;
+}
+
+.moderator-account-menu__identity span {
+  color: #64748b;
+}
+
+.moderator-account-menu > a,
+.moderator-account-menu > button {
+  color: #475569;
+  font-family: "Poppins", sans-serif;
+}
+
+.moderator-account-menu > a:hover,
+.moderator-account-menu > button:hover {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+@keyframes moderator-menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 560px) {
+  .moderator-topbar-avatar svg {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moderator-account-menu {
+    animation: none;
+  }
+}

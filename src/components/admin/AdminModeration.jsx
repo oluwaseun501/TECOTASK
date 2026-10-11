@@ -1,11 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
-  ArrowDownRight,
   ArrowUpRight,
   CalendarDays,
   CheckCircle2,
-  ChevronDown,
   Clock3,
   Eye,
   Search,
@@ -18,244 +16,70 @@ import {
 
 import "../../styles/AdminModeration.css";
 
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
+
 const periodOptions = [
-  {
-    key: "7 days",
-    label: "Last 7 days",
-  },
-  {
-    key: "30 days",
-    label: "Last 30 days",
-  },
-  {
-    key: "Custom",
-    label: "Custom range",
-  },
+  { key: "7 days", label: "Last 7 days" },
+  { key: "30 days", label: "Last 30 days" },
+  { key: "Custom", label: "Custom range" },
 ];
 
-const initialModerators = [
-  {
-    id: "MOD-001",
-    name: "Amina Yusuf",
-    email: "amina.yusuf@example.com",
-    initials: "AY",
-    status: "Active",
-    joinedAt: "2025-04-12",
-    lastActive: "Active now",
-    performance: {
-      "7 days": {
-        approved: 42,
-        rejected: 8,
-        pending: 3,
-        averageResponse: "18 min",
-        activity: [
-          { day: "Mon", approved: 7, rejected: 1 },
-          { day: "Tue", approved: 6, rejected: 2 },
-          { day: "Wed", approved: 8, rejected: 1 },
-          { day: "Thu", approved: 5, rejected: 1 },
-          { day: "Fri", approved: 9, rejected: 2 },
-          { day: "Sat", approved: 4, rejected: 1 },
-          { day: "Sun", approved: 3, rejected: 0 },
-        ],
-      },
-      "30 days": {
-        approved: 164,
-        rejected: 29,
-        pending: 7,
-        averageResponse: "21 min",
-        activity: [
-          { day: "Week 1", approved: 39, rejected: 7 },
-          { day: "Week 2", approved: 43, rejected: 8 },
-          { day: "Week 3", approved: 38, rejected: 6 },
-          { day: "Week 4", approved: 44, rejected: 8 },
-        ],
-      },
-      Custom: {
-        approved: 91,
-        rejected: 16,
-        pending: 4,
-        averageResponse: "19 min",
-        activity: [
-          { day: "Week 1", approved: 30, rejected: 5 },
-          { day: "Week 2", approved: 33, rejected: 6 },
-          { day: "Week 3", approved: 28, rejected: 5 },
-        ],
-      },
-    },
-  },
-  {
-    id: "MOD-002",
-    name: "Daniel Mensah",
-    email: "daniel.mensah@example.com",
-    initials: "DM",
-    status: "Active",
-    joinedAt: "2025-05-08",
-    lastActive: "Active 12 min ago",
-    performance: {
-      "7 days": {
-        approved: 35,
-        rejected: 11,
-        pending: 5,
-        averageResponse: "24 min",
-        activity: [
-          { day: "Mon", approved: 5, rejected: 2 },
-          { day: "Tue", approved: 4, rejected: 2 },
-          { day: "Wed", approved: 6, rejected: 1 },
-          { day: "Thu", approved: 5, rejected: 2 },
-          { day: "Fri", approved: 7, rejected: 2 },
-          { day: "Sat", approved: 4, rejected: 1 },
-          { day: "Sun", approved: 4, rejected: 1 },
-        ],
-      },
-      "30 days": {
-        approved: 142,
-        rejected: 41,
-        pending: 12,
-        averageResponse: "26 min",
-        activity: [
-          { day: "Week 1", approved: 34, rejected: 10 },
-          { day: "Week 2", approved: 39, rejected: 12 },
-          { day: "Week 3", approved: 32, rejected: 11 },
-          { day: "Week 4", approved: 37, rejected: 8 },
-        ],
-      },
-      Custom: {
-        approved: 78,
-        rejected: 22,
-        pending: 6,
-        averageResponse: "25 min",
-        activity: [
-          { day: "Week 1", approved: 27, rejected: 8 },
-          { day: "Week 2", approved: 31, rejected: 7 },
-          { day: "Week 3", approved: 20, rejected: 7 },
-        ],
-      },
-    },
-  },
-  {
-    id: "MOD-003",
-    name: "Sarah Mensah",
-    email: "sarah.mensah@example.com",
-    initials: "SM",
-    status: "Active",
-    joinedAt: "2025-06-19",
-    lastActive: "Active 1 hour ago",
-    performance: {
-      "7 days": {
-        approved: 28,
-        rejected: 5,
-        pending: 2,
-        averageResponse: "31 min",
-        activity: [
-          { day: "Mon", approved: 4, rejected: 1 },
-          { day: "Tue", approved: 5, rejected: 0 },
-          { day: "Wed", approved: 3, rejected: 1 },
-          { day: "Thu", approved: 4, rejected: 1 },
-          { day: "Fri", approved: 6, rejected: 1 },
-          { day: "Sat", approved: 3, rejected: 0 },
-          { day: "Sun", approved: 3, rejected: 1 },
-        ],
-      },
-      "30 days": {
-        approved: 118,
-        rejected: 24,
-        pending: 8,
-        averageResponse: "29 min",
-        activity: [
-          { day: "Week 1", approved: 26, rejected: 6 },
-          { day: "Week 2", approved: 31, rejected: 5 },
-          { day: "Week 3", approved: 29, rejected: 7 },
-          { day: "Week 4", approved: 32, rejected: 6 },
-        ],
-      },
-      Custom: {
-        approved: 64,
-        rejected: 13,
-        pending: 5,
-        averageResponse: "30 min",
-        activity: [
-          { day: "Week 1", approved: 22, rejected: 4 },
-          { day: "Week 2", approved: 24, rejected: 5 },
-          { day: "Week 3", approved: 18, rejected: 4 },
-        ],
-      },
-    },
-  },
-  {
-    id: "MOD-004",
-    name: "Joseph Okoro",
-    email: "joseph.okoro@example.com",
-    initials: "JO",
-    status: "Away",
-    joinedAt: "2025-08-03",
-    lastActive: "Active yesterday",
-    performance: {
-      "7 days": {
-        approved: 19,
-        rejected: 7,
-        pending: 6,
-        averageResponse: "42 min",
-        activity: [
-          { day: "Mon", approved: 3, rejected: 1 },
-          { day: "Tue", approved: 2, rejected: 2 },
-          { day: "Wed", approved: 4, rejected: 1 },
-          { day: "Thu", approved: 3, rejected: 1 },
-          { day: "Fri", approved: 4, rejected: 1 },
-          { day: "Sat", approved: 2, rejected: 0 },
-          { day: "Sun", approved: 1, rejected: 1 },
-        ],
-      },
-      "30 days": {
-        approved: 86,
-        rejected: 26,
-        pending: 14,
-        averageResponse: "39 min",
-        activity: [
-          { day: "Week 1", approved: 19, rejected: 7 },
-          { day: "Week 2", approved: 21, rejected: 6 },
-          { day: "Week 3", approved: 23, rejected: 8 },
-          { day: "Week 4", approved: 23, rejected: 5 },
-        ],
-      },
-      Custom: {
-        approved: 47,
-        rejected: 15,
-        pending: 8,
-        averageResponse: "41 min",
-        activity: [
-          { day: "Week 1", approved: 15, rejected: 4 },
-          { day: "Week 2", approved: 17, rejected: 6 },
-          { day: "Week 3", approved: 15, rejected: 5 },
-        ],
-      },
-    },
-  },
-];
+const emptyMetrics = {
+  approved: 0,
+  rejected: 0,
+  averageResponse: "—",
+  activity: [],
+};
 
-const formatDate = (date) =>
-  new Intl.DateTimeFormat("en-US", {
+function toDateInputValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getInitialCustomStart() {
+  const date = new Date();
+  date.setDate(date.getDate() - 29);
+  return toDateInputValue(date);
+}
+
+function getInitialCustomEnd() {
+  return toDateInputValue(new Date());
+}
+
+const formatDate = (date) => {
+  if (!date) return "—";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(date));
+  }).format(parsedDate);
+};
 
 const calculateApprovalRate = (approved, rejected) => {
   const total = approved + rejected;
 
-  if (!total) {
-    return 0;
-  }
-
-  return Math.round((approved / total) * 100);
+  return total ? Math.round((approved / total) * 100) : 0;
 };
 
 function ModeratorStatus({ status }) {
+  const safeStatus = status || "Unknown";
+
   return (
     <span
-      className={`moderator-status moderator-status--${status.toLowerCase()}`}
+      className={`moderator-status moderator-status--${safeStatus.toLowerCase()}`}
     >
       <span className="moderator-status-dot" />
-      {status}
+      {safeStatus}
     </span>
   );
 }
@@ -281,22 +105,25 @@ function PerformanceMetric({
   );
 }
 
-function ModeratorDetails({
-  moderator,
-  period,
-  onClose,
-}) {
-  const metrics = moderator.performance[period];
+function ModeratorDetails({ moderator, period, onClose }) {
+  const metrics = moderator.performance?.[period] || emptyMetrics;
   const approvalRate = calculateApprovalRate(
     metrics.approved,
     metrics.rejected
   );
 
   return (
-    <div className="moderator-drawer-overlay" onClick={onClose}>
-      <aside
-        className="moderator-drawer"
-        onClick={(event) => event.stopPropagation()}
+    <div
+      className="moderator-modal-overlay"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        className="moderator-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="moderator-modal-title"
       >
         <div className="moderator-drawer-header">
           <div className="moderator-drawer-profile">
@@ -309,9 +136,9 @@ function ModeratorDetails({
                 Moderator performance
               </span>
 
-              <h2>{moderator.name}</h2>
+              <h2 id="moderator-modal-title">{moderator.name}</h2>
 
-              <p>{moderator.email}</p>
+              <p>{moderator.email || "No email available"}</p>
             </div>
           </div>
 
@@ -354,48 +181,52 @@ function ModeratorDetails({
                 <span className="moderator-section-eyebrow">
                   Review activity
                 </span>
-
                 <h3>Approvals and rejections</h3>
               </div>
 
               <Activity size={17} />
             </div>
 
-            <div className="moderator-activity-list">
-              {metrics.activity.map((item) => {
-                const total = item.approved + item.rejected;
-                const approvedWidth = total
-                  ? `${(item.approved / total) * 100}%`
-                  : "0%";
+            {metrics.activity.length > 0 ? (
+              <div className="moderator-activity-list">
+                {metrics.activity.map((item, index) => {
+                  const total = item.approved + item.rejected;
+                  const approvedWidth = total
+                    ? `${(item.approved / total) * 100}%`
+                    : "0%";
 
-                return (
-                  <div className="moderator-activity-row" key={item.day}>
-                    <div className="moderator-activity-label">
-                      <strong>{item.day}</strong>
-                      <span>
-                        {item.approved + item.rejected} reviews
-                      </span>
-                    </div>
+                  return (
+                    <div
+                      className="moderator-activity-row"
+                      key={`${item.day}-${index}`}
+                    >
+                      <div className="moderator-activity-label">
+                        <strong>{item.day}</strong>
+                        <span>{total} reviews</span>
+                      </div>
 
-                    <div className="moderator-activity-bar">
-                      <span
-                        className="moderator-activity-approved"
-                        style={{ width: approvedWidth }}
-                      />
-                    </div>
+                      <div className="moderator-activity-bar">
+                        <span
+                          className="moderator-activity-approved"
+                          style={{ width: approvedWidth }}
+                        />
+                      </div>
 
-                    <div className="moderator-activity-values">
-                      <span className="moderator-approved-value">
-                        {item.approved}
-                      </span>
-                      <span className="moderator-rejected-value">
-                        {item.rejected}
-                      </span>
+                      <div className="moderator-activity-values">
+                        <span className="moderator-approved-value">
+                          {item.approved}
+                        </span>
+                        <span className="moderator-rejected-value">
+                          {item.rejected}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p>No review activity in this date range.</p>
+            )}
 
             <div className="moderator-activity-legend">
               <span>
@@ -417,7 +248,7 @@ function ModeratorDetails({
 
             <dl className="moderator-detail-list">
               <div>
-                <dt>Status</dt>
+                <dt>Account status</dt>
                 <dd>
                   <ModeratorStatus status={moderator.status} />
                 </dd>
@@ -425,22 +256,17 @@ function ModeratorDetails({
 
               <div>
                 <dt>Average response</dt>
-                <dd>{metrics.averageResponse}</dd>
+                <dd>{metrics.averageResponse || "—"}</dd>
               </div>
 
               <div>
                 <dt>Pending reviews</dt>
-                <dd>{metrics.pending}</dd>
+                <dd>Shared queue; not assigned per moderator</dd>
               </div>
 
               <div>
                 <dt>Joined platform</dt>
                 <dd>{formatDate(moderator.joinedAt)}</dd>
-              </div>
-
-              <div>
-                <dt>Last activity</dt>
-                <dd>{moderator.lastActive}</dd>
               </div>
             </dl>
           </section>
@@ -455,25 +281,133 @@ function ModeratorDetails({
             Close
           </button>
         </div>
-      </aside>
+      </section>
     </div>
   );
 }
 
 export default function AdminModeration() {
-  const [moderators] = useState(initialModerators);
+  const [moderators, setModerators] = useState([]);
+  const [summary, setSummary] = useState({
+    totalReviewed: 0,
+    approved: 0,
+    rejected: 0,
+    approvalRate: 0,
+    pendingQueue: 0,
+    moderatorCount: 0,
+    activeModeratorCount: 0,
+  });
+
   const [selectedPeriod, setSelectedPeriod] = useState("7 days");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedModerator, setSelectedModerator] = useState(null);
-  const [customStartDate, setCustomStartDate] = useState("2026-09-01");
-  const [customEndDate, setCustomEndDate] = useState("2026-09-22");
+  const [customStartDate, setCustomStartDate] = useState(
+    getInitialCustomStart
+  );
+  const [customEndDate, setCustomEndDate] = useState(getInitialCustomEnd);
+
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setLoading(true);
+    setLoadError("");
+
+    const loadModerationData = async () => {
+      try {
+        const token =
+          sessionStorage.getItem("tecotaskToken") ||
+          localStorage.getItem("tecotaskToken");
+
+        if (!token) {
+          throw new Error(
+            "Your login session is missing. Please sign in again."
+          );
+        }
+
+        const params = new URLSearchParams({
+          range: selectedPeriod,
+        });
+
+        if (selectedPeriod === "Custom") {
+          params.set("from", customStartDate);
+          params.set("to", customEndDate);
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/admin/moderation?${params.toString()}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.message || "Could not load moderation data.");
+        }
+
+        if (cancelled) return;
+
+        setModerators(data.moderators || []);
+        setSummary(
+          data.summary || {
+            totalReviewed: 0,
+            approved: 0,
+            rejected: 0,
+            approvalRate: 0,
+            pendingQueue: 0,
+            moderatorCount: 0,
+            activeModeratorCount: 0,
+          }
+        );
+        setSelectedModerator(null);
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(error.message || "Could not load moderation data.");
+          setModerators([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadModerationData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    selectedPeriod,
+    customStartDate,
+    customEndDate,
+    refreshKey,
+  ]);
+
+  useEffect(() => {
+    if (!selectedModerator) return undefined;
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") {
+        setSelectedModerator(null);
+      }
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [selectedModerator]);
 
   const visibleModerators = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    if (!query) {
-      return moderators;
-    }
+    if (!query) return moderators;
 
     return moderators.filter(
       (moderator) =>
@@ -482,36 +416,11 @@ export default function AdminModeration() {
     );
   }, [moderators, searchQuery]);
 
-  const periodMetrics = useMemo(() => {
-    return visibleModerators.reduce(
-      (total, moderator) => {
-        const metrics = moderator.performance[selectedPeriod];
-
-        return {
-          approved: total.approved + metrics.approved,
-          rejected: total.rejected + metrics.rejected,
-          pending: total.pending + metrics.pending,
-        };
-      },
-      {
-        approved: 0,
-        rejected: 0,
-        pending: 0,
-      }
-    );
-  }, [visibleModerators, selectedPeriod]);
-
-  const totalReviewed =
-    periodMetrics.approved + periodMetrics.rejected;
-
-  const overallApprovalRate = calculateApprovalRate(
-    periodMetrics.approved,
-    periodMetrics.rejected
-  );
-
   const customRangeLabel =
     selectedPeriod === "Custom"
-      ? `${formatDate(customStartDate)} – ${formatDate(customEndDate)}`
+      ? `${formatDate(`${customStartDate}T00:00:00`)} – ${formatDate(
+          `${customEndDate}T00:00:00`
+        )}`
       : null;
 
   return (
@@ -526,14 +435,15 @@ export default function AdminModeration() {
             <h1>Moderation</h1>
 
             <p>
-              Track moderator activity and review how requests are being
-              approved or rejected.
+              Review moderator decisions and performance using recorded task
+              submissions.
             </p>
           </div>
 
           <div className="moderation-header-status">
             <span />
-            Moderation team active
+            {summary.activeModeratorCount} active · {summary.pendingQueue} in
+            shared queue
           </div>
         </header>
 
@@ -563,6 +473,7 @@ export default function AdminModeration() {
                 <input
                   type="date"
                   value={customStartDate}
+                  max={customEndDate}
                   onChange={(event) =>
                     setCustomStartDate(event.target.value)
                   }
@@ -576,6 +487,8 @@ export default function AdminModeration() {
                 <input
                   type="date"
                   value={customEndDate}
+                  min={customStartDate}
+                  max={toDateInputValue(new Date())}
                   onChange={(event) =>
                     setCustomEndDate(event.target.value)
                   }
@@ -594,33 +507,33 @@ export default function AdminModeration() {
         <section className="moderation-summary-grid">
           <PerformanceMetric
             label="Total reviews"
-            value={totalReviewed}
+            value={summary.totalReviewed}
             icon={Target}
             helper={`${selectedPeriod.toLowerCase()} across all moderators`}
           />
 
           <PerformanceMetric
             label="Approved"
-            value={periodMetrics.approved}
+            value={summary.approved}
             icon={CheckCircle2}
             tone="green"
-            helper="requests approved by moderators"
+            helper="recorded approved submissions"
           />
 
           <PerformanceMetric
             label="Rejected"
-            value={periodMetrics.rejected}
+            value={summary.rejected}
             icon={XCircle}
             tone="red"
-            helper="requests rejected by moderators"
+            helper="recorded rejected submissions"
           />
 
           <PerformanceMetric
             label="Approval rate"
-            value={`${overallApprovalRate}%`}
+            value={`${summary.approvalRate}%`}
             icon={ArrowUpRight}
             tone="blue"
-            helper="average team approval rate"
+            helper="approved out of all reviewed submissions"
           />
         </section>
 
@@ -634,14 +547,14 @@ export default function AdminModeration() {
               <h2>Moderator performance</h2>
 
               <p>
-                Select a moderator to see their approval and rejection
-                activity.
+                Pending submissions are shared; the system does not record an
+                assigned moderator for them.
               </p>
             </div>
 
             <div className="moderation-team-count">
               <Users size={15} />
-              {visibleModerators.length} moderators
+              {summary.moderatorCount} moderators
             </div>
           </div>
 
@@ -662,7 +575,7 @@ export default function AdminModeration() {
                   onClick={() => setSearchQuery("")}
                   aria-label="Clear moderator search"
                 >
-                  <XCircle size={14} />
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -673,18 +586,44 @@ export default function AdminModeration() {
             </div>
           </div>
 
-          {visibleModerators.length > 0 ? (
+          {loading ? (
+            <div
+              className="moderation-loading"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className="moderation-loading__roller"
+                aria-hidden="true"
+              />
+              <strong>Loading moderation data</strong>
+              <p>Getting recorded review activity from the server.</p>
+            </div>
+          ) : loadError ? (
+            <div className="moderation-empty-state" role="alert">
+              <span>
+                <ShieldCheck size={19} />
+              </span>
+              <h3>Could not load moderation data</h3>
+              <p>{loadError}</p>
+              <button
+                type="button"
+                onClick={() => setRefreshKey((current) => current + 1)}
+              >
+                Try again
+              </button>
+            </div>
+          ) : visibleModerators.length > 0 ? (
             <>
               <div className="moderation-table-wrapper">
                 <table className="moderation-table">
                   <thead>
                     <tr>
                       <th>Moderator</th>
-                      <th>Status</th>
+                      <th>Account</th>
                       <th>Approved</th>
                       <th>Rejected</th>
                       <th>Approval rate</th>
-                      <th>Pending</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -692,7 +631,7 @@ export default function AdminModeration() {
                   <tbody>
                     {visibleModerators.map((moderator) => {
                       const metrics =
-                        moderator.performance[selectedPeriod];
+                        moderator.performance?.[selectedPeriod] || emptyMetrics;
 
                       const approvalRate = calculateApprovalRate(
                         metrics.approved,
@@ -747,18 +686,10 @@ export default function AdminModeration() {
                           </td>
 
                           <td>
-                            <span className="moderator-pending-number">
-                              {metrics.pending}
-                            </span>
-                          </td>
-
-                          <td>
                             <button
                               type="button"
                               className="moderator-view-button"
-                              onClick={() =>
-                                setSelectedModerator(moderator)
-                              }
+                              onClick={() => setSelectedModerator(moderator)}
                             >
                               <Eye size={14} />
                               View
@@ -773,7 +704,8 @@ export default function AdminModeration() {
 
               <div className="moderation-mobile-list">
                 {visibleModerators.map((moderator) => {
-                  const metrics = moderator.performance[selectedPeriod];
+                  const metrics =
+                    moderator.performance?.[selectedPeriod] || emptyMetrics;
 
                   const approvalRate = calculateApprovalRate(
                     metrics.approved,
@@ -842,14 +774,17 @@ export default function AdminModeration() {
 
               <h3>No moderators found</h3>
 
-              <p>Try searching with another name or email address.</p>
+              <p>
+                {searchQuery
+                  ? "Try searching with another name or email address."
+                  : "No moderator accounts were found."}
+              </p>
 
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-              >
-                Clear search
-              </button>
+              {searchQuery && (
+                <button type="button" onClick={() => setSearchQuery("")}>
+                  Clear search
+                </button>
+              )}
             </div>
           )}
         </section>

@@ -505,3 +505,125 @@
     width: 100%;
   }
 }
+
+/* Align Moderator Settings with the Earner and Advertiser pages */
+.moderator-settings-page {
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: "Poppins", sans-serif;
+}
+
+.moderator-settings-container {
+  width: min(1380px, 100%);
+}
+
+.moderator-settings-card {
+  border-color: #e8edf2;
+  border-radius: 14px;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.04);
+}
+
+.moderator-settings-card-heading,
+.moderator-account-profile {
+  border-bottom-color: #f1f5f9;
+}
+
+.moderator-settings-header h1,
+.moderator-settings-card-heading h2 {
+  color: #0f172a;
+}
+
+.moderator-settings-header p,
+.moderator-settings-card-heading p,
+.moderator-account-profile span:not(.moderator-account-avatar),
+.moderator-account-detail-label,
+.moderator-password-form-footer p {
+  color: #94a3b8;
+}
+
+.moderator-settings-eyebrow,
+.moderator-account-detail-label svg,
+.moderator-password-input button:hover {
+  color: #16a34a;
+}
+
+.moderator-settings-heading-icon {
+  background: #effcf3;
+  color: #16a34a;
+}
+
+.moderator-account-avatar {
+  background: #0f172a;
+}
+
+.moderator-account-profile strong,
+.moderator-account-detail > strong,
+.moderator-settings-field > span {
+  color: #334155;
+}
+
+.moderator-role-badge {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.moderator-account-note {
+  border-color: #dcfce7;
+  background: #effcf3;
+  color: #64748b;
+}
+
+.moderator-account-note svg {
+  color: #16a34a;
+}
+
+.moderator-password-input input {
+  border-color: #dbe3ec;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.moderator-password-input input:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.moderator-settings-card-heading,
+.moderator-account-profile,
+.moderator-settings-layout > * {
+  animation: moderatorSettingsEnter 420ms
+    cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.moderator-settings-layout > :nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.moderator-save-password-button {
+  border-color: #16a34a;
+  background: #16a34a;
+}
+
+.moderator-save-password-button:hover {
+  background: #15803d;
+}
+
+@keyframes moderatorSettingsEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moderator-settings-card-heading,
+  .moderator-account-profile,
+  .moderator-settings-layout > * {
+    animation: none;
+  }
+}

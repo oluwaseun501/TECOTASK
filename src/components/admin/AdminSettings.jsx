@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   CheckCircle2,
@@ -8,12 +9,18 @@ import {
   Mail,
   Save,
   ShieldCheck,
-  UserRound,
 } from "lucide-react";
 
+import { authApi } from "../../services/auth.js";
 import "../../styles/AdminSettings.css";
 
+function displayRole(role = "") {
+  if (!role) return "—";
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
+
 function PasswordField({
+  id,
   label,
   value,
   onChange,
@@ -21,24 +28,30 @@ function PasswordField({
   visible,
   onToggle,
   autoComplete,
+  disabled,
 }) {
   return (
-    <label className="admin-settings-field">
+    <label className="admin-settings-field" htmlFor={id}>
       <span>{label}</span>
 
       <div className="admin-password-input">
         <input
+          id={id}
+          name={id}
           type={visible ? "text" : "password"}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
+          required
+          disabled={disabled}
         />
 
         <button
           type="button"
           onClick={onToggle}
           aria-label={visible ? `Hide ${label}` : `Show ${label}`}
+          disabled={disabled}
         >
           {visible ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
@@ -48,6 +61,12 @@ function PasswordField({
 }
 
 export default function AdminSettings() {
+  const navigate = useNavigate();
+
+  const [account, setAccount] = useState(null);
+  const [loadingAccount, setLoadingAccount] = useState(true);
+  const [accountError, setAccountError] = useState("");
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -58,6 +77,7 @@ export default function AdminSettings() {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
 
   const passwordRequirements = useMemo(
     () => [
@@ -65,122 +85,122 @@ export default function AdminSettings() {
         label: "At least 8 characters",
         valid: newPassword.length >= 8,
       },
-      {
-        label: "At least one uppercase letter",
-        valid: /[A-Z]/.test(newPassword),
-      },
-      {
-        label: "At least one number",
-        valid: /\d/.test(newPassword),
-      },
     ],
-    [newPassword]
+    [newPassword],
   );
 
-  const passwordStrength = useMemo(() => {
-    const completed = passwordRequirements.filter(
-      (requirement) => requirement.valid
-    ).length;
+  useEffect(() => {
+    let isMounted = true;
 
-    if (!newPassword) {
-      return {
-        label: "Enter a new password",
-        width: "0%",
-        tone: "empty",
-      };
+    async function loadSettings() {
+      const token = sessionStorage.getItem("tecotaskToken");
+
+      if (!token) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      try {
+        const data = await authApi.getSettings(token);
+
+        if (isMounted) {
+          setAccount(data.account || null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setAccountError(
+            error.message || "Could not load account settings.",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingAccount(false);
+        }
+      }
     }
 
-    if (completed === 1) {
-      return {
-        label: "Weak password",
-        width: "33%",
-        tone: "weak",
-      };
-    }
+    void loadSettings();
 
-    if (completed === 2) {
-      return {
-        label: "Fair password",
-        width: "66%",
-        tone: "fair",
-      };
-    }
-
-    return {
-      label: "Strong password",
-      width: "100%",
-      tone: "strong",
+    return () => {
+      isMounted = false;
     };
-  }, [newPassword, passwordRequirements]);
+  }, [navigate]);
 
-  const handlePasswordChange = (event) => {
+  function clearMessages() {
+    setErrorMessage("");
+    setSuccessMessage("");
+  }
+
+  async function handlePasswordSubmit(event) {
     event.preventDefault();
-
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!currentPassword) {
-      setErrorMessage("Enter your current password.");
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setErrorMessage("Please complete all password fields.");
       return;
     }
 
     if (newPassword.length < 8) {
-      setErrorMessage("Your new password must contain at least 8 characters.");
-      return;
-    }
-
-    if (!/[A-Z]/.test(newPassword)) {
-      setErrorMessage(
-        "Your new password must contain at least one uppercase letter."
-      );
-      return;
-    }
-
-    if (!/\d/.test(newPassword)) {
-      setErrorMessage(
-        "Your new password must contain at least one number."
-      );
+      setErrorMessage("Your new password must be at least 8 characters.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setErrorMessage("The new passwords do not match.");
+      setErrorMessage("Your new passwords do not match.");
       return;
     }
 
     if (currentPassword === newPassword) {
       setErrorMessage(
-        "Your new password must be different from your current password."
+        "Your new password must differ from your current password.",
       );
       return;
     }
 
-    setSuccessMessage("Your password has been updated successfully.");
+    const token = sessionStorage.getItem("tecotaskToken");
 
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-  };
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
 
-  const clearMessages = () => {
-    setErrorMessage("");
-    setSuccessMessage("");
-  };
+    setSavingPassword(true);
+
+    try {
+      const result = await authApi.updatePassword(
+        {
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        },
+        token,
+      );
+
+      setSuccessMessage(
+        result.message || "Password updated successfully.",
+      );
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      setErrorMessage(error.message || "Could not update your password.");
+    } finally {
+      setSavingPassword(false);
+    }
+  }
+
+  const roleLabel = displayRole(account?.role);
 
   return (
     <main className="admin-settings-page">
       <div className="admin-settings-container">
         <header className="admin-settings-header">
           <div>
-            <span className="admin-settings-eyebrow">
-              Admin workspace
-            </span>
-
+            <span className="admin-settings-eyebrow">Admin workspace</span>
             <h1>Settings</h1>
-
-            <p>
-              Manage your admin account and update your password.
-            </p>
+            <p>View your admin account details and update your password.</p>
           </div>
         </header>
 
@@ -188,54 +208,56 @@ export default function AdminSettings() {
           <section className="admin-settings-card admin-account-card">
             <div className="admin-settings-card-heading">
               <div className="admin-settings-heading-icon">
-                <UserRound size={17} />
+                <ShieldCheck size={17} />
               </div>
 
               <div>
                 <h2>Admin account</h2>
-                <p>Your current administrator account information.</p>
+                <p>Your signed-in account details.</p>
               </div>
             </div>
 
-            <div className="admin-account-profile">
-              <span className="admin-account-avatar">SB</span>
-
-              <div>
-                <strong>Segun Bakare</strong>
-                <span>Administrator account</span>
+            {accountError && (
+              <div
+                className="admin-settings-message admin-settings-message--error"
+                role="alert"
+              >
+                <AlertCircle size={16} />
+                <span>{accountError}</span>
               </div>
-            </div>
+            )}
 
             <div className="admin-account-details">
-              <div className="admin-account-detail">
-                <span className="admin-account-detail-label">
-                  <Mail size={14} />
-                  Email address
-                </span>
+              {loadingAccount ? (
+                <div className="admin-settings-account-loading" role="status">
+                  <span className="admin-settings-spinner" aria-hidden="true">
+                    <span />
+                  </span>
+                  <span>Loading account details…</span>
+                </div>
+              ) : (
+                <>
+                  <div className="admin-account-detail">
+                    <span className="admin-account-detail-label">
+                      <Mail size={14} />
+                      Email address
+                    </span>
+                    <strong>{account?.email || "—"}</strong>
+                  </div>
 
-                <strong>admin@tecotask.com</strong>
-              </div>
+                  <div className="admin-account-detail">
+                    <span className="admin-account-detail-label">
+                      <ShieldCheck size={14} />
+                      Account role
+                    </span>
 
-              <div className="admin-account-detail">
-                <span className="admin-account-detail-label">
-                  <ShieldCheck size={14} />
-                  Account role
-                </span>
-
-                <span className="admin-role-badge">
-                  <ShieldCheck size={12} />
-                  Admin
-                </span>
-              </div>
-            </div>
-
-            <div className="admin-account-note">
-              <ShieldCheck size={15} />
-
-              <p>
-                Your admin role controls access to users, campaigns,
-                transactions, withdrawals, moderation, and settings.
-              </p>
+                    <span className="admin-role-badge">
+                      <ShieldCheck size={12} />
+                      {roleLabel}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </section>
 
@@ -252,14 +274,20 @@ export default function AdminSettings() {
             </div>
 
             {errorMessage && (
-              <div className="admin-settings-message admin-settings-message--error">
+              <div
+                className="admin-settings-message admin-settings-message--error"
+                role="alert"
+              >
                 <AlertCircle size={16} />
                 <span>{errorMessage}</span>
               </div>
             )}
 
             {successMessage && (
-              <div className="admin-settings-message admin-settings-message--success">
+              <div
+                className="admin-settings-message admin-settings-message--success"
+                role="status"
+              >
                 <CheckCircle2 size={16} />
                 <span>{successMessage}</span>
               </div>
@@ -267,66 +295,61 @@ export default function AdminSettings() {
 
             <form
               className="admin-password-form"
-              onSubmit={handlePasswordChange}
-              onChange={clearMessages}
+              onSubmit={handlePasswordSubmit}
             >
               <PasswordField
+                id="currentPassword"
                 label="Current password"
                 value={currentPassword}
-                onChange={setCurrentPassword}
+                onChange={(value) => {
+                  setCurrentPassword(value);
+                  clearMessages();
+                }}
                 placeholder="Enter your current password"
                 visible={showCurrentPassword}
                 onToggle={() =>
-                  setShowCurrentPassword((current) => !current)
+                  setShowCurrentPassword((visible) => !visible)
                 }
                 autoComplete="current-password"
+                disabled={savingPassword}
               />
 
               <PasswordField
+                id="newPassword"
                 label="New password"
                 value={newPassword}
-                onChange={setNewPassword}
+                onChange={(value) => {
+                  setNewPassword(value);
+                  clearMessages();
+                }}
                 placeholder="Enter your new password"
                 visible={showNewPassword}
-                onToggle={() => setShowNewPassword((current) => !current)}
+                onToggle={() =>
+                  setShowNewPassword((visible) => !visible)
+                }
                 autoComplete="new-password"
+                disabled={savingPassword}
               />
 
-              {newPassword && (
-                <div className="admin-password-strength">
-                  <div className="admin-password-strength-top">
-                    <span>Password strength</span>
-                    <strong
-                      className={`admin-password-strength-label admin-password-strength-label--${passwordStrength.tone}`}
-                    >
-                      {passwordStrength.label}
-                    </strong>
-                  </div>
-
-                  <div className="admin-password-strength-track">
-                    <span
-                      className={`admin-password-strength-fill admin-password-strength-fill--${passwordStrength.tone}`}
-                      style={{ width: passwordStrength.width }}
-                    />
-                  </div>
-                </div>
-              )}
-
               <PasswordField
+                id="confirmPassword"
                 label="Confirm new password"
                 value={confirmPassword}
-                onChange={setConfirmPassword}
+                onChange={(value) => {
+                  setConfirmPassword(value);
+                  clearMessages();
+                }}
                 placeholder="Repeat your new password"
                 visible={showConfirmPassword}
                 onToggle={() =>
-                  setShowConfirmPassword((current) => !current)
+                  setShowConfirmPassword((visible) => !visible)
                 }
                 autoComplete="new-password"
+                disabled={savingPassword}
               />
 
               <div className="admin-password-requirements">
-                <span>Password requirements</span>
-
+                <span>Password requirement</span>
                 <ul>
                   {passwordRequirements.map((requirement) => (
                     <li
@@ -353,9 +376,10 @@ export default function AdminSettings() {
                 <button
                   type="submit"
                   className="admin-save-password-button"
+                  disabled={savingPassword}
                 >
                   <Save size={15} />
-                  Update password
+                  {savingPassword ? "Updating..." : "Update password"}
                 </button>
               </div>
             </form>

@@ -1,14 +1,11 @@
 import {
   ArrowDownToLine,
-  BarChart3,
-  CircleHelp,
   LayoutDashboard,
   LogOut,
   Megaphone,
   ReceiptText,
   Settings,
   ShieldAlert,
-  UserRoundCheck,
   Users,
   X,
 } from "lucide-react";
@@ -18,14 +15,84 @@ import "../../styles/AdminSidebar.css";
 
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
+function displayRole(role) {
+  if (!role) return "Role unavailable";
+
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
+
+function getInitials(account) {
+  const name = account?.fullName?.trim();
+
+  if (name) {
+    const parts = name.split(/\s+/);
+
+    if (parts.length > 1) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  const emailName = account?.email?.split("@")[0];
+  return emailName ? emailName.slice(0, 2).toUpperCase() : "?";
+}
+
 export default function AdminSidebar({
   basePath = "/admin",
   mobileOpen,
   onClose,
+  account,
+  accountLoading,
+  accountError,
 }) {
   const location = useLocation();
-
   const closeSidebar = onClose || (() => {});
+
+  const userItems = [
+    {
+      key: "users",
+      label: "All users",
+      icon: Users,
+      to: `${basePath}/users`,
+    },
+  ];
+
+  const operationItems = [
+    {
+      key: "campaigns",
+      label: "Campaigns",
+      icon: Megaphone,
+      to: `${basePath}/campaigns`,
+    },
+    {
+      key: "withdrawals",
+      label: "Withdrawals",
+      icon: ArrowDownToLine,
+      to: `${basePath}/withdrawals`,
+    },
+    {
+      key: "transactions",
+      label: "All transactions",
+      icon: ReceiptText,
+      to: `${basePath}/transactions`,
+    },
+    {
+      key: "moderation",
+      label: "Moderation",
+      icon: ShieldAlert,
+      to: `${basePath}/moderation`,
+    },
+  ];
+
+  const systemItems = [
+    {
+      key: "settings",
+      label: "Settings",
+      icon: Settings,
+      to: `${basePath}/settings`,
+    },
+  ];
 
   const isActive = (item) => {
     if (item.query) {
@@ -51,71 +118,9 @@ export default function AdminSidebar({
       location.pathname.startsWith(`${item.to}/`)
     );
   };
-const userItems = [
-  {
-    key: "users",
-    label: "All users",
-    icon: Users,
-    to: `${basePath}/users`,
-  },
-//   {
-//     key: "earners",
-//     label: "Earners",
-//     icon: UserRoundCheck,
-//     to: `${basePath}/earners`,
-//   },
-//   {
-//     key: "advertisers",
-//     label: "Advertisers",
-//     icon: Megaphone,
-//     to: `${basePath}/advertisers`,
-//   },
-//   {
-//     key: "moderators",
-//     label: "Moderators",
-//     icon: ShieldAlert,
-//     to: `${basePath}/moderators`,
-//   },
-];
-const operationItems = [
-  {
-    key: "campaigns",
-    label: "Campaigns",
-    icon: Megaphone,
-    to: `${basePath}/campaigns`,
-  },
-  {
-    key: "withdrawals",
-    label: "Withdrawals",
-    icon: ArrowDownToLine,
-    to: `${basePath}/withdrawals`,
-  },
-  {
-    key: "transactions",
-    label: "All transactions",
-    icon: ReceiptText,
-    to: `${basePath}/transactions`,
-  },
-  {
-    key: "moderation",
-    label: "Moderation",
-    icon: ShieldAlert,
-    to: `${basePath}/moderation`,
-  },
-];
-
-  const systemItems = [
-    {
-      key: "settings",
-      label: "Settings",
-      icon: Settings,
-      to: `${basePath}/settings`,
-    },
-  ];
 
   const renderLink = (item) => {
     const Icon = item.icon;
-    const active = isActive(item);
 
     return (
       <Link
@@ -124,7 +129,7 @@ const operationItems = [
         onClick={closeSidebar}
         className={cn(
           "admin-nav-link",
-          active && "admin-nav-link--active"
+          isActive(item) && "admin-nav-link--active"
         )}
       >
         <Icon size={15} strokeWidth={1.9} />
@@ -132,6 +137,16 @@ const operationItems = [
       </Link>
     );
   };
+
+  const profileName = accountLoading
+    ? "Loading account..."
+    : account?.fullName || account?.email || "Profile unavailable";
+
+  const profileRole = accountError
+    ? "Could not load profile"
+    : accountLoading
+      ? " "
+      : displayRole(account?.role);
 
   return (
     <>
@@ -185,37 +200,28 @@ const operationItems = [
           })}
 
           <div className="admin-nav-section-label">USER MANAGEMENT</div>
-
           {userItems.map(renderLink)}
 
           <div className="admin-nav-section-label">OPERATIONS</div>
-
           {operationItems.map(renderLink)}
 
           <div className="admin-nav-section-label">SYSTEM</div>
-
           {systemItems.map(renderLink)}
         </nav>
 
         <div className="admin-sidebar-spacer" />
 
-        <button
-          type="button"
-          className="admin-sidebar-help"
-          onClick={() =>
-            window.alert("Help center will be available soon.")
-          }
+        <div
+          className="admin-profile"
+          title={account?.email || ""}
         >
-          <CircleHelp size={15} />
-          <span>Help center</span>
-        </button>
-
-        <div className="admin-profile">
-          <span className="admin-avatar admin-avatar--dark">SB</span>
+          <span className="admin-avatar admin-avatar--dark">
+            {accountLoading ? "…" : getInitials(account)}
+          </span>
 
           <span className="admin-profile-details">
-            <strong>Segun Bakare</strong>
-            <small>Admin</small>
+            <strong>{profileName}</strong>
+            <small>{profileRole}</small>
           </span>
         </div>
 

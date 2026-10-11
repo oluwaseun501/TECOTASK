@@ -301,3 +301,98 @@
     transition: none;
   }
 }
+
+/* Clear instructions and keyboard focus */
+.support-widget__toggle:focus-visible {
+  outline: 3px solid #bbf7d0;
+  outline-offset: 3px;
+}
+
+.support-widget__toggle:hover .support-widget__toggle-label,
+.support-widget__toggle:focus-visible .support-widget__toggle-label,
+.support-widget__toggle[aria-expanded="true"]
+  .support-widget__toggle-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Smooth, polished panel entrance */
+.support-widget__panel {
+  transform-origin: right bottom;
+  animation: supportWidgetReveal 260ms
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes supportWidgetReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Stagger the FAQ sections in */
+.support-widget__section {
+  animation: supportWidgetSectionReveal 320ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.support-widget__section:nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.support-widget__section:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.support-widget__whatsapp {
+  animation: supportWidgetSectionReveal 320ms
+    cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
+}
+
+@keyframes supportWidgetSectionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animate an FAQ answer when opened */
+.support-widget__question > p {
+  animation: supportWidgetAnswerReveal 180ms ease both;
+}
+
+@keyframes supportWidgetAnswerReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Honor accessibility preferences */
+@media (prefers-reduced-motion: reduce) {
+  .support-widget__panel,
+  .support-widget__section,
+  .support-widget__whatsapp,
+  .support-widget__question > p,
+  .support-widget__chevron,
+  .support-widget__toggle,
+  .support-widget__toggle-label {
+    animation: none !important;
+    transition: none !important;
+  }
+}

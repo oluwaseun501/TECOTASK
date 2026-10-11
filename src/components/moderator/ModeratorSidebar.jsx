@@ -1,18 +1,56 @@
 import {
   ArrowDownToLine,
   BookOpen,
-  CircleHelp,
   ClipboardCheck,
   LayoutDashboard,
   LogOut,
   Settings,
   X,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import "../../styles/ModeratorSidebar.css";
 
 const cn = (...classes) => classes.filter(Boolean).join(" ");
+
+function getStoredUser() {
+  if (typeof window === "undefined") return null;
+
+  const savedUser =
+    window.sessionStorage.getItem("tecotaskUser") ||
+    window.localStorage.getItem("tecotaskUser");
+
+  if (!savedUser) return null;
+
+  try {
+    return JSON.parse(savedUser);
+  } catch {
+    return null;
+  }
+}
+
+function getInitials(name = "") {
+  return (
+    String(name)
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "MO"
+  );
+}
+
+function formatRole(role = "") {
+  return role
+    ? role.charAt(0).toUpperCase() + role.slice(1)
+    : "Moderator";
+}
 
 export default function ModeratorSidebar({
   basePath = "/moderator",
@@ -20,7 +58,13 @@ export default function ModeratorSidebar({
   onClose,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const closeSidebar = onClose || (() => {});
+  const user = getStoredUser();
+
+  const profileName = user?.fullName || "Moderator account";
+  const profileIdentity = user?.fullName || user?.email || "Moderator";
+  const profileRole = formatRole(user?.role);
 
   const isActive = (item) => {
     if (item.end) {
@@ -70,6 +114,19 @@ export default function ModeratorSidebar({
     },
   ];
 
+  function handleLogout() {
+    for (const storage of [
+      window.sessionStorage,
+      window.localStorage,
+    ]) {
+      storage.removeItem("tecotaskToken");
+      storage.removeItem("tecotaskUser");
+    }
+
+    closeSidebar();
+    navigate("/login", { replace: true });
+  }
+
   const renderLink = (item) => {
     const Icon = item.icon;
     const active = isActive(item);
@@ -79,9 +136,10 @@ export default function ModeratorSidebar({
         key={item.key}
         to={item.to}
         onClick={closeSidebar}
+        aria-current={active ? "page" : undefined}
         className={cn(
           "moderator-nav-link",
-          active && "moderator-nav-link--active"
+          active && "moderator-nav-link--active",
         )}
       >
         <Icon size={15} strokeWidth={1.9} />
@@ -104,7 +162,7 @@ export default function ModeratorSidebar({
       <aside
         className={cn(
           "moderator-sidebar",
-          mobileOpen && "moderator-sidebar--open"
+          mobileOpen && "moderator-sidebar--open",
         )}
       >
         <div className="moderator-sidebar-header">
@@ -114,7 +172,6 @@ export default function ModeratorSidebar({
             onClick={closeSidebar}
           >
             <span className="moderator-brand-mark">T</span>
-
             <span className="moderator-brand-name">
               Teco<em>Task</em>
             </span>
@@ -135,47 +192,30 @@ export default function ModeratorSidebar({
         </div>
 
         <nav className="moderator-sidebar-nav">
-          <div className="moderator-nav-section-label">
-            WORKSPACE
-          </div>
-
+          <div className="moderator-nav-section-label">WORKSPACE</div>
           {mainItems.map(renderLink)}
 
-          <div className="moderator-nav-section-label">
-            SUPPORT
-          </div>
-
+          <div className="moderator-nav-section-label">SUPPORT</div>
           {supportItems.map(renderLink)}
         </nav>
 
         <div className="moderator-sidebar-spacer" />
 
-        <button
-          type="button"
-          className="moderator-sidebar-help"
-          onClick={() =>
-            window.alert("Help center will be available soon.")
-          }
-        >
-          <CircleHelp size={15} />
-          <span>Help center</span>
-        </button>
-
         <div className="moderator-profile">
-          <span className="moderator-avatar">MO</span>
+          <span className="moderator-avatar">
+            {getInitials(profileIdentity)}
+          </span>
 
           <span className="moderator-profile-details">
-            <strong>Moderator account</strong>
-            <small>Moderator</small>
+            <strong>{profileName}</strong>
+            <small>{profileRole}</small>
           </span>
         </div>
 
         <button
           type="button"
           className="moderator-logout"
-          onClick={() =>
-            window.alert("Logout will be connected later.")
-          }
+          onClick={handleLogout}
         >
           <LogOut size={14} />
           <span>Log out</span>

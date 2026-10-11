@@ -1,49 +1,139 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { advertiserTransactions } from "../data/advertiserTransactions";
-
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { authApi } from "../../services/auth.js";
 import "../../styles/AdvertiserWallet.css";
 
-const AdvertiserWallet = () => {
-  const [amount, setAmount] = useState("1000");
-  const [message, setMessage] = useState("");
+const formatNaira = (amount = 0) =>
+  `₦${Number(amount || 0).toLocaleString("en-NG")}`;
 
-  const recentTransactions = advertiserTransactions.slice(0, 5);
+const formatDateTime = (value) => {
+  if (!value) return "Date unavailable";
 
-  const selectAmount = (value) => {
-    setAmount(String(value));
-    setMessage("");
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
+
+  return date.toLocaleString("en-NG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const transactionLabels = {
+  deposit: "Wallet funding",
+  campaign_reservation: "Campaign funded",
+  campaign_spend: "Campaign spend",
+  campaign_refund: "Campaign refund",
+  admin_adjustment: "Wallet adjustment",
+};
+
+const getTransactionDisplay = (transaction) => {
+  const isCredit = transaction.direction === "credit";
+  const label =
+    transactionLabels[transaction.type] || "Wallet transaction";
+
+  return {
+    title: label,
+    typeClass: isCredit ? "credit" : "debit",
+    icon: isCredit ? "✓" : "↗",
+    amount: `${isCredit ? "+" : "−"}${formatNaira(transaction.amount)}`,
+    status: "Recorded",
+    meta: [
+      formatDateTime(transaction.createdAt),
+      transaction.description || transaction.reference,
+    ]
+      .filter(Boolean)
+      .join(" · "),
   };
+};
 
-  const handleFundWallet = (event) => {
-    event.preventDefault();
+const AdvertiserWallet = () => {
+  const navigate = useNavigate();
 
-    const numericAmount = Number(amount);
+  const [wallet, setWallet] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    if (!numericAmount || numericAmount < 1000) {
-      setMessage("The minimum wallet funding amount is ₦1,000.");
-      return;
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadWallet() {
+      const token = sessionStorage.getItem("tecotaskToken");
+
+      if (!token) {
+        navigate("/login", { replace: true });
+        if (isMounted) setIsLoading(false);
+        return;
+      }
+
+      try {
+        const data = await authApi.getAdvertiserWallet(token);
+
+        if (isMounted) {
+          setWallet(data.wallet || null);
+          setTransactions(data.transactions || []);
+        }
+      } catch (requestError) {
+        if (isMounted) {
+          setError(
+            requestError.message || "Could not load your wallet.",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
     }
 
-    setMessage(
-      `Funding request for ₦${numericAmount.toLocaleString(
-        "en-NG",
-      )} is ready for payment.`,
+    loadWallet();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+if (isLoading) {
+  return (
+    <section className="advertiser-wallet advertiser-wallet--loading">
+      <div
+        className="advertiser-wallet__loader"
+        role="status"
+        aria-live="polite"
+      >
+        <span className="advertiser-wallet__roller" aria-hidden="true">
+          <span />
+        </span>
+        <strong>Loading your wallet</strong>
+        <p>Getting your balance and recent transactions...</p>
+      </div>
+    </section>
+  );
+}
+  if (error) {
+    return (
+      <section className="advertiser-wallet">
+        <p role="alert">{error}</p>
+      </section>
     );
-  };
+  }
 
   return (
     <section className="advertiser-wallet">
       <section className="advertiser-wallet-summary">
         <article className="advertiser-wallet-summary__balance">
           <span>Wallet balance</span>
-          <strong>₦54,580</strong>
+          <strong>{formatNaira(wallet?.availableBalance)}</strong>
           <small>Available for campaigns</small>
         </article>
 
         <article className="advertiser-wallet-summary__stat">
           <span>Total campaign spend</span>
-          <strong>₦14,920</strong>
+          <strong>{formatNaira(wallet?.totalSpent)}</strong>
           <small>Used across your campaigns</small>
         </article>
       </section>
@@ -53,9 +143,7 @@ const AdvertiserWallet = () => {
           <div className="advertiser-wallet__section-heading">
             <div>
               <h2>Recent transactions</h2>
-              <p>
-                Your latest wallet funding and campaign activity.
-              </p>
+              <p>Your latest wallet funding and campaign activity.</p>
             </div>
 
             <Link
@@ -68,44 +156,55 @@ const AdvertiserWallet = () => {
           </div>
 
           <div className="advertiser-wallet-transaction-list">
-            {recentTransactions.map((transaction) => (
-              <Link
-                key={transaction.id}
-                to={`/advertisers/transactions/${transaction.id}`}
-                className="advertiser-wallet-transaction"
-              >
-                <span
-                  className={`advertiser-wallet-transaction__icon ${transaction.type}`}
-                >
-                  {transaction.icon}
-                </span>
+            {transactions.length === 0 ? (
+              <p>No wallet transactions yet.</p>
+            ) : (
+              transactions.slice(0, 5).map((transaction) => {
+                const display = getTransactionDisplay(transaction);
 
-                <div className="advertiser-wallet-transaction__details">
-                  <strong>{transaction.title}</strong>
-                  <small>{transaction.meta}</small>
-                </div>
+                return (
+                  <Link
+                    key={transaction.id}
+                    to={`/advertisers/transactions/${transaction.id}`}
+                    className="advertiser-wallet-transaction"
+                  >
+                    <span
+                      className={`advertiser-wallet-transaction__icon ${display.typeClass}`}
+                    >
+                      {display.icon}
+                    </span>
 
-                <div
-                  className={`advertiser-wallet-transaction__amount ${transaction.type}`}
-                >
-                  <strong>{transaction.amount}</strong>
-                  <span>{transaction.status}</span>
-                </div>
+                    <div className="advertiser-wallet-transaction__details">
+                      <strong>{display.title}</strong>
+                      <small>{display.meta}</small>
+                    </div>
 
-                <span className="advertiser-wallet-transaction__arrow">
-                  →
-                </span>
-              </Link>
-            ))}
+                    <div
+                      className={`advertiser-wallet-transaction__amount ${display.typeClass}`}
+                    >
+                      <strong>{display.amount}</strong>
+                      <span>{display.status}</span>
+                    </div>
+
+                    <span className="advertiser-wallet-transaction__arrow">
+                      →
+                    </span>
+                  </Link>
+                );
+              })
+            )}
           </div>
         </section>
 
         <aside className="advertiser-wallet__side">
           <section className="advertiser-fund-card">
             <h2>Fund your wallet</h2>
-            <p>Card, transfer, or USSD. Funds reflect instantly.</p>
+            <p>
+              Korapay checkout will be available once payment verification is
+              connected.
+            </p>
 
-            <form onSubmit={handleFundWallet}>
+            <form onSubmit={(event) => event.preventDefault()}>
               <label htmlFor="walletAmount">Amount (₦)</label>
 
               <input
@@ -113,48 +212,29 @@ const AdvertiserWallet = () => {
                 type="number"
                 min="1000"
                 step="100"
-                value={amount}
-                onChange={(event) => {
-                  setAmount(event.target.value);
-                  setMessage("");
-                }}
+                value=""
+                placeholder="Available soon"
+                disabled
               />
 
               <div className="advertiser-wallet-quick-amounts">
-                <button
-                  type="button"
-                  onClick={() => selectAmount(10000)}
-                >
-                  ₦10,000
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => selectAmount(25000)}
-                >
-                  ₦25,000
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => selectAmount(50000)}
-                >
-                  ₦50,000
-                </button>
+                <button type="button" disabled>₦10,000</button>
+                <button type="button" disabled>₦25,000</button>
+                <button type="button" disabled>₦50,000</button>
               </div>
 
-              {message && (
-                <p className="advertiser-wallet-message">
-                  {message}
-                </p>
-              )}
+              <p className="advertiser-wallet-message" role="status">
+                Wallet funding is not available yet. No payment will be
+                initiated from this page.
+              </p>
 
               <button
-                type="submit"
+                type="button"
                 className="advertiser-fund-button"
+                disabled
               >
                 <span>+</span>
-                Fund wallet
+                Fund wallet — coming soon
               </button>
             </form>
           </section>
@@ -165,12 +245,11 @@ const AdvertiserWallet = () => {
             </span>
 
             <div>
-              <h2>Your money is protected</h2>
-
+              <h2>Payment setup in progress</h2>
               <p>
-                TecoTask balances are held with a licensed Nigerian payment
-                partner. We never hold card details on our servers, and
-                payments are processed securely.
+                Your balance and transaction history reflect records currently
+                in TecoTask. Wallet top-ups will be enabled after Korapay
+                verification is implemented.
               </p>
             </div>
           </section>

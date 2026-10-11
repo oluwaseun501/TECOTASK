@@ -8,32 +8,133 @@ import { useState } from "react";
 
 import "../../styles/AdminCampaigns.css";
 
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
+
+const initialForm = {
+  name: "",
+  platform: "Social Media",
+  advertiserPricePerPerson: "",
+  earnerRewardPerPerson: "",
+  platformFeePerPerson: "",
+  description: "",
+  defaultInstructions: "",
+  isActive: true,
+};
+
+const formatNaira = (amount = 0) =>
+  `₦${Number(amount || 0).toLocaleString("en-NG")}`;
+
 export default function AdminServiceSetup({
   basePath = "/admin",
 }) {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    name: "",
-    category: "Social Media",
-    pricePerPerson: "",
-    description: "",
-    instructions: "",
-    status: "Active",
-  });
+  const [form, setForm] = useState(initialForm);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const updateField = (field, value) => {
     setForm((current) => ({
       ...current,
       [field]: value,
     }));
+    setError("");
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const advertiserPrice = Number(form.advertiserPricePerPerson);
+  const earnerReward = Number(form.earnerRewardPerPerson);
+  const platformFee = Number(form.platformFeePerPerson);
 
-    window.alert("Service saved successfully.");
-    navigate(`${basePath}/campaigns`);
+  const instructionSteps = form.defaultInstructions
+    .split(/\r?\n/)
+    .map((step) => step.trim())
+    .filter(Boolean);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+
+    if (
+      !Number.isSafeInteger(advertiserPrice) ||
+      advertiserPrice < 1 ||
+      !Number.isSafeInteger(earnerReward) ||
+      earnerReward < 1 ||
+      !Number.isSafeInteger(platformFee) ||
+      platformFee < 0
+    ) {
+      setError(
+        "Enter whole-number prices. The advertiser price and earner reward must be at least ₦1; the platform fee can be ₦0 or more.",
+      );
+      return;
+    }
+
+    if (advertiserPrice < earnerReward + platformFee) {
+      setError(
+        "The advertiser price must cover the earner reward and platform fee.",
+      );
+      return;
+    }
+
+    if (instructionSteps.length < 1 || instructionSteps.length > 20) {
+      setError("Add between 1 and 20 default instruction steps.");
+      return;
+    }
+
+    if (instructionSteps.some((step) => step.length > 1000)) {
+      setError("Each instruction step must be 1,000 characters or fewer.");
+      return;
+    }
+
+    const token =
+      sessionStorage.getItem("tecotaskToken") ||
+      localStorage.getItem("tecotaskToken");
+
+    if (!token) {
+      setError("Your admin session token was not found. Sign in again.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/services`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          platform: form.platform,
+          description: form.description.trim(),
+          defaultInstructions: instructionSteps,
+          advertiserPricePerPerson: advertiserPrice,
+          earnerRewardPerPerson: earnerReward,
+          platformFeePerPerson: platformFee,
+          isActive: form.isActive,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Could not save this service.");
+      }
+
+      navigate(`${basePath}/campaigns`, {
+        state: {
+          activeTab: "services",
+          notice: data.message || "Service created successfully.",
+        },
+      });
+    } catch (requestError) {
+      setError(requestError.message || "Could not save this service.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -49,14 +150,10 @@ export default function AdminServiceSetup({
 
         <header className="admin-campaigns-header campaign-form-header">
           <div>
-            <p className="admin-campaigns-eyebrow">
-              Service pricing
-            </p>
-
+            <p className="admin-campaigns-eyebrow">Service pricing</p>
             <h1>Add a service</h1>
-
             <p>
-              Create a service and set the price advertisers will use.
+              Set the advertiser price, earner reward, and platform fee.
             </p>
           </div>
         </header>
@@ -71,7 +168,6 @@ export default function AdminServiceSetup({
                 <h2>Service details</h2>
                 <p>Define the service shown to advertisers.</p>
               </div>
-
               <CheckCircle2 size={18} />
             </div>
 
@@ -80,6 +176,7 @@ export default function AdminServiceSetup({
                 <span>Service name</span>
                 <input
                   required
+                  maxLength="100"
                   value={form.name}
                   onChange={(event) =>
                     updateField("name", event.target.value)
@@ -89,11 +186,11 @@ export default function AdminServiceSetup({
               </label>
 
               <label className="campaign-form-field">
-                <span>Category</span>
+                <span>Category / platform</span>
                 <select
-                  value={form.category}
+                  value={form.platform}
                   onChange={(event) =>
-                    updateField("category", event.target.value)
+                    updateField("platform", event.target.value)
                   }
                 >
                   <option>Social Media</option>
@@ -105,21 +202,64 @@ export default function AdminServiceSetup({
               </label>
 
               <label className="campaign-form-field">
-                <span>Price per approved person</span>
+                <span>Price charged to advertiser</span>
                 <div className="campaign-input-with-prefix">
                   <span>₦</span>
                   <input
                     required
                     min="1"
+                    step="1"
                     type="number"
-                    value={form.pricePerPerson}
+                    value={form.advertiserPricePerPerson}
                     onChange={(event) =>
                       updateField(
-                        "pricePerPerson",
-                        event.target.value
+                        "advertiserPricePerPerson",
+                        event.target.value,
                       )
                     }
                     placeholder="20"
+                  />
+                </div>
+              </label>
+
+              <label className="campaign-form-field">
+                <span>Reward paid to earner</span>
+                <div className="campaign-input-with-prefix">
+                  <span>₦</span>
+                  <input
+                    required
+                    min="1"
+                    step="1"
+                    type="number"
+                    value={form.earnerRewardPerPerson}
+                    onChange={(event) =>
+                      updateField(
+                        "earnerRewardPerPerson",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="15"
+                  />
+                </div>
+              </label>
+
+              <label className="campaign-form-field">
+                <span>Platform fee</span>
+                <div className="campaign-input-with-prefix">
+                  <span>₦</span>
+                  <input
+                    required
+                    min="0"
+                    step="1"
+                    type="number"
+                    value={form.platformFeePerPerson}
+                    onChange={(event) =>
+                      updateField(
+                        "platformFeePerPerson",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="5"
                   />
                 </div>
               </label>
@@ -129,6 +269,7 @@ export default function AdminServiceSetup({
                 <textarea
                   required
                   rows="4"
+                  maxLength="500"
                   value={form.description}
                   onChange={(event) =>
                     updateField("description", event.target.value)
@@ -142,12 +283,18 @@ export default function AdminServiceSetup({
                 <textarea
                   required
                   rows="5"
-                  value={form.instructions}
+                  value={form.defaultInstructions}
                   onChange={(event) =>
-                    updateField("instructions", event.target.value)
+                    updateField("defaultInstructions", event.target.value)
                   }
-                  placeholder="Add the default instructions earners should follow..."
+                  placeholder={
+                    "Add one instruction step per line.\nExample: Open the link and follow the account."
+                  }
                 />
+                <small>
+                  These steps will prefill the advertiser’s campaign form.
+                  Add 1–20 steps.
+                </small>
               </label>
             </div>
           </section>
@@ -159,50 +306,57 @@ export default function AdminServiceSetup({
               </div>
 
               <p>Advertiser price preview</p>
-
-              <strong>
-                ₦{form.pricePerPerson || "0"}
-              </strong>
-
-              <span>
-                per approved earner
-              </span>
+              <strong>{formatNaira(advertiserPrice)}</strong>
+              <span>per approved earner</span>
 
               <div className="campaign-price-note">
-                This price will be shown before an advertiser creates a
-                campaign using this service.
+                <div>
+                  Earner reward: {formatNaira(earnerReward)}
+                </div>
+                <div>
+                  Platform fee: {formatNaira(platformFee)}
+                </div>
+                <div>
+                  Advertiser price must cover both amounts.
+                </div>
               </div>
             </section>
 
             <section className="campaign-form-card campaign-publish-card">
               <h2>Service visibility</h2>
-
               <p>
-                Active services are available to advertisers. Inactive
-                services will not appear when advertisers create campaigns.
+                Active services are selectable by advertisers. Inactive
+                services are hidden from their campaign form.
               </p>
 
               <label className="campaign-toggle-row">
                 <input
                   type="checkbox"
-                  checked={form.status === "Active"}
+                  checked={form.isActive}
                   onChange={(event) =>
-                    updateField(
-                      "status",
-                      event.target.checked ? "Active" : "Inactive"
-                    )
+                    updateField("isActive", event.target.checked)
                   }
                 />
 
                 <span>
                   <strong>Available to advertisers</strong>
-                  <small>
-                    Allow this service to be selected.
-                  </small>
+                  <small>Allow this service to be selected.</small>
                 </span>
               </label>
             </section>
           </aside>
+
+          {error && (
+            <p
+              role="alert"
+              style={{
+                gridColumn: "1 / -1",
+                color: "#b42318",
+              }}
+            >
+              {error}
+            </p>
+          )}
 
           <div className="campaign-form-actions">
             <Link
@@ -215,8 +369,9 @@ export default function AdminServiceSetup({
             <button
               type="submit"
               className="campaign-primary-button"
+              disabled={isSaving}
             >
-              Save service
+              {isSaving ? "Saving service…" : "Save service"}
             </button>
           </div>
         </form>

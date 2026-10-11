@@ -81,12 +81,16 @@ function getSavedTopPosition() {
   }
 
   try {
-    const savedPosition = Number(
-      window.localStorage.getItem("tecotask-support-position")
+    const savedPosition = window.localStorage.getItem(
+      "tecotask-support-position",
     );
 
-    if (Number.isFinite(savedPosition)) {
-      return clamp(savedPosition, 10, 90);
+    if (savedPosition !== null) {
+      const position = Number(savedPosition);
+
+      if (Number.isFinite(position)) {
+        return clamp(position, 10, 90);
+      }
     }
   } catch {
     // Use the default position when localStorage is unavailable.
@@ -227,14 +231,17 @@ export default function SupportWidget() {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onClick={handleToggle}
-        aria-label="Open contact support"
-        aria-expanded={isOpen}
+        aria-label={
+  isOpen ? "Close contact support" : "Open contact support"
+}
+aria-expanded={isOpen}
+title="Drag up or down to move the support button"
       >
         {isOpen ? <X size={21} /> : <MessageCircle size={22} />}
 
-        <span className="support-widget__toggle-label">
-          Support
-        </span>
+     <span className="support-widget__toggle-label">
+  Drag up/down
+</span>
       </button>
 
       {isOpen ? (
@@ -246,7 +253,10 @@ export default function SupportWidget() {
 
             <div>
               <h2>Contact support</h2>
-              <p>Find quick answers before messaging us.</p>
+             <p>
+  Find quick answers, or drag the support button up or down if it
+  covers something.
+</p>
             </div>
 
             <button

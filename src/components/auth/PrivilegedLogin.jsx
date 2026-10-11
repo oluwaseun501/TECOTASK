@@ -3,6 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 
 import "../../styles/Login.css";
 import "../../styles/PrivilegedLogin.css";
+import { authApi } from "../../services/auth.js";
+
+// const API_BASE_URL = (
+//   import.meta.env.VITE_API_URL || "http://localhost:5000"
+// ).replace(/\/$/, "");
 
 function EyeIcon({ visible }) {
   if (visible) {
@@ -51,7 +56,7 @@ function EyeIcon({ visible }) {
       />
 
       <path
-        d="M10.6 6.15A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a17.8 17.8 0 0 1-3.1 3.6M6.1 6.9C3.8 8.7 2.5 12 2.5 12s3.5 6 9.5 6c1.2 0 2.3-.25 3.3-.65"
+        d="M10.6 6.15A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6s-1.1 1.9-3.1 3.6M6.1 6.9C3.8 8.7 2.5 12 2.5 12s3.5 6 9.5 6c1.2 0 2.3-.25 3.3-.65"
         stroke="currentColor"
         strokeWidth="1.7"
         strokeLinecap="round"
@@ -76,6 +81,12 @@ export default function PrivilegedLogin({
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const roleClassName = String(role || "user")
+  .trim()
+  .toLowerCase()
+  .replace(/\s+/g, "-");
 
   useEffect(() => {
     const loginElement = loginRef.current;
@@ -91,7 +102,7 @@ export default function PrivilegedLogin({
       {
         threshold: 0.15,
         rootMargin: "-30px 0px -30px 0px",
-      }
+      },
     );
 
     observer.observe(loginElement);
@@ -100,24 +111,52 @@ export default function PrivilegedLogin({
       observer.disconnect();
     };
   }, []);
+const handleSubmit = async (event) => {
+  event.preventDefault();
+  setError("");
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const normalizedEmail = email.trim().toLowerCase();
 
-    /*
-     * Temporary development behavior:
-     * Any submitted values take the user to the correct workspace.
-     *
-     * Real authentication can be added here later.
-     */
-    setIsSubmitting(true);
+  if (!normalizedEmail || !password) {
+    setError("Enter your email and password.");
+    return;
+  }
 
-    navigate(dashboardPath, {
-      replace: true,
+  setIsSubmitting(true);
+
+  try {
+    const data = await authApi.login({
+      email: normalizedEmail,
+      password,
     });
-  };
 
-  const roleClassName = role.toLowerCase();
+    if (!data?.token || !data?.user) {
+      throw new Error("The login response did not include a user and token.");
+    }
+
+    const requiredRole = String(role || "").toLowerCase();
+    const actualRole = String(data.user.role || "").toLowerCase();
+
+    if (actualRole !== requiredRole) {
+      throw new Error(`This account does not have ${requiredRole} access.`);
+    }
+
+    const storage = rememberMe ? localStorage : sessionStorage;
+    const otherStorage = rememberMe ? sessionStorage : localStorage;
+
+    storage.setItem("tecotaskToken", data.token);
+    storage.setItem("tecotaskUser", JSON.stringify(data.user));
+
+    otherStorage.removeItem("tecotaskToken");
+    otherStorage.removeItem("tecotaskUser");
+
+    navigate(dashboardPath, { replace: true });
+  } catch (requestError) {
+    setError(requestError.message || "Could not log in.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <main
@@ -152,13 +191,13 @@ export default function PrivilegedLogin({
       </Link>
 
       <section className="login-card privileged-login-card">
-        <div className="login-card__brand">
-          <span className="login-card__logo">T</span>
-
-          <span className="login-card__brand-name">
-            Teco<span>Task</span>
-          </span>
-        </div>
+        <div className="login-card__brand login-card__brand--image">
+  <img
+    src="/teco_task-logo.png"
+    alt="TecoTask"
+    className="login-card__brand-logo"
+  />
+</div>
 
         <div className="privileged-login-label">
           Restricted {role} access
@@ -181,11 +220,7 @@ export default function PrivilegedLogin({
           </div>
         </div>
 
-        <form
-          className="login-form"
-          onSubmit={handleSubmit}
-          noValidate
-        >
+        <form className="login-form" onSubmit={handleSubmit} noValidate>
           <div className="login-field">
             <label htmlFor={`${roleClassName}-login-email`}>
               Email address
@@ -194,7 +229,7 @@ export default function PrivilegedLogin({
             <input
               id={`${roleClassName}-login-email`}
               name="email"
-              type="text"
+              type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder={`${role.toLowerCase()}@tecotask.com`}
@@ -225,12 +260,8 @@ export default function PrivilegedLogin({
               <button
                 type="button"
                 className="login-password-toggle"
-                onClick={() =>
-                  setShowPassword((current) => !current)
-                }
-                aria-label={
-                  showPassword ? "Hide password" : "Show password"
-                }
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 <EyeIcon visible={showPassword} />
               </button>
@@ -243,9 +274,7 @@ export default function PrivilegedLogin({
                 type="checkbox"
                 name="rememberMe"
                 checked={rememberMe}
-                onChange={(event) =>
-                  setRememberMe(event.target.checked)
-                }
+                onChange={(event) => setRememberMe(event.target.checked)}
               />
 
               <span>Remember me</span>
@@ -264,12 +293,28 @@ export default function PrivilegedLogin({
           >
             <span className="login-submit__text">
               {isSubmitting
-                ? "Opening workspace..."
+                ? "Signing in..."
                 : `Enter ${role} workspace`}
             </span>
 
             <span className="login-submit__arrow">→</span>
           </button>
+
+          {error && (
+            <p
+              role="alert"
+              style={{
+                marginTop: 12,
+                padding: "10px 12px",
+                borderRadius: 8,
+                background: "#fef3f2",
+                color: "#b42318",
+                fontSize: 14,
+              }}
+            >
+              {error}
+            </p>
+          )}
         </form>
 
         <div className="privileged-login-footer">

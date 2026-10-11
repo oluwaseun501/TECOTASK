@@ -472,3 +472,191 @@
     justify-content: flex-start;
   }
 }
+
+.moderator-payout-account {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #e1e9e4;
+  border-radius: 10px;
+  background: #fbfcfb;
+  padding: 14px;
+}
+
+.moderator-payout-account__heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #34433b;
+  font-size: 12px;
+}
+
+.moderator-payout-account > p {
+  margin: 0;
+  color: #526158;
+  font-size: 12px;
+}
+
+.moderator-change-payout-account {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  color: #159447;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.moderator-change-payout-account:disabled,
+.moderator-withdrawal-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* Match the Earner and Advertiser dashboard surface */
+.moderator-withdrawals {
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: "Poppins", sans-serif;
+}
+
+.moderator-withdrawals__inner {
+  max-width: 1380px;
+}
+
+/* Match the Advertiser wallet balance card */
+.moderator-balance-card {
+  border-color: #07951a;
+  background: #07951a;
+}
+
+.moderator-balance-card > span,
+.moderator-balance-card > strong {
+  color: #ffffff;
+}
+
+.moderator-balance-card > small {
+  color: #bbf7d0;
+}
+
+.moderator-balance-card__icon {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.moderator-withdrawal-submit {
+  border-color: #16a34a;
+  background: #16a34a;
+}
+
+.moderator-withdrawal-submit:hover {
+  background: #15803d;
+}
+
+/* Rolling loader */
+.moderator-withdrawals--loading {
+  display: grid;
+  min-height: calc(100vh - 68px);
+  min-height: calc(100dvh - 68px);
+  place-items: start center;
+  padding-top: clamp(48px, 10vh, 90px);
+}
+
+.moderator-withdrawals__loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  color: #64748b;
+  text-align: center;
+}
+
+.moderator-withdrawals__loader strong {
+  color: #334155;
+  font-size: 12px;
+}
+
+.moderator-withdrawals__loader p {
+  margin: 0;
+  font-size: 10px;
+}
+
+.moderator-withdrawals__roller {
+  position: relative;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 5px;
+  place-items: center;
+  border: 3px solid #dcfce7;
+  border-right-color: #16a34a;
+  border-radius: 50%;
+  animation: moderatorRoll 850ms linear infinite;
+}
+
+.moderator-withdrawals__roller::before {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #16a34a;
+  content: "";
+  transform: translateX(-50%);
+}
+
+.moderator-withdrawals__roller i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #86efac;
+}
+
+@keyframes moderatorRoll {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Stagger the main sections in */
+.moderator-withdrawals__header,
+.moderator-withdrawals__summary > *,
+.moderator-withdrawals__layout > * {
+  animation: moderatorContentEnter 440ms
+    cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.moderator-withdrawals__summary > :nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.moderator-withdrawals__summary > :nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.moderator-withdrawals__layout > :nth-child(2) {
+  animation-delay: 120ms;
+}
+
+@keyframes moderatorContentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moderator-withdrawals__header,
+  .moderator-withdrawals__summary > *,
+  .moderator-withdrawals__layout > *,
+  .moderator-withdrawals__roller {
+    animation: none;
+  }
+}

@@ -1,21 +1,95 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/ChooseRole.css";
+import { authApi } from "../services/auth.js";
+
+const wait = (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 const ChooseRole = () => {
   const [selectedRole, setSelectedRole] = useState("earner");
+  const [roleError, setRoleError] = useState("");
+  const [isSavingRole, setIsSavingRole] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+  const [roleNotice, setRoleNotice] = useState("");
+
   const navigate = useNavigate();
 
-  const handleContinue = () => {
-    if (selectedRole === "earner") {
-      navigate("/earners");
-    } else {
-      navigate("/advertisers");
-    }
+  const handleRoleSelect = (role) => {
+    if (isSavingRole || isExiting) return;
+
+    setRoleError("");
+    setSelectedRole(role);
+  };
+
+  const handleContinue = async () => {
+  const token = sessionStorage.getItem("tecotaskToken");
+
+  if (!token) {
+    setIsExiting(true);
+    await wait(300);
+    navigate("/login", { replace: true });
+    return;
+  }
+
+  setRoleError("");
+  setRoleNotice("");
+  setIsSavingRole(true);
+
+  const roleName = selectedRole === "earner" ? "Earner" : "Advertiser";
+  const destination =
+    selectedRole === "earner" ? "/earners" : "/advertisers";
+
+  try {
+    await authApi.chooseRole(selectedRole, token);
+
+    // Show this immediately after the role is successfully saved.
+    setRoleNotice(
+      `Welcome as an ${selectedRole === "earner" ? "earner" : "advertiser"}!`
+    );
+
+    // Keep the notification visible while preparing the dashboard.
+    await wait(1400);
+
+    setIsExiting(true);
+
+    // Allow the page exit animation to finish.
+    await wait(420);
+
+    navigate(destination, {
+      replace: true,
+      state: {
+        notice: `Welcome, ${roleName}! Your dashboard is ready.`,
+      },
+    });
+  } catch (error) {
+    setRoleError(
+      error?.message || "We could not save your role. Please try again."
+    );
+    setIsSavingRole(false);
+  }
+};
+
+  const handleBack = async () => {
+    if (isSavingRole || isExiting) return;
+
+    setIsExiting(true);
+    await wait(320);
+    navigate(-1);
   };
 
   return (
-    <main className="role-page">
+    <main className={`role-page ${isExiting ? "role-page--exiting" : ""}`}>
+      {roleNotice && (
+  <div className="role-success-toast" role="status" aria-live="polite">
+    <span className="role-success-toast__icon">✓</span>
+
+    <div>
+      <strong>{roleNotice}</strong>
+      <p>Loading your dashboard...</p>
+    </div>
+  </div>
+)}
       <header className="role-header">
         <Link to="/" className="role-brand">
           <span className="role-brand__logo">T</span>
@@ -35,7 +109,8 @@ const ChooseRole = () => {
           <h1>How will you be using TecoTask?</h1>
 
           <p>
-            This helps us personalize your dashboard.
+            Choose the option that best describes you. You can use TecoTask to
+            complete tasks or create campaigns.
           </p>
         </div>
 
@@ -45,14 +120,16 @@ const ChooseRole = () => {
             className={`role-card ${
               selectedRole === "earner" ? "selected" : ""
             }`}
-            onClick={() => setSelectedRole("earner")}
+            aria-pressed={selectedRole === "earner"}
+            disabled={isSavingRole || isExiting}
+            onClick={() => handleRoleSelect("earner")}
           >
             <div className="role-card__top">
               <span className="role-card__icon role-card__icon--green">
                 ₦
               </span>
 
-              <span className="role-card__radio">
+              <span className="role-card__radio" aria-hidden="true">
                 {selectedRole === "earner" ? "✓" : ""}
               </span>
             </div>
@@ -75,14 +152,16 @@ const ChooseRole = () => {
             className={`role-card ${
               selectedRole === "advertiser" ? "selected" : ""
             }`}
-            onClick={() => setSelectedRole("advertiser")}
+            aria-pressed={selectedRole === "advertiser"}
+            disabled={isSavingRole || isExiting}
+            onClick={() => handleRoleSelect("advertiser")}
           >
             <div className="role-card__top">
               <span className="role-card__icon role-card__icon--dark">
                 ↗
               </span>
 
-              <span className="role-card__radio">
+              <span className="role-card__radio" aria-hidden="true">
                 {selectedRole === "advertiser" ? "✓" : ""}
               </span>
             </div>
@@ -101,23 +180,50 @@ const ChooseRole = () => {
           </button>
         </div>
 
+        {roleError && (
+          <div className="role-error" role="alert">
+            <span className="role-error__icon">!</span>
+            <span>{roleError}</span>
+          </div>
+        )}
+
         <div className="role-actions">
           <button
             type="button"
             className="role-back-button"
-            onClick={() => navigate(-1)}
+            disabled={isSavingRole || isExiting}
+            onClick={handleBack}
           >
+            <span>←</span>
             Back
           </button>
 
           <button
             type="button"
             className="role-continue-button"
+            aria-busy={isSavingRole}
+            disabled={isSavingRole || isExiting}
             onClick={handleContinue}
           >
-            Continue as{" "}
-            {selectedRole === "earner" ? "an earner" : "an advertiser"}
-            <span>→</span>
+        {isSavingRole ? (
+  <>
+    <span className="role-button-spinner" aria-hidden="true" />
+    <span>
+      {roleNotice
+        ? "Opening your dashboard..."
+        : "Saving your choice..."}
+    </span>
+  </>
+) : (
+  <>
+    <span>
+      Continue as{" "}
+      {selectedRole === "earner" ? "an earner" : "an advertiser"}
+    </span>
+
+    <span className="role-continue-button__arrow">→</span>
+  </>
+)}
           </button>
         </div>
       </section>

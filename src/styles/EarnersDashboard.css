@@ -507,3 +507,231 @@
     display: none;
   }
 }
+
+/* Centered rolling loader */
+.earner-loading {
+  width: 100%;
+  max-width: 1380px;
+  min-height: 220px;
+  margin: 0 auto;
+  padding: 32px 24px 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.earner-loading__roller {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 2px solid #dcfce7;
+  border-right-color: #16a34a;
+  border-radius: 50%;
+  animation: earner-roll 900ms linear infinite;
+}
+
+.earner-loading__roller::before {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 4px #f0fdf4;
+  content: "";
+  transform: translateX(-50%);
+}
+
+.earner-loading__roller > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #86efac;
+}
+
+.earner-loading__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+/* Smooth entrance and staggered content */
+.earner-dashboard {
+  animation: earner-page-enter 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.earner-dashboard__heading,
+.earner-stat-grid > *,
+.earner-dashboard__grid > * {
+  animation: earner-content-enter 460ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.earner-stat-grid > *:nth-child(2) {
+  animation-delay: 55ms;
+}
+
+.earner-stat-grid > *:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.earner-stat-grid > *:nth-child(4) {
+  animation-delay: 145ms;
+}
+
+.earner-dashboard__grid > *:nth-child(2) {
+  animation-delay: 100ms;
+}
+
+@keyframes earner-roll {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes earner-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes earner-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Gentle glide on cards and buttons */
+.earner-stat-card,
+.earner-featured-task,
+.earner-panel,
+.earner-task-row,
+.earner-primary-button,
+.earner-secondary-button {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.earner-stat-card:hover,
+.earner-featured-task:hover,
+.earner-panel:hover,
+.earner-task-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.07);
+}
+
+.earner-primary-button:hover:not(:disabled),
+.earner-secondary-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .earner-dashboard,
+  .earner-dashboard__heading,
+  .earner-stat-grid > *,
+  .earner-dashboard__grid > *,
+  .earner-loading__roller,
+  .earner-stat-card,
+  .earner-featured-task,
+  .earner-panel,
+  .earner-task-row,
+  .earner-primary-button,
+  .earner-secondary-button {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Refined dashboard spacing and card styling */
+.earner-dashboard {
+  max-width: 1280px;
+  padding: 28px 32px 48px;
+  animation: none;
+}
+
+.earner-dashboard__heading h2 {
+  font-size: 18px;
+}
+
+.earner-stat-grid {
+  gap: 16px;
+}
+
+.earner-stat-card,
+.earner-featured-task,
+.earner-panel,
+.earner-task-row {
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
+}
+
+.earner-stat-card {
+  min-height: 120px;
+  padding: 18px;
+}
+
+.earner-stat-card--green {
+  border-color: #bbf7d0;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+.earner-stat-card--green > span {
+  color: #166534;
+}
+
+.earner-stat-card--green > strong {
+  color: #14532d;
+}
+
+.earner-stat-card--green > small {
+  color: #4b7c58;
+}
+
+@media (max-width: 760px) {
+  .earner-dashboard {
+    padding: 20px 16px 35px;
+  }
+}
+
+@media (max-width: 560px) {
+  .earner-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .earner-stat-card {
+    min-height: 100px;
+    padding: 13px;
+  }
+
+  .earner-stat-card > strong {
+    margin-top: 9px;
+    font-size: 18px;
+  }
+}
