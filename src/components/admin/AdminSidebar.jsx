@@ -9,7 +9,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import "../../styles/AdminSidebar.css";
 
@@ -47,6 +47,7 @@ export default function AdminSidebar({
   accountError,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const closeSidebar = onClose || (() => {});
 
   const userItems = [
@@ -129,7 +130,7 @@ export default function AdminSidebar({
         onClick={closeSidebar}
         className={cn(
           "admin-nav-link",
-          isActive(item) && "admin-nav-link--active"
+          isActive(item) && "admin-nav-link--active",
         )}
       >
         <Icon size={15} strokeWidth={1.9} />
@@ -137,6 +138,16 @@ export default function AdminSidebar({
       </Link>
     );
   };
+
+  function handleLogout() {
+    for (const storage of [window.sessionStorage, window.localStorage]) {
+      storage.removeItem("tecotaskToken");
+      storage.removeItem("tecotaskUser");
+    }
+
+    closeSidebar();
+    navigate("/admin/accessmeadmin", { replace: true });
+  }
 
   const profileName = accountLoading
     ? "Loading account..."
@@ -162,7 +173,7 @@ export default function AdminSidebar({
       <aside
         className={cn(
           "admin-sidebar",
-          mobileOpen && "admin-sidebar--open"
+          mobileOpen && "admin-sidebar--open",
         )}
       >
         <div className="admin-sidebar-header">
@@ -211,10 +222,7 @@ export default function AdminSidebar({
 
         <div className="admin-sidebar-spacer" />
 
-        <div
-          className="admin-profile"
-          title={account?.email || ""}
-        >
+        <div className="admin-profile" title={account?.email || ""}>
           <span className="admin-avatar admin-avatar--dark">
             {accountLoading ? "…" : getInitials(account)}
           </span>
@@ -228,9 +236,7 @@ export default function AdminSidebar({
         <button
           type="button"
           className="admin-logout"
-          onClick={() =>
-            window.alert("Logout will be connected later.")
-          }
+          onClick={handleLogout}
         >
           <LogOut size={14} />
           <span>Log out</span>
