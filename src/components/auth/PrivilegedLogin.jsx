@@ -5,9 +5,9 @@ import "../../styles/Login.css";
 import "../../styles/PrivilegedLogin.css";
 import { authApi } from "../../services/auth.js";
 
-// const API_BASE_URL = (
-//   import.meta.env.VITE_API_URL || "http://localhost:5000"
-// ).replace(/\/$/, "");
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
 
 function EyeIcon({ visible }) {
   if (visible) {
