@@ -96,13 +96,32 @@ function resolveProofUrl(value) {
 function isImageUrl(value) {
   return /\.(png|jpe?g|gif|webp|avif)(?:[?#].*)?$/i.test(value || "");
 }
-
 function normalizeSubmission(submission) {
   const earner = submission.earner || {};
   const task = submission.task || {};
   const campaign = submission.campaign || {};
+
   const proofUrl = resolveProofUrl(submission.proofUrl);
-  const isImage = isImageUrl(proofUrl);
+  const uploadedImageUrl = resolveProofUrl(submission.proofImageUrl);
+
+  const proofImages = [];
+
+  if (uploadedImageUrl) {
+    proofImages.push({
+      label: "Screenshot proof",
+      url: uploadedImageUrl,
+    });
+  } else if (proofUrl && isImageUrl(proofUrl)) {
+    proofImages.push({
+      label: "Submitted proof",
+      url: proofUrl,
+    });
+  }
+
+  const proofLinks =
+    proofUrl && !isImageUrl(proofUrl)
+      ? [{ label: "Open submitted proof", url: proofUrl }]
+      : [];
 
   return {
     id: submission.id,
@@ -123,18 +142,13 @@ function normalizeSubmission(submission) {
     amount: formatMoney(
       submission.rewardAmount ?? task.rewardAmount ?? 0,
     ),
+    reviewRewardAmount: Number(submission.reviewRewardAmount ?? 0),
     description: task.description || "No task description was provided.",
     instructions: toInstructionList(task.instructions),
     submittedResponse:
       submission.proofNote || "No written note was included.",
-    proofImages:
-      proofUrl && isImage
-        ? [{ label: "Submitted proof", url: proofUrl }]
-        : [],
-    proofLinks:
-      proofUrl && !isImage
-        ? [{ label: "Open submitted proof", url: proofUrl }]
-        : [],
+    proofImages,
+    proofLinks,
   };
 }
 
@@ -246,7 +260,7 @@ export default function ModeratorReviewDetails() {
         ? `Approve "${review.taskTitle}"? This records the review and updates campaign and wallet balances.`
         : `Reject "${review.taskTitle}"? This records the decision and moderator reward.`;
 
-    if (!window.confirm(confirmation)) return;
+   
 
     setBusyAction(nextDecision);
 
@@ -365,45 +379,49 @@ if (loading) {
                 <FileImage size={17} />
               </div>
 
-              {review.proofImages.length > 0 ? (
-                <div className="moderator-proof-image-grid">
-                  {review.proofImages.map((image) => (
-                    <a
-                      href={image.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="moderator-proof-image"
-                      key={image.url}
-                    >
-                      <img src={image.url} alt={image.label} />
-                      <span>
-                        {image.label}
-                        <ExternalLink size={13} />
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              ) : review.proofLinks.length > 0 ? (
-                <div className="moderator-proof-links">
-                  <h3>Submitted file</h3>
-                  {review.proofLinks.map((link) => (
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      key={link.url}
-                    >
-                      <ExternalLink size={14} />
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
-              ) : (
-                <p className="moderator-detail-empty">
-                  No proof file was attached to this submission.
-                </p>
-              )}
+   {review.proofImages.length > 0 && (
+  <div className="moderator-proof-image-grid">
+    {review.proofImages.map((image) => (
+      <a
+        href={image.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="moderator-proof-image"
+        key={image.url}
+      >
+        <img src={image.url} alt={image.label} />
+        <span>
+          {image.label}
+          <ExternalLink size={13} />
+        </span>
+      </a>
+    ))}
+  </div>
+)}
 
+{review.proofLinks.length > 0 && (
+  <div className="moderator-proof-links">
+    <h3>Proof link</h3>
+    {review.proofLinks.map((link) => (
+      <a
+        href={link.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        key={link.url}
+      >
+        <ExternalLink size={14} />
+        Open proof link
+      </a>
+    ))}
+  </div>
+)}
+
+{review.proofImages.length === 0 &&
+  review.proofLinks.length === 0 && (
+    <p className="moderator-detail-empty">
+      No proof file or link was attached to this submission.
+    </p>
+  )}
               <div className="moderator-submitted-response">
                 <span>Earner’s note</span>
                 <p>{review.submittedResponse}</p>
@@ -469,7 +487,15 @@ if (loading) {
                   <p>Choose a rejection reason when rejecting a task.</p>
                 </div>
               </div>
-
+<div className="moderator-decision-reward">
+  <span>Your reward for this decision</span>
+  <strong>
+    {review.reviewRewardAmount > 0
+      ? formatMoney(review.reviewRewardAmount)
+      : "Not configured"}
+  </strong>
+  <small>Paid for either approval or rejection.</small>
+</div>
               <label>
                 Rejection reason
                 <select

@@ -107,6 +107,13 @@ function normalizeReview(submission) {
     earner.email ||
     "Unknown earner";
 
+  const proofUrl = toText(submission.proofUrl).trim();
+  const submittedImageUrl = toText(submission.proofImageUrl).trim();
+
+  const proofImageUrl =
+    resolveProofUrl(submittedImageUrl) ||
+    (isImageUrl(proofUrl) ? resolveProofUrl(proofUrl) : "");
+
   return {
     id: submission.id,
     name,
@@ -118,6 +125,7 @@ function normalizeReview(submission) {
         task.rewardAmount ??
         0,
     ),
+    reviewRewardAmount: Number(submission.reviewRewardAmount ?? 0),
     submittedAt: formatRelativeTime(
       submission.submittedAt || submission.createdAt,
     ),
@@ -130,7 +138,8 @@ function normalizeReview(submission) {
     platform: campaign.platform || "Not listed",
     taskDescription: toText(task.description),
     instructions: toText(task.instructions),
-    proofUrl: toText(submission.proofUrl).trim(),
+    proofUrl,
+    proofImageUrl,
     proofNote: toText(submission.proofNote).trim(),
   };
 }
@@ -186,12 +195,7 @@ function SessionCard({
     </article>
   );
 }
-
-function PendingReviewRow({
-  review,
-  selected,
-  onSelect,
-}) {
+function PendingReviewRow({ review, selected, onSelect }) {
   return (
     <button
       type="button"
@@ -209,6 +213,15 @@ function PendingReviewRow({
         <small>
           {review.name} · {review.submittedAt}
         </small>
+
+        {review.proofImageUrl ? (
+          <img
+            className="moderator-pending-row__thumbnail"
+            src={review.proofImageUrl}
+            alt="Earner screenshot proof"
+            loading="lazy"
+          />
+        ) : null}
       </span>
 
       <span className="moderator-pending-row__amount">
@@ -257,7 +270,9 @@ function ReviewDetails({
     !busyAction;
 
   const proofHref = resolveProofUrl(review.proofUrl);
-  const proofIsImage = isImageUrl(review.proofUrl);
+const proofImageHref =
+  resolveProofUrl(review.proofImageUrl) ||
+  (isImageUrl(review.proofUrl) ? proofHref : "");
 
   return (
     <section className="moderator-review-panel">
@@ -315,45 +330,59 @@ function ReviewDetails({
           <FileImage size={16} />
         </div>
 
-        <div className="moderator-proof-preview">
-          {proofHref ? (
-            <>
-              {proofIsImage ? (
-                <a
-                  href={proofHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Open submitted proof image"
-                >
-                  <img
-                    className="moderator-proof-image"
-                    src={proofHref}
-                    alt={`Proof for ${review.task}`}
-                  />
-                </a>
-              ) : (
-                <FileImage size={28} />
-              )}
+<div
+  className={`moderator-proof-preview ${
+    proofImageHref ? "moderator-proof-preview--image" : ""
+  }`}
+>
+  {proofImageHref && (
+    <>
+      <a
+        className="moderator-proof-image-link"
+        href={proofImageHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Open submitted screenshot"
+      >
+        <img
+          className="moderator-proof-image"
+          src={proofImageHref}
+          alt={`Screenshot proof for ${review.task}`}
+        />
+      </a>
 
-              <a
-                className="moderator-proof-link"
-                href={proofHref}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open submitted proof ↗
-              </a>
-            </>
-          ) : (
-            <>
-              <FileImage size={28} />
-              <strong>No proof file attached</strong>
-              <span>
-                Check the earner’s proof note or task submission.
-              </span>
-            </>
-          )}
-        </div>
+      <a
+        className="moderator-proof-link"
+        href={proofImageHref}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Open screenshot ↗
+      </a>
+    </>
+  )}
+
+  {!proofImageHref && proofHref && <FileImage size={28} />}
+
+  {proofHref && proofHref !== proofImageHref && (
+    <a
+      className="moderator-proof-link"
+      href={proofHref}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Open proof link ↗
+    </a>
+  )}
+
+  {!proofImageHref && !proofHref && (
+    <>
+      <FileImage size={28} />
+      <strong>No proof file attached</strong>
+      <span>Check the earner’s proof note or task submission.</span>
+    </>
+  )}
+</div>
 
         {review.proofNote ? (
           <div className="moderator-proof-note">
@@ -373,6 +402,15 @@ function ReviewDetails({
       </div>
 
       <div className="moderator-review-actions">
+        <div className="moderator-review-payout">
+  <span>Your reward for this decision</span>
+  <strong>
+    {review.reviewRewardAmount > 0
+      ? formatMoney(review.reviewRewardAmount)
+      : "Not configured"}
+  </strong>
+  <small>Paid for either approval or rejection.</small>
+</div>
         <button
           type="button"
           className="moderator-action-button moderator-action-button--approve"

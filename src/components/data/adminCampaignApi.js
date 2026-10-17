@@ -117,3 +117,15 @@ export async function rejectAdminCampaign(
     },
   );
 }
+
+export async function updateAdminService(serviceId, updates) {
+  const result = await apiRequest(
+    `/api/services/${encodeURIComponent(serviceId)}`,
+    {
+      method: "PATCH",
+      body: updates,
+    },
+  );
+
+  return result.service;
+}

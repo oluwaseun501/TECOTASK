@@ -29,6 +29,7 @@ import EarnersSettings from "./components/earners/EarnersSettings";
 import EarnersWallet from "./components/earners/EarnersWallet";
 import EarnersReferrals from "./components/earners/EarnersReferrals";
 import EarnersActivation from "./components/earners/EarnersActivation";
+import EarnerTaskDetails from "./components/earners/EarnerTaskDetails";
 
 /* Advertiser workspace */
 import AdvertisersLayout from "./components/advertisers/AdvertisersLayout";
@@ -149,6 +150,7 @@ const App = () => {
 
             <Route path="/earners" element={<EarnersLayout />}>
               <Route index element={<EarnersDashboard />} />
+              <Route path="tasks/:taskId" element={<EarnerTaskDetails />} />
               <Route path="wallet" element={<EarnersWallet />} />
               <Route path="referrals" element={<EarnersReferrals />} />
               <Route path="settings" element={<EarnersSettings />} />

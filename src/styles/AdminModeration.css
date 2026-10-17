@@ -1324,3 +1324,140 @@
     transition: none !important;
   }
 }
+
+.moderator-reward-setting-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 22px;
+  border: 1px solid #dcebe0;
+  border-radius: 15px;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.035);
+}
+
+.moderator-reward-setting-card__copy h2 {
+  margin: 7px 0 0;
+  color: #17221d;
+  font-size: 17px;
+}
+
+.moderator-reward-setting-card__copy p {
+  margin: 6px 0 10px;
+  color: #718078;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.moderator-reward-setting-status {
+  display: inline-flex;
+  border-radius: 999px;
+  background: #fff7ed;
+  padding: 5px 9px;
+  color: #9a3412;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.moderator-reward-setting-status.is-active {
+  background: #eaf7ee;
+  color: #15803d;
+}
+
+.moderator-reward-setting-form {
+  display: grid;
+  grid-template-columns: minmax(130px, 180px) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.moderator-reward-setting-form label {
+  grid-column: 1 / -1;
+  color: #536159;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.moderator-reward-setting-input {
+  display: flex;
+  height: 40px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dfe8e1;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0 10px;
+}
+
+.moderator-reward-setting-input:focus-within {
+  border-color: #69bc84;
+  box-shadow: 0 0 0 3px #eaf7ee;
+}
+
+.moderator-reward-setting-input span {
+  color: #718078;
+  font-size: 12px;
+}
+
+.moderator-reward-setting-input input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #26342c;
+  font: inherit;
+  font-size: 12px;
+}
+
+.moderator-reward-setting-form button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: #159447;
+  padding: 0 14px;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.moderator-reward-setting-form button:hover:not(:disabled) {
+  background: #11783b;
+}
+
+.moderator-reward-setting-form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.moderator-reward-setting-message {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #15803d;
+  font-size: 11px;
+}
+
+.moderator-reward-setting-message.is-error {
+  color: #b91c1c;
+}
+
+@media (max-width: 650px) {
+  .moderator-reward-setting-card {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .moderator-reward-setting-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moderator-reward-setting-form button {
+    transition: none;
+  }
+}

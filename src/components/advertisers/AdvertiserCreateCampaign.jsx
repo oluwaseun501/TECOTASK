@@ -1,9 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authApi } from "../../services/auth.js";
 import "../../styles/AdvertiserCreateCampaign.css";
 
 const campaignListPath = "/advertisers";
+
+const MAX_GUIDE_IMAGE_BYTES = 2 * 1024 * 1024;
+
+const GUIDE_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
 
 const formatNaira = (amount = 0) =>
   `₦${Number(amount || 0).toLocaleString("en-NG")}`;
@@ -20,6 +28,10 @@ const AdvertiserCreateCampaign = () => {
   const [messageType, setMessageType] = useState("error");
   const [savingAction, setSavingAction] = useState("");
   const [draftCampaignId, setDraftCampaignId] = useState("");
+
+  const [guideImageFile, setGuideImageFile] = useState(null);
+  const [guideImagePreview, setGuideImagePreview] = useState("");
+  const guideImageInputRef = useRef(null);
 
   const [campaign, setCampaign] = useState({
     name: "",
@@ -64,7 +76,9 @@ const AdvertiserCreateCampaign = () => {
             : [""],
         );
 
-        setAvailableBalance(Number(dashboard.wallet?.availableBalance || 0));
+        setAvailableBalance(
+          Number(dashboard.wallet?.availableBalance || 0),
+        );
 
         setCampaign((current) => ({
           ...current,
@@ -94,6 +108,18 @@ const AdvertiserCreateCampaign = () => {
     };
   }, [navigate]);
 
+  useEffect(() => {
+    if (!guideImageFile) {
+      setGuideImagePreview("");
+      return undefined;
+    }
+
+    const previewUrl = URL.createObjectURL(guideImageFile);
+    setGuideImagePreview(previewUrl);
+
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [guideImageFile]);
+
   const selectedService = services.find(
     (service) => service.id === campaign.serviceId,
   );
@@ -102,13 +128,26 @@ const AdvertiserCreateCampaign = () => {
   const hasValidQuantity =
     Number.isSafeInteger(targetQuantity) && targetQuantity > 0;
 
-  const pricePerPerson = Number(selectedService?.advertiserPricePerPerson || 0);
-  const rewardPerPerson = Number(selectedService?.earnerRewardPerPerson || 0);
-  const feePerPerson = Number(selectedService?.platformFeePerPerson || 0);
+  const pricePerPerson = Number(
+    selectedService?.advertiserPricePerPerson || 0,
+  );
+  const rewardPerPerson = Number(
+    selectedService?.earnerRewardPerPerson || 0,
+  );
+  const feePerPerson = Number(
+    selectedService?.platformFeePerPerson || 0,
+  );
 
-  const totalBudget = hasValidQuantity ? pricePerPerson * targetQuantity : 0;
-  const rewardTotal = hasValidQuantity ? rewardPerPerson * targetQuantity : 0;
-  const feeTotal = hasValidQuantity ? feePerPerson * targetQuantity : 0;
+  const totalBudget = hasValidQuantity
+    ? pricePerPerson * targetQuantity
+    : 0;
+  const rewardTotal = hasValidQuantity
+    ? rewardPerPerson * targetQuantity
+    : 0;
+  const feeTotal = hasValidQuantity
+    ? feePerPerson * targetQuantity
+    : 0;
+
   const handleCampaignChange = (event) => {
     const { name, value } = event.target;
 
@@ -122,7 +161,9 @@ const AdvertiserCreateCampaign = () => {
       const defaults = selected?.defaultInstructions;
 
       setInstructions(
-        Array.isArray(defaults) && defaults.length > 0 ? [...defaults] : [""],
+        Array.isArray(defaults) && defaults.length > 0
+          ? [...defaults]
+          : [""],
       );
     }
 
@@ -139,6 +180,43 @@ const AdvertiserCreateCampaign = () => {
     setMessage("");
   };
 
+  const handleGuideImageChange = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!GUIDE_IMAGE_TYPES.has(file.type)) {
+      setGuideImageFile(null);
+      event.target.value = "";
+      setMessage(
+        "Choose a PNG, JPG, or WebP image. Videos are not accepted.",
+      );
+      setMessageType("error");
+      return;
+    }
+
+    if (file.size > MAX_GUIDE_IMAGE_BYTES) {
+      setGuideImageFile(null);
+      event.target.value = "";
+      setMessage("The guide image must be 2 MB or smaller.");
+      setMessageType("error");
+      return;
+    }
+
+    setGuideImageFile(file);
+    setMessage("");
+  };
+
+  const handleRemoveGuideImage = () => {
+    setGuideImageFile(null);
+
+    if (guideImageInputRef.current) {
+      guideImageInputRef.current.value = "";
+    }
+
+    setMessage("");
+  };
+
   const addInstruction = () => {
     if (instructions.length >= 20) {
       setMessage("A campaign can have no more than 20 instruction steps.");
@@ -146,7 +224,10 @@ const AdvertiserCreateCampaign = () => {
       return;
     }
 
-    setInstructions((previousInstructions) => [...previousInstructions, ""]);
+    setInstructions((previousInstructions) => [
+      ...previousInstructions,
+      "",
+    ]);
 
     setMessage("");
   };
@@ -234,13 +315,16 @@ const AdvertiserCreateCampaign = () => {
 
   const saveCurrentDraft = async (token, payload) => {
     if (draftCampaignId) {
-      await authApi.updateAdvertiserCampaign(draftCampaignId, payload, token);
+      await authApi.updateAdvertiserCampaign(
+        draftCampaignId,
+        payload,
+        token,
+      );
 
       return draftCampaignId;
     }
 
     const result = await authApi.createAdvertiserCampaign(payload, token);
-
     const newDraftId = result.campaign?.id;
 
     if (!newDraftId) {
@@ -249,6 +333,16 @@ const AdvertiserCreateCampaign = () => {
 
     setDraftCampaignId(newDraftId);
     return newDraftId;
+  };
+
+  const uploadGuideImageIfSelected = async (campaignId, token) => {
+    if (!guideImageFile) return;
+
+    await authApi.uploadAdvertiserGuideImage(
+      campaignId,
+      guideImageFile,
+      token,
+    );
   };
 
   const handleSaveAndExit = async () => {
@@ -271,10 +365,18 @@ const AdvertiserCreateCampaign = () => {
     setMessage("");
 
     try {
-      await saveCurrentDraft(token, buildCampaignPayload());
+      const campaignId = await saveCurrentDraft(
+        token,
+        buildCampaignPayload(),
+      );
+
+      await uploadGuideImageIfSelected(campaignId, token);
+
       navigate(campaignListPath);
     } catch (requestError) {
-      setMessage(requestError.message || "Could not save the campaign draft.");
+      setMessage(
+        requestError.message || "Could not save the campaign draft.",
+      );
       setMessageType("error");
     } finally {
       setSavingAction("");
@@ -303,7 +405,12 @@ const AdvertiserCreateCampaign = () => {
     setMessage("");
 
     try {
-      const campaignId = await saveCurrentDraft(token, buildCampaignPayload());
+      const campaignId = await saveCurrentDraft(
+        token,
+        buildCampaignPayload(),
+      );
+
+      await uploadGuideImageIfSelected(campaignId, token);
 
       await authApi.submitAdvertiserCampaign(campaignId, token);
 
@@ -368,7 +475,9 @@ const AdvertiserCreateCampaign = () => {
 
       <div className="advertiser-campaign-stepper" aria-label="Campaign steps">
         <div
-          className={`advertiser-campaign-step ${step >= 1 ? "is-active" : ""}`}
+          className={`advertiser-campaign-step ${
+            step >= 1 ? "is-active" : ""
+          }`}
         >
           <span>1</span>
           <strong>Task details</strong>
@@ -377,7 +486,9 @@ const AdvertiserCreateCampaign = () => {
         <div className="advertiser-campaign-step-line" />
 
         <div
-          className={`advertiser-campaign-step ${step >= 2 ? "is-active" : ""}`}
+          className={`advertiser-campaign-step ${
+            step >= 2 ? "is-active" : ""
+          }`}
         >
           <span>2</span>
           <strong>Budget &amp; review</strong>
@@ -517,6 +628,82 @@ const AdvertiserCreateCampaign = () => {
               </small>
             </div>
 
+            <div className="advertiser-form-field">
+              <div className="advertiser-form-label-row">
+                <label htmlFor="campaignGuideImage">
+                  Guide image for earners
+                </label>
+                <span>Optional</span>
+              </div>
+
+              <div className="advertiser-guide-image">
+                <div className="advertiser-guide-image__content">
+                  {guideImagePreview ? (
+                    <img
+                      className="advertiser-guide-image__preview"
+                      src={guideImagePreview}
+                      alt="Campaign guide image preview"
+                    />
+                  ) : (
+                    <div
+                      className="advertiser-guide-image__placeholder"
+                      aria-hidden="true"
+                    >
+                      +
+                    </div>
+                  )}
+
+                  <div className="advertiser-guide-image__copy">
+                    <strong>
+                      {guideImageFile
+                        ? "Image selected"
+                        : "Add a reference image"}
+                    </strong>
+
+                    <span>
+                      Give earners a visual example of the account, page, or
+                      result.
+                    </span>
+
+                    {guideImageFile && (
+                      <small>
+                        {guideImageFile.name} ·{" "}
+                        {Math.ceil(guideImageFile.size / 1024)} KB
+                      </small>
+                    )}
+                  </div>
+                </div>
+
+                <div className="advertiser-guide-image__actions">
+                  <label className="advertiser-guide-image__choose">
+                    {guideImageFile ? "Change image" : "Choose image"}
+                    <input
+                      ref={guideImageInputRef}
+                      id="campaignGuideImage"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleGuideImageChange}
+                    />
+                  </label>
+
+                  {guideImageFile && (
+                    <button
+                      type="button"
+                      className="advertiser-guide-image__remove"
+                      onClick={handleRemoveGuideImage}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <small>
+                Optional. PNG, JPG, or WebP only; maximum 2 MB. Videos aren’t
+                accepted.
+              </small>
+            </div>
+
             {message && (
               <p
                 className="advertiser-create-campaign__message"
@@ -594,7 +781,9 @@ const AdvertiserCreateCampaign = () => {
               </div>
 
               <div className="advertiser-form-field">
-                <label htmlFor="numberOfPeople">Number of people / slots</label>
+                <label htmlFor="numberOfPeople">
+                  Number of people / slots
+                </label>
 
                 <input
                   id="numberOfPeople"
@@ -625,7 +814,9 @@ const AdvertiserCreateCampaign = () => {
                 <div>
                   <dt>Category</dt>
                   <dd>
-                    {selectedService?.platform || selectedService?.name || "—"}
+                    {selectedService?.platform ||
+                      selectedService?.name ||
+                      "—"}
                   </dd>
                 </div>
 
@@ -637,6 +828,11 @@ const AdvertiserCreateCampaign = () => {
                 <div>
                   <dt>Proof requirement</dt>
                   <dd>{campaign.proof || "—"}</dd>
+                </div>
+
+                <div>
+                  <dt>Guide image</dt>
+                  <dd>{guideImageFile ? guideImageFile.name : "Not added"}</dd>
                 </div>
               </dl>
             </section>

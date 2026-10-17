@@ -2,7 +2,9 @@ import {
   BarChart3,
   ChevronRight,
   ClipboardList,
+  Pencil,
   Plus,
+  Power,
   Settings2,
   WalletCards,
 } from "lucide-react";
@@ -12,8 +14,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getAdminCampaigns,
   getAdminServices,
+  updateAdminService,
 } from "../data/adminCampaignApi.js";
-
 import "../../styles/AdminCampaigns.css";
 
 const tabs = [
@@ -352,7 +354,159 @@ function ServicePricing({
   services,
   basePath,
   loading,
+  onUpdate,
 }) {
+  const [editingService, setEditingService] = useState(null);
+  const [form, setForm] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [busyServiceId, setBusyServiceId] = useState("");
+  const [notice, setNotice] = useState({ type: "", text: "" });
+
+  function openEditor(service) {
+    setEditingService(service);
+    setForm({
+      name: service.name || "",
+      platform: service.platform || "",
+      description: service.description || "",
+      defaultInstructions: Array.isArray(service.defaultInstructions)
+        ? service.defaultInstructions.join("\n")
+        : "",
+      advertiserPricePerPerson: String(
+        service.advertiserPricePerPerson ?? "",
+      ),
+      earnerRewardPerPerson: String(
+        service.earnerRewardPerPerson ?? "",
+      ),
+      platformFeePerPerson: String(
+        service.platformFeePerPerson ?? "",
+      ),
+    });
+    setNotice({ type: "", text: "" });
+  }
+
+  function closeEditor() {
+    if (saving) return;
+
+    setEditingService(null);
+    setForm(null);
+  }
+
+  function updateField(field, value) {
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  async function handleSave(event) {
+    event.preventDefault();
+
+    if (!editingService || !form) return;
+
+    const advertiserPricePerPerson = Number(
+      form.advertiserPricePerPerson,
+    );
+    const earnerRewardPerPerson = Number(
+      form.earnerRewardPerPerson,
+    );
+    const platformFeePerPerson = Number(
+      form.platformFeePerPerson,
+    );
+
+    if (
+      !Number.isSafeInteger(advertiserPricePerPerson) ||
+      advertiserPricePerPerson < 1 ||
+      !Number.isSafeInteger(earnerRewardPerPerson) ||
+      earnerRewardPerPerson < 1 ||
+      !Number.isSafeInteger(platformFeePerPerson) ||
+      platformFeePerPerson < 0
+    ) {
+      setNotice({
+        type: "error",
+        text: "Prices must be whole naira amounts. The earner reward must be at least ₦1 and the platform fee cannot be negative.",
+      });
+      return;
+    }
+
+    if (
+      advertiserPricePerPerson <
+      earnerRewardPerPerson + platformFeePerPerson
+    ) {
+      setNotice({
+        type: "error",
+        text: "Advertiser price must cover the earner reward and platform fee.",
+      });
+      return;
+    }
+
+    const defaultInstructions = form.defaultInstructions
+      .split(/\r?\n/)
+      .map((instruction) => instruction.trim())
+      .filter(Boolean);
+
+    if (defaultInstructions.length > 20) {
+      setNotice({
+        type: "error",
+        text: "A service can have at most 20 default instruction steps.",
+      });
+      return;
+    }
+
+    setSaving(true);
+    setNotice({ type: "", text: "" });
+
+    try {
+      await onUpdate(editingService.id, {
+        name: form.name.trim(),
+        platform: form.platform.trim(),
+        description: form.description.trim(),
+        defaultInstructions,
+        advertiserPricePerPerson,
+        earnerRewardPerPerson,
+        platformFeePerPerson,
+      });
+
+      setEditingService(null);
+      setForm(null);
+      setNotice({
+        type: "success",
+        text: "Service updated. Existing campaigns keep their saved pricing.",
+      });
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: error.message || "Could not update this service.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleService(service) {
+    setBusyServiceId(service.id);
+    setNotice({ type: "", text: "" });
+
+    try {
+      const updatedService = await onUpdate(service.id, {
+        isActive: !service.isActive,
+      });
+
+      setNotice({
+        type: "success",
+        text: updatedService.isActive
+          ? `${updatedService.name} is active and available to advertisers.`
+          : `${updatedService.name} is inactive and hidden from advertisers.`,
+      });
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: error.message || "Could not update the service status.",
+      });
+    } finally {
+      setBusyServiceId("");
+    }
+  }
+
   return (
     <section className="campaign-content-card">
       <div className="campaign-content-header">
@@ -371,6 +525,15 @@ function ServicePricing({
           Add service
         </Link>
       </div>
+
+      {notice.text && (
+        <p
+          className={`service-management-notice service-management-notice--${notice.type}`}
+          role={notice.type === "error" ? "alert" : "status"}
+        >
+          {notice.text}
+        </p>
+      )}
 
       {loading ? (
         <CampaignLoader label="Loading services…" />
@@ -422,8 +585,202 @@ function ServicePricing({
                 <i />
                 {service.isActive ? "Active" : "Inactive"}
               </span>
+
+              <div className="service-pricing-actions">
+                <button
+                  type="button"
+                  className="service-management-button"
+                  onClick={() => openEditor(service)}
+                  aria-label={`Edit ${service.name}`}
+                >
+                  <Pencil size={14} />
+                  Edit
+                </button>
+
+                <button
+                  type="button"
+                  className={`service-management-button ${
+                    service.isActive
+                      ? "service-management-button--deactivate"
+                      : "service-management-button--activate"
+                  }`}
+                  onClick={() => toggleService(service)}
+                  disabled={busyServiceId === service.id}
+                >
+                  <Power size={14} />
+                  {busyServiceId === service.id
+                    ? "Saving…"
+                    : service.isActive
+                      ? "Deactivate"
+                      : "Reactivate"}
+                </button>
+              </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {editingService && form && (
+        <div className="service-edit-overlay">
+          <section
+            className="service-edit-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="service-edit-title"
+          >
+            <header className="service-edit-modal__header">
+              <div>
+                <span>Service pricing</span>
+                <h2 id="service-edit-title">Edit service</h2>
+                <p>
+                  Changes apply to new campaigns. Existing campaigns keep
+                  their saved pricing.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="service-edit-modal__close"
+                onClick={closeEditor}
+                disabled={saving}
+                aria-label="Close edit service"
+              >
+                ×
+              </button>
+            </header>
+
+            <form onSubmit={handleSave}>
+              <div className="service-edit-form-grid">
+                <label>
+                  Service name
+                  <input
+                    value={form.name}
+                    onChange={(event) =>
+                      updateField("name", event.target.value)
+                    }
+                    maxLength={100}
+                    required
+                  />
+                </label>
+
+                <label>
+                  Category / platform
+                  <input
+                    value={form.platform}
+                    onChange={(event) =>
+                      updateField("platform", event.target.value)
+                    }
+                    maxLength={50}
+                    required
+                  />
+                </label>
+
+                <label className="service-edit-form-grid__full">
+                  Service description
+                  <textarea
+                    value={form.description}
+                    onChange={(event) =>
+                      updateField("description", event.target.value)
+                    }
+                    maxLength={500}
+                    rows={3}
+                  />
+                </label>
+
+                <label className="service-edit-form-grid__full">
+                  Default instructions
+                  <textarea
+                    value={form.defaultInstructions}
+                    onChange={(event) =>
+                      updateField(
+                        "defaultInstructions",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Put one instruction on each line"
+                    rows={5}
+                  />
+                  <small>Up to 20 instructions, one per line.</small>
+                </label>
+
+                <label>
+                  Advertiser price per person (₦)
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={form.advertiserPricePerPerson}
+                    onChange={(event) =>
+                      updateField(
+                        "advertiserPricePerPerson",
+                        event.target.value,
+                      )
+                    }
+                    required
+                  />
+                </label>
+
+                <label>
+                  Earner reward per person (₦)
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={form.earnerRewardPerPerson}
+                    onChange={(event) =>
+                      updateField(
+                        "earnerRewardPerPerson",
+                        event.target.value,
+                      )
+                    }
+                    required
+                  />
+                </label>
+
+                <label>
+                  Platform fee per person (₦)
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.platformFeePerPerson}
+                    onChange={(event) =>
+                      updateField(
+                        "platformFeePerPerson",
+                        event.target.value,
+                      )
+                    }
+                    required
+                  />
+                </label>
+              </div>
+
+              {notice.type === "error" && (
+                <p className="service-management-notice service-management-notice--error">
+                  {notice.text}
+                </p>
+              )}
+
+              <div className="service-edit-modal__actions">
+                <button
+                  type="button"
+                  className="service-management-button"
+                  onClick={closeEditor}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="campaign-primary-button"
+                  disabled={saving}
+                >
+                  {saving ? "Saving…" : "Save changes"}
+                </button>
+              </div>
+            </form>
+          </section>
         </div>
       )}
     </section>
@@ -439,6 +796,27 @@ export default function AdminCampaigns({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [serviceError, setServiceError] = useState("");
+
+
+  const handleUpdateService = useCallback(
+    async (serviceId, updates) => {
+      const updatedService = await updateAdminService(
+        serviceId,
+        updates,
+      );
+
+      setServices((current) =>
+        current.map((service) =>
+          service.id === updatedService.id
+            ? updatedService
+            : service,
+        ),
+      );
+
+      return updatedService;
+    },
+    [],
+  );
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -620,11 +998,12 @@ export default function AdminCampaigns({
               </div>
             )}
 
-            <ServicePricing
-              services={services}
-              basePath={basePath}
-              loading={loading}
-            />
+           <ServicePricing
+  services={services}
+  basePath={basePath}
+  loading={loading}
+  onUpdate={handleUpdateService}
+/>
           </>
         )}
       </div>

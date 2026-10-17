@@ -1,20 +1,26 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
 async function request(
   path,
   { method = "GET", body, token, timeoutMs = 15000 } = {},
 ) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const isFormData =
+    typeof FormData !== "undefined" && body instanceof FormData;
+    
 
   try {
     const response = await fetch(`${API_URL}${path}`, {
       method,
       headers: {
-        ...(body ? { "Content-Type": "application/json" } : {}),
+        ...(body && !isFormData
+          ? { "Content-Type": "application/json" }
+          : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      ...(body ? { body: JSON.stringify(body) } : {}),
+      ...(body
+        ? { body: isFormData ? body : JSON.stringify(body) }
+        : {}),
       signal: controller.signal,
     });
 
@@ -41,6 +47,7 @@ async function request(
     clearTimeout(timeoutId);
   }
 }
+
 
 export const authApi = {
   register: (details) =>
@@ -76,6 +83,23 @@ export const authApi = {
     request("/api/earner/dashboard", {
       token,
     }),
+
+    uploadEarnerProofImage: (submissionId, file, token) => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  return request(
+    `/api/uploads/earner/submissions/${encodeURIComponent(submissionId)}/proof-image`,
+    {
+      method: "POST",
+      body: formData,
+      token,
+      timeoutMs: 60000,
+    },
+  );
+},
+
+
 
     startEarnerTask: (taskId, token) =>
   request(
@@ -163,6 +187,20 @@ updateAdvertiserCampaign: (campaignId, details, token) =>
       token,
     },
   ),
+
+  uploadAdvertiserGuideImage: (campaignId, file, token) => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  return request(
+    `/api/uploads/advertiser/campaigns/${encodeURIComponent(campaignId)}/guide-image`,
+    {
+      method: "POST",
+      body: formData,
+      token,
+    },
+  );
+},
 
 submitAdvertiserCampaign: (campaignId, token) =>
   request(

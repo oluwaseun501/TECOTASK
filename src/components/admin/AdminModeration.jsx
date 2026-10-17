@@ -33,6 +33,14 @@ const emptyMetrics = {
   activity: [],
 };
 
+function getStoredValue(key) {
+  return (
+    sessionStorage.getItem(key) ||
+    localStorage.getItem(key) ||
+    ""
+  );
+}
+
 function toDateInputValue(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -109,7 +117,7 @@ function ModeratorDetails({ moderator, period, onClose }) {
   const metrics = moderator.performance?.[period] || emptyMetrics;
   const approvalRate = calculateApprovalRate(
     metrics.approved,
-    metrics.rejected
+    metrics.rejected,
   );
 
   return (
@@ -302,13 +310,20 @@ export default function AdminModeration() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedModerator, setSelectedModerator] = useState(null);
   const [customStartDate, setCustomStartDate] = useState(
-    getInitialCustomStart
+    getInitialCustomStart,
   );
   const [customEndDate, setCustomEndDate] = useState(getInitialCustomEnd);
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const [rewardAmount, setRewardAmount] = useState("2");
+  const [rewardConfigured, setRewardConfigured] = useState(false);
+  const [rewardLoading, setRewardLoading] = useState(true);
+  const [rewardSaving, setRewardSaving] = useState(false);
+  const [rewardError, setRewardError] = useState("");
+  const [rewardMessage, setRewardMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -318,13 +333,11 @@ export default function AdminModeration() {
 
     const loadModerationData = async () => {
       try {
-        const token =
-          sessionStorage.getItem("tecotaskToken") ||
-          localStorage.getItem("tecotaskToken");
+        const token = getStoredValue("tecotaskToken");
 
         if (!token) {
           throw new Error(
-            "Your login session is missing. Please sign in again."
+            "Your login session is missing. Please sign in again.",
           );
         }
 
@@ -343,7 +356,7 @@ export default function AdminModeration() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         const data = await response.json().catch(() => ({}));
@@ -364,7 +377,7 @@ export default function AdminModeration() {
             pendingQueue: 0,
             moderatorCount: 0,
             activeModeratorCount: 0,
-          }
+          },
         );
         setSelectedModerator(null);
       } catch (error) {
@@ -392,6 +405,62 @@ export default function AdminModeration() {
   ]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadRewardSetting() {
+      try {
+        const token = getStoredValue("tecotaskToken");
+
+        if (!token) {
+          throw new Error(
+            "Your login session is missing. Please sign in again.",
+          );
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/admin/moderator-reward`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Could not load the reward setting.",
+          );
+        }
+
+        if (cancelled) return;
+
+        setRewardAmount(
+          String(data.setting?.reviewRewardAmount ?? 2),
+        );
+        setRewardConfigured(Boolean(data.configured));
+      } catch (error) {
+        if (!cancelled) {
+          setRewardError(
+            error.message || "Could not load the reward setting.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setRewardLoading(false);
+        }
+      }
+    }
+
+    loadRewardSetting();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!selectedModerator) return undefined;
 
     const closeOnEscape = (event) => {
@@ -404,6 +473,68 @@ export default function AdminModeration() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [selectedModerator]);
 
+  async function handleSaveReward(event) {
+    event.preventDefault();
+
+    const amount = Number(rewardAmount);
+
+    if (!Number.isSafeInteger(amount) || amount < 1) {
+      setRewardError("Enter a whole-number reward of at least ₦1.");
+      setRewardMessage("");
+      return;
+    }
+
+    const token = getStoredValue("tecotaskToken");
+
+    if (!token) {
+      setRewardError(
+        "Your login session is missing. Please sign in again.",
+      );
+      setRewardMessage("");
+      return;
+    }
+
+    setRewardSaving(true);
+    setRewardError("");
+    setRewardMessage("");
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/admin/moderator-reward`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            reviewRewardAmount: amount,
+          }),
+        },
+      );
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Could not save the reward setting.",
+        );
+      }
+
+      setRewardAmount(String(data.setting.reviewRewardAmount));
+      setRewardConfigured(Boolean(data.configured));
+      setRewardMessage(
+        `Saved: moderators earn ₦${data.setting.reviewRewardAmount} per review decision.`,
+      );
+    } catch (error) {
+      setRewardError(
+        error.message || "Could not save the reward setting.",
+      );
+    } finally {
+      setRewardSaving(false);
+    }
+  }
+
   const visibleModerators = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
@@ -412,14 +543,14 @@ export default function AdminModeration() {
     return moderators.filter(
       (moderator) =>
         moderator.name.toLowerCase().includes(query) ||
-        moderator.email.toLowerCase().includes(query)
+        moderator.email.toLowerCase().includes(query),
     );
   }, [moderators, searchQuery]);
 
   const customRangeLabel =
     selectedPeriod === "Custom"
       ? `${formatDate(`${customStartDate}T00:00:00`)} – ${formatDate(
-          `${customEndDate}T00:00:00`
+          `${customEndDate}T00:00:00`,
         )}`
       : null;
 
@@ -537,6 +668,85 @@ export default function AdminModeration() {
           />
         </section>
 
+        <section className="moderator-reward-setting-card">
+          <div className="moderator-reward-setting-card__copy">
+            <span className="moderation-section-eyebrow">
+              Payout settings
+            </span>
+
+            <h2>Moderator review reward</h2>
+
+            <p>
+              This amount is paid for each decision, whether the submission
+              is approved or rejected.
+            </p>
+
+            <span
+              className={`moderator-reward-setting-status ${
+                rewardConfigured ? "is-active" : ""
+              }`}
+            >
+              {rewardLoading
+                ? "Loading setting…"
+                : rewardConfigured
+                  ? "Active"
+                  : "Not set yet"}
+            </span>
+          </div>
+
+          <form
+            className="moderator-reward-setting-form"
+            onSubmit={handleSaveReward}
+          >
+            <label htmlFor="moderatorReviewReward">
+              Reward per decision
+            </label>
+
+            <div className="moderator-reward-setting-input">
+              <span>₦</span>
+              <input
+                id="moderatorReviewReward"
+                type="number"
+                min="1"
+                step="1"
+                value={rewardAmount}
+                onChange={(event) => setRewardAmount(event.target.value)}
+                disabled={rewardLoading || rewardSaving}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={rewardLoading || rewardSaving}
+            >
+              {rewardSaving
+                ? "Saving…"
+                : rewardConfigured
+                  ? "Update reward"
+                  : "Set reward"}
+            </button>
+          </form>
+
+          {rewardError && (
+            <p
+              className="moderator-reward-setting-message is-error"
+              role="alert"
+            >
+              {rewardError}
+            </p>
+          )}
+
+          {rewardMessage && (
+            <p
+              className="moderator-reward-setting-message"
+              role="status"
+            >
+              {rewardMessage}
+            </p>
+          )}
+        </section>
+
         <section className="moderation-team-card">
           <div className="moderation-team-card-header">
             <div>
@@ -631,11 +841,12 @@ export default function AdminModeration() {
                   <tbody>
                     {visibleModerators.map((moderator) => {
                       const metrics =
-                        moderator.performance?.[selectedPeriod] || emptyMetrics;
+                        moderator.performance?.[selectedPeriod] ||
+                        emptyMetrics;
 
                       const approvalRate = calculateApprovalRate(
                         metrics.approved,
-                        metrics.rejected
+                        metrics.rejected,
                       );
 
                       return (
@@ -689,7 +900,9 @@ export default function AdminModeration() {
                             <button
                               type="button"
                               className="moderator-view-button"
-                              onClick={() => setSelectedModerator(moderator)}
+                              onClick={() =>
+                                setSelectedModerator(moderator)
+                              }
                             >
                               <Eye size={14} />
                               View
@@ -705,11 +918,12 @@ export default function AdminModeration() {
               <div className="moderation-mobile-list">
                 {visibleModerators.map((moderator) => {
                   const metrics =
-                    moderator.performance?.[selectedPeriod] || emptyMetrics;
+                    moderator.performance?.[selectedPeriod] ||
+                    emptyMetrics;
 
                   const approvalRate = calculateApprovalRate(
                     metrics.approved,
-                    metrics.rejected
+                    metrics.rejected,
                   );
 
                   return (
@@ -781,7 +995,10 @@ export default function AdminModeration() {
               </p>
 
               {searchQuery && (
-                <button type="button" onClick={() => setSearchQuery("")}>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                >
                   Clear search
                 </button>
               )}

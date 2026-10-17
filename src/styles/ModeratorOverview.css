@@ -1322,3 +1322,73 @@ html {
     transition: none !important;
   }
 }
+
+.moderator-proof-preview--image {
+  display: flex;
+  height: auto;
+  min-height: 0;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.moderator-proof-image-link {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.moderator-proof-image {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  object-fit: contain;
+}
+
+.moderator-pending-row__thumbnail {
+  display: block;
+  width: 72px;
+  height: 46px;
+  margin-top: 7px;
+  border: 1px solid #e2e8e4;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.moderator-review-payout,
+.moderator-decision-reward {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+  border: 1px solid #cfe9d6;
+  border-radius: 9px;
+  background: #f0fbf3;
+  padding: 11px 12px;
+}
+
+.moderator-review-payout {
+  flex-basis: 100%;
+}
+
+.moderator-review-payout span,
+.moderator-decision-reward span {
+  color: #52645a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.moderator-review-payout strong,
+.moderator-decision-reward strong {
+  color: #14833b;
+  font-size: 18px;
+}
+
+.moderator-review-payout small,
+.moderator-decision-reward small {
+  color: #718078;
+  font-size: 10px;
+}
