@@ -1,13 +1,33 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const AUTH_TIMEOUT_MS = 60_000;
+const AUTH_MAX_ATTEMPTS = 2;
+const AUTH_RETRY_DELAY_MS = 1500;
+
+const RETRYABLE_AUTH_STATUS_CODES = new Set([
+  408,
+  500,
+  502,
+  503,
+  504,
+]);
+
+const wait = (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
 async function request(
   path,
   { method = "GET", body, token, timeoutMs = 15000 } = {},
 ) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    timeoutMs,
+  );
+
   const isFormData =
     typeof FormData !== "undefined" && body instanceof FormData;
-    
 
   try {
     const response = await fetch(`${API_URL}${path}`, {
@@ -27,19 +47,30 @@ async function request(
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data.message || `Request failed (${response.status}).`);
+      const error = new Error(
+        data.message || `Request failed (${response.status}).`,
+      );
+
+      error.status = response.status;
+      throw error;
     }
 
     return data;
   } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new Error("The server took too long to respond. Please try again.");
+    if (error?.name === "AbortError") {
+      const retryError = new Error(
+        "The server took too long to respond. Please try again.",
+      );
+      retryError.retryable = true;
+      throw retryError;
     }
 
     if (error instanceof TypeError) {
-      throw new Error(
+      const retryError = new Error(
         `Could not reach the API server at ${API_URL}. Check that it is running and the API URL is correct.`,
       );
+      retryError.retryable = true;
+      throw retryError;
     }
 
     throw error;
@@ -48,27 +79,57 @@ async function request(
   }
 }
 
+async function requestAuthWithRetry(path, options = {}) {
+  for (let attempt = 1; attempt <= AUTH_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      return await request(path, {
+        ...options,
+        timeoutMs: AUTH_TIMEOUT_MS,
+      });
+    } catch (error) {
+      const isRetryable =
+        error?.retryable === true ||
+        RETRYABLE_AUTH_STATUS_CODES.has(error?.status);
+
+      if (!isRetryable || attempt === AUTH_MAX_ATTEMPTS) {
+        throw error;
+      }
+
+      await wait(AUTH_RETRY_DELAY_MS);
+    }
+  }
+}
+
 
 export const authApi = {
-  register: (details) =>
-    request("/api/auth/register", {
+ register: async (details) => {
+  // This safe GET wakes the backend; retry it if Render is starting up.
+  await requestAuthWithRetry("/api/health");
+
+  // Send account creation only once, after the backend is responsive.
+  return request("/api/auth/register", {
+    method: "POST",
+    body: details,
+    timeoutMs: AUTH_TIMEOUT_MS,
+  });
+},
+
+  login: async (details) => {
+    // Wake the API first, matching the existing signup flow.
+    await requestAuthWithRetry("/api/health");
+
+    // Keep the retry for temporary failures during the login request.
+    return requestAuthWithRetry("/api/auth/login", {
       method: "POST",
       body: details,
-    }),
-
-  login: (details) =>
-    request("/api/auth/login", {
-      method: "POST",
-      body: details,
-    }),
-
-  google: (credential) =>
-    request("/api/auth/google", {
-      method: "POST",
-      body: {
-        credential,
-      },
-    }),
+    });
+  },
+  
+google: (credential) =>
+  requestAuthWithRetry("/api/auth/google", {
+    method: "POST",
+    body: { credential },
+  }),
 
   chooseRole: (role, token) =>
     request("/api/auth/role", {

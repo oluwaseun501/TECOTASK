@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import useScrollReveal from "../hooks/useScrollReveal";
+import { getWhatsAppSupportUrl } from "../config/support.js";
 import "../styles/Footer.css";
 
 const Footer = () => {
@@ -6,6 +8,10 @@ const Footer = () => {
     threshold: 0.05,
     rootMargin: "0px",
   });
+
+  const supportUrl = getWhatsAppSupportUrl(
+    "Hello TecoTask support, I need help.",
+  );
 
   return (
     <footer
@@ -19,13 +25,12 @@ const Footer = () => {
         style={{ "--reveal-delay": "0ms" }}
       >
         <div className="site-footer__brand">
-          <a href="/" className="site-footer__logo">
+          <Link to="/" className="site-footer__logo">
             <span className="site-footer__logo-mark">T</span>
-
             <span>
               Teco<span>Task</span>
             </span>
-          </a>
+          </Link>
 
           <p>
             A simple and trusted platform for completing tasks, earning
@@ -39,26 +44,30 @@ const Footer = () => {
 
         <div className="site-footer__column">
           <h3>Earners</h3>
-          <a href="#tasks">Task board</a>
-          <a href="/signup">Create account</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="#faq">Referrals</a>
+          <a href="/#tasks">Task board</a>
+          <Link to="/signup">Create account</Link>
+          <a href="/#how-it-works">How it works</a>
+          <a href="/#faq">Referrals</a>
         </div>
 
         <div className="site-footer__column">
           <h3>Advertisers</h3>
-          <a href="#advertisers">Create campaign</a>
-          <a href="#advertisers">Campaign pricing</a>
-          <a href="#faq">Moderation policy</a>
-          <a href="#advertisers">Advertiser support</a>
+          <a href="/#advertisers">Create campaign</a>
+          <a href="/#advertisers">Campaign pricing</a>
+          <a href="/#faq">Moderation policy</a>
+          <a href={supportUrl} target="_blank" rel="noopener noreferrer">
+            Advertiser support
+          </a>
         </div>
 
         <div className="site-footer__column">
           <h3>Company</h3>
-          <a href="#how-it-works">About TecoTask</a>
-          <a href="mailto:support@tecotask.com">Support</a>
-          <a href="/terms">Terms of use</a>
-          <a href="/privacy">Privacy policy</a>
+          <a href="/#how-it-works">About TecoTask</a>
+          <a href={supportUrl} target="_blank" rel="noopener noreferrer">
+            Support
+          </a>
+          <Link to="/terms">Terms of use</Link>
+          <Link to="/privacy">Privacy policy</Link>
         </div>
       </div>
 
@@ -69,8 +78,8 @@ const Footer = () => {
         <p>© 2026 TecoTask. All rights reserved.</p>
 
         <div className="site-footer__bottom-links">
-          <a href="/terms">Terms</a>
-          <a href="/privacy">Privacy</a>
+          <Link to="/terms">Terms</Link>
+          <Link to="/privacy">Privacy</Link>
         </div>
       </div>
     </footer>

@@ -386,10 +386,11 @@ await navigateWithNotice(
           <label className="signup-terms">
             <input type="checkbox" required disabled={isBusy} />
 
-            <span>
-              I agree to the TecoTask <a href="/terms">Terms of Use</a> and{" "}
-              <a href="/privacy">Privacy Policy</a>.
-            </span>
+           <span>
+  I agree to the TecoTask{" "}
+  <Link to="/terms">Terms of Use</Link> and{" "}
+  <Link to="/privacy">Privacy Policy</Link>.
+</span>
           </label>
 
           <button

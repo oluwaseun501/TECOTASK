@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../../styles/Login.css";
 import "../../styles/PrivilegedLogin.css";
 import { authApi } from "../../services/auth.js";
+import { openSupportWidget } from "../../utils/supportWidget.js";
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:5000"
@@ -324,7 +325,9 @@ const handleSubmit = async (event) => {
             Contact the TecoTask support team for assistance.
           </span>
 
-          <Link to="/support">Contact support</Link>
+          <a href="/support" onClick={openSupportWidget}>
+  Contact support
+</a>
         </div>
       </section>
     </main>

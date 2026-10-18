@@ -3,6 +3,7 @@ import "../styles/Login.css";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { authApi } from "../services/auth.js";
+import { openSupportWidget } from "../utils/supportWidget.js";
 
 const wait = (milliseconds) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -366,7 +367,7 @@ const handleGoogleSuccess = async (credentialResponse) => {
                   className="login-submit__spinner"
                   aria-hidden="true"
                 />
-                <span>Signing in...</span>
+                <span>Connecting and signing in…</span>
               </>
             ) : (
               <>
@@ -418,7 +419,9 @@ const handleGoogleSuccess = async (credentialResponse) => {
         <div className="login-support">
           <strong>Need help?</strong>
           <span>Our support team is here for you.</span>
-          <a href="/support">Contact support</a>
+          <a href="/support" onClick={openSupportWidget}>
+  Contact support
+</a>
         </div>
       </section>
     </main>

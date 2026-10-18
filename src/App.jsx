@@ -21,6 +21,8 @@ import ForgotPassword from "./components/ForgotPassword";
 
 import RequireAuth from "./components/auth/RequireAuth";
 import RequireRole from "./components/auth/RequireRole";
+import LegalPage from "./pages/LegalPage";
+import { getWhatsAppSupportUrl } from "./config/support.js";
 
 /* Earner workspace */
 import EarnersLayout from "./components/earners/EarnersLayout";
@@ -88,6 +90,33 @@ const Home = () => {
 
       <Footer />
     </>
+  );
+};
+
+const SupportRedirect = () => {
+  const supportUrl = getWhatsAppSupportUrl();
+
+  useEffect(() => {
+    window.location.replace(supportUrl);
+  }, [supportUrl]);
+
+  return (
+    <main className="legal-page">
+      <div className="legal-page__container">
+        <h1>Contact TecoTask support</h1>
+        <p className="legal-page__intro">
+          Opening WhatsApp. If it does not open, use the link below.
+        </p>
+        <a
+          className="legal-page__contact-link"
+          href={supportUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open WhatsApp
+        </a>
+      </div>
+    </main>
   );
 };
 
@@ -277,7 +306,9 @@ const App = () => {
         </Route>
 
         {/* Public support page */}
-        <Route path="/support" element={<div>Support page coming soon.</div>} />
+        <Route path="/terms" element={<LegalPage type="terms" />} />
+<Route path="/privacy" element={<LegalPage type="privacy" />} />
+<Route path="/support" element={<SupportRedirect />} />
 
         {/* Unknown routes return to landing page */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,19 +1,9 @@
-import { useRef, useState } from "react";
-import {
-  ChevronDown,
-  ExternalLink,
-  MessageCircle,
-  X,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, ExternalLink, MessageCircle, X } from "lucide-react";
 
 import "../styles/SupportWidget.css";
-
-/*
- * Replace this with the WhatsApp number in international format.
- * Example:
- * const WHATSAPP_NUMBER = "2348012345678";
- */
-const WHATSAPP_NUMBER = "YOUR_WHATSAPP_NUMBER";
+import { getWhatsAppSupportUrl } from "../config/support.js";
+import { SUPPORT_WIDGET_OPEN_EVENT } from "../utils/supportWidget.js";
 
 const FAQ_SECTIONS = [
   {
@@ -116,12 +106,20 @@ export default function SupportWidget() {
   const [topPosition, setTopPosition] = useState(getSavedTopPosition);
   const [isDragging, setIsDragging] = useState(false);
 
-  const openWhatsApp = () => {
-    const message = encodeURIComponent(
-      "Hello TecoTask support, I need help with my account."
-    );
+  useEffect(() => {
+    const openWidget = () => setIsOpen(true);
 
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+    window.addEventListener(SUPPORT_WIDGET_OPEN_EVENT, openWidget);
+
+    return () => {
+      window.removeEventListener(SUPPORT_WIDGET_OPEN_EVENT, openWidget);
+    };
+  }, []);
+
+  const openWhatsApp = () => {
+    const whatsappUrl = getWhatsAppSupportUrl(
+      "Hello TecoTask support, I need help with my account.",
+    );
 
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
@@ -158,8 +156,7 @@ export default function SupportWidget() {
       return;
     }
 
-    const distanceMoved =
-      event.clientY - dragRef.current.startY;
+    const distanceMoved = event.clientY - dragRef.current.startY;
 
     if (Math.abs(distanceMoved) > 4) {
       dragRef.current.moved = true;
@@ -168,11 +165,10 @@ export default function SupportWidget() {
     const nextTopInPixels = clamp(
       dragRef.current.startTop + distanceMoved,
       55,
-      window.innerHeight - 55
+      window.innerHeight - 55,
     );
 
-    const nextTopPercentage =
-      (nextTopInPixels / window.innerHeight) * 100;
+    const nextTopPercentage = (nextTopInPixels / window.innerHeight) * 100;
 
     setTopPosition(clamp(nextTopPercentage, 10, 90));
   };
@@ -194,7 +190,7 @@ export default function SupportWidget() {
       try {
         window.localStorage.setItem(
           "tecotask-support-position",
-          String(topPosition)
+          String(topPosition),
         );
       } catch {
         // The widget still works if localStorage is unavailable.
@@ -213,7 +209,7 @@ export default function SupportWidget() {
 
   const toggleQuestion = (questionId) => {
     setActiveQuestion((current) =>
-      current === questionId ? null : questionId
+      current === questionId ? null : questionId,
     );
   };
 
@@ -231,17 +227,13 @@ export default function SupportWidget() {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onClick={handleToggle}
-        aria-label={
-  isOpen ? "Close contact support" : "Open contact support"
-}
-aria-expanded={isOpen}
-title="Drag up or down to move the support button"
+        aria-label={isOpen ? "Close contact support" : "Open contact support"}
+        aria-expanded={isOpen}
+        title="Drag up or down to move the support button"
       >
         {isOpen ? <X size={21} /> : <MessageCircle size={22} />}
 
-     <span className="support-widget__toggle-label">
-  Drag up/down
-</span>
+        <span className="support-widget__toggle-label">Drag up/down</span>
       </button>
 
       {isOpen ? (
@@ -253,10 +245,10 @@ title="Drag up or down to move the support button"
 
             <div>
               <h2>Contact support</h2>
-             <p>
-  Find quick answers, or drag the support button up or down if it
-  covers something.
-</p>
+              <p>
+                Find quick answers, or drag the support button up or down if it
+                covers something.
+              </p>
             </div>
 
             <button
@@ -271,10 +263,7 @@ title="Drag up or down to move the support button"
 
           <div className="support-widget__body">
             {FAQ_SECTIONS.map((section) => (
-              <section
-                className="support-widget__section"
-                key={section.id}
-              >
+              <section className="support-widget__section" key={section.id}>
                 <h3>{section.title}</h3>
 
                 <div className="support-widget__questions">
@@ -284,9 +273,7 @@ title="Drag up or down to move the support button"
                     return (
                       <div
                         className={`support-widget__question ${
-                          isActive
-                            ? "support-widget__question--active"
-                            : ""
+                          isActive ? "support-widget__question--active" : ""
                         }`}
                         key={item.id}
                       >
@@ -303,9 +290,7 @@ title="Drag up or down to move the support button"
                           />
                         </button>
 
-                        {isActive ? (
-                          <p>{item.answer}</p>
-                        ) : null}
+                        {isActive ? <p>{item.answer}</p> : null}
                       </div>
                     );
                   })}
@@ -318,9 +303,7 @@ title="Drag up or down to move the support button"
             <div>
               <strong>Still need help?</strong>
 
-              <span>
-                Message our support team directly on WhatsApp.
-              </span>
+              <span>Message our support team directly on WhatsApp.</span>
             </div>
 
             <button
