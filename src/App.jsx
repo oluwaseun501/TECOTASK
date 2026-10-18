@@ -166,7 +166,7 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/admin/accessmeadmin" element={<AdminLogin />} />
         <Route
-          path="/moderator/accessmemoderator"
+          path="/moderator/accessmoderator"
           element={<ModeratorLogin />}
         />
 
