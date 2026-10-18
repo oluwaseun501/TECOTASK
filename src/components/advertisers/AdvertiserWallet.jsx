@@ -231,8 +231,8 @@ const AdvertiserWallet = () => {
 
     const numericAmount = Number(amount);
 
-    if (!Number.isSafeInteger(numericAmount) || numericAmount < 1000) {
-      setPaymentError("Enter a whole amount of at least ₦1,000.");
+    if (!Number.isSafeInteger(numericAmount) || numericAmount < 100) {
+      setPaymentError("Enter a whole amount of at least ₦100.");
       return;
     }
 
