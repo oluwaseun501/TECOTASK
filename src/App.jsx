@@ -40,6 +40,7 @@ import AdvertiserTransactionDetails from "./components/advertisers/AdvertiserTra
 import AdvertiserReferrals from "./components/advertisers/AdvertiserReferrals";
 import AdvertiserSettings from "./components/advertisers/AdvertiserSettings";
 import AdvertiserCreateCampaign from "./components/advertisers/AdvertiserCreateCampaign";
+import AdvertiserPaymentThankYou from "./components/advertisers/AdvertiserPaymentThankYou";
 
 /* Admin workspace */
 import AdminDashboard from "./components/admin/AdminDashboard.jsx";
@@ -163,6 +164,11 @@ const App = () => {
               <Route index element={<AdvertiserCampaigns />} />
               <Route path="campaigns" element={<AdvertiserCampaigns />} />
               <Route path="wallet" element={<AdvertiserWallet />} />
+              <Route
+  path="wallet/thank-you"
+  element={<AdvertiserPaymentThankYou />}
+/>
+<Route path="wallet" element={<AdvertiserWallet />} />
               <Route
                 path="campaigns/new"
                 element={<AdvertiserCreateCampaign />}

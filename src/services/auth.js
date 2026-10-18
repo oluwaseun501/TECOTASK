@@ -293,4 +293,17 @@ requestModeratorWithdrawal: (amount, token) =>
     body: { amount },
     token,
   }),
+
+  startAdvertiserWalletTopUp: (amount, token) =>
+  request("/api/advertiser/wallet/top-ups/initialize", {
+    method: "POST",
+    body: { amount },
+    token,
+  }),
+
+getAdvertiserWalletTopUpStatus: (reference, token) =>
+  request(
+    `/api/advertiser/wallet/top-ups/${encodeURIComponent(reference)}/status`,
+    { token },
+  ),
 };

@@ -605,3 +605,130 @@
     transition: none;
   }
 }
+
+.advertiser-payment-notice {
+  margin: 10px 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.advertiser-payment-notice--pending {
+  background: #eef7ff;
+  color: #245b89;
+}
+
+.advertiser-payment-notice--error {
+  background: #fff1f1;
+  color: #a32626;
+}
+
+.advertiser-fund-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.advertiser-payment-result {
+  display: grid;
+  min-height: 65vh;
+  place-items: center;
+  padding: 32px 18px;
+}
+
+.advertiser-payment-result__card {
+  width: min(100%, 540px);
+  border: 1px solid #e4ece6;
+  border-radius: 18px;
+  background: #fff;
+  padding: 36px 30px;
+  text-align: center;
+  box-shadow: 0 16px 44px rgba(25, 55, 35, 0.08);
+}
+
+.advertiser-payment-result__icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: #eaf8ee;
+  color: #168b43;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.advertiser-payment-result__card--failed .advertiser-payment-result__icon,
+.advertiser-payment-result__card--review .advertiser-payment-result__icon,
+.advertiser-payment-result__card--missing .advertiser-payment-result__icon {
+  background: #fff1f1;
+  color: #b42318;
+}
+
+.advertiser-payment-result__eyebrow {
+  margin: 0 0 8px;
+  color: #168b43;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.advertiser-payment-result__card h1 {
+  margin: 0;
+  color: #18221c;
+  font-size: clamp(22px, 4vw, 30px);
+}
+
+.advertiser-payment-result__message {
+  margin: 14px auto 0;
+  max-width: 420px;
+  color: #65736a;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.advertiser-payment-result__reference {
+  margin: 20px 0 0;
+  color: #77847b;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.advertiser-payment-result__reference code {
+  color: #35443a;
+}
+
+.advertiser-payment-result__redirect {
+  margin: 14px 0 0;
+  color: #168b43;
+  font-size: 12px;
+}
+
+.advertiser-payment-result__button {
+  display: block;
+  margin: 20px auto 0;
+  border: 1px solid #d9e7dd;
+  border-radius: 9px;
+  background: #f5fbf6;
+  padding: 10px 16px;
+  color: #168b43;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.advertiser-payment-result__link {
+  display: inline-block;
+  margin-top: 20px;
+  color: #168b43;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.advertiser-payment-result__link:hover {
+  text-decoration: underline;
+}
