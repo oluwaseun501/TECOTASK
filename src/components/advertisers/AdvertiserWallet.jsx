@@ -401,7 +401,7 @@ const AdvertiserWallet = () => {
               <input
                 id="walletAmount"
                 type="number"
-                min="1000"
+                min="100"
                 step="100"
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
