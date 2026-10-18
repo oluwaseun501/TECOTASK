@@ -386,7 +386,10 @@ const AdvertiserWallet = () => {
                 min="100"
                 step="100"
                 value={amount}
-                onChange={(event) => setAmount(event.target.value)}
+                onChange={(event) => {
+  setAmount(event.target.value);
+  setPaymentError("");
+}}
                 placeholder="Enter amount"
                 disabled={isStartingPayment}
                 required
