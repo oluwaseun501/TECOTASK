@@ -59,12 +59,12 @@ const ForgotPassword = () => {
 
       <section className="forgot-card">
         <div className="forgot-card__brand">
-          <span className="forgot-card__logo">T</span>
-
-          <span className="forgot-card__brand-name">
-            Teco<span>Task</span>
-          </span>
-        </div>
+  <img
+    src="/teco_task-logo.png"
+    alt="TecoTask"
+    className="forgot-card__brand-logo"
+  />
+</div>
 
         {!isSubmitted ? (
           <>

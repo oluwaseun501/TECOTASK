@@ -177,17 +177,17 @@ export default function AdminSidebar({
         )}
       >
         <div className="admin-sidebar-header">
-          <Link
-            to={basePath}
-            className="admin-brand"
-            onClick={closeSidebar}
-          >
-            <span className="admin-brand-mark">T</span>
-
-            <span className="admin-brand-name">
-              Teco<em>Task</em>
-            </span>
-          </Link>
+        <Link
+  to={basePath}
+  className="admin-brand"
+  onClick={closeSidebar}
+>
+  <img
+    src="/teco_task-logo.png"
+    alt="TecoTask"
+    className="admin-brand-logo"
+  />
+</Link>
 
           <button
             type="button"

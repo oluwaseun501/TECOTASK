@@ -25,12 +25,13 @@ const Footer = () => {
         style={{ "--reveal-delay": "0ms" }}
       >
         <div className="site-footer__brand">
-          <Link to="/" className="site-footer__logo">
-            <span className="site-footer__logo-mark">T</span>
-            <span>
-              Teco<span>Task</span>
-            </span>
-          </Link>
+         <Link to="/" className="site-footer__logo">
+  <img
+    src="/teco_task-logo.png"
+    alt="TecoTask"
+    className="site-footer__logo-image"
+  />
+</Link>
 
           <p>
             A simple and trusted platform for completing tasks, earning

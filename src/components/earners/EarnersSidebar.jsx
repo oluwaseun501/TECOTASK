@@ -50,13 +50,20 @@ const EarnersSidebar = ({ user }) => {
 
   return (
     <aside className="earner-sidebar">
-      <Link to="/" className="earner-sidebar__brand">
-        <span className="earner-sidebar__logo">T</span>
-
-        <span className="earner-sidebar__brand-name">
-          Teco<span>Task</span>
-        </span>
-      </Link>
+<Link to="/" className="earner-sidebar__brand">
+  <img
+    src="/teco_task-logo.png"
+    alt="TecoTask"
+    className="earner-sidebar__brand-logo"
+    style={{
+      display: "block",
+      width: "64px",
+      maxWidth: "100%",
+      height: "auto",
+      objectFit: "contain",
+    }}
+  />
+</Link>
 
       <p className="earner-sidebar__label">EARNER WORKSPACE</p>
 
@@ -67,8 +74,8 @@ const EarnersSidebar = ({ user }) => {
             to={item.path}
             end={item.end}
             className={({ isActive }) =>
-  `earner-sidebar__link ${isActive ? "is-active" : ""}`
-}
+              `earner-sidebar__link ${isActive ? "is-active" : ""}`
+            }
           >
             <span className="earner-sidebar__nav-icon">{item.icon}</span>
             <span>{item.label}</span>

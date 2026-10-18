@@ -148,3 +148,11 @@
     gap: 10px;
   }
 }
+
+.site-footer__logo-image {
+  display: block;
+  width: 64px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}

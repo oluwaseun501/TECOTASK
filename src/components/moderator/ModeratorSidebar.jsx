@@ -166,17 +166,17 @@ export default function ModeratorSidebar({
         )}
       >
         <div className="moderator-sidebar-header">
-          <Link
-            to={basePath}
-            className="moderator-brand"
-            onClick={closeSidebar}
-          >
-            <span className="moderator-brand-mark">T</span>
-            <span className="moderator-brand-name">
-              Teco<em>Task</em>
-            </span>
-          </Link>
-
+         <Link
+  to={basePath}
+  className="moderator-brand"
+  onClick={closeSidebar}
+>
+  <img
+    src="/teco_task-logo.png"
+    alt="TecoTask"
+    className="moderator-brand-logo"
+  />
+</Link>
           <button
             type="button"
             className="moderator-mobile-close"

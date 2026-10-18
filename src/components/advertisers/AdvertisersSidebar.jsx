@@ -90,13 +90,20 @@ const AdvertisersSidebar = () => {
   return (
     <aside className="advertiser-sidebar">
       <div>
-        <div className="advertiser-sidebar__brand">
-          <span>T</span>
-          <strong>
-            Teco<span>Task</span>
-          </strong>
-        </div>
-
+ <div className="advertiser-sidebar__brand">
+  <img
+    src="/teco_task-logo.png"
+    alt="TecoTask"
+    className="advertiser-sidebar__brand-logo"
+    style={{
+      display: "block",
+      width: "64px",
+      maxWidth: "100%",
+      height: "auto",
+      objectFit: "contain",
+    }}
+  />
+</div>
         <p className="advertiser-sidebar__workspace">
           Advertiser workspace
         </p>

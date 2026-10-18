@@ -19,11 +19,7 @@ import "../../styles/ModeratorOverview.css";
 const PAGE_LIMIT = 100;
 
 function getStoredValue(key) {
-  return (
-    sessionStorage.getItem(key) ||
-    localStorage.getItem(key) ||
-    ""
-  );
+  return sessionStorage.getItem(key) || localStorage.getItem(key) || "";
 }
 
 function formatMoney(value) {
@@ -49,10 +45,7 @@ function formatRelativeTime(value) {
     return "Time unavailable";
   }
 
-  const minutes = Math.max(
-    0,
-    Math.floor((Date.now() - timestamp) / 60000),
-  );
+  const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
 
   if (minutes < 1) return "Just now";
   if (minutes < 60) return `${minutes} min ago`;
@@ -102,10 +95,7 @@ function normalizeReview(submission) {
   const earner = submission.earner || {};
   const task = submission.task || {};
   const campaign = submission.campaign || {};
-  const name =
-    earner.fullName ||
-    earner.email ||
-    "Unknown earner";
+  const name = earner.fullName || earner.email || "Unknown earner";
 
   const proofUrl = toText(submission.proofUrl).trim();
   const submittedImageUrl = toText(submission.proofImageUrl).trim();
@@ -120,20 +110,13 @@ function normalizeReview(submission) {
     initials: getInitials(name),
     task: task.title || "Untitled task",
     category: formatLabel(task.type),
-    amount: Number(
-      submission.rewardAmount ??
-        task.rewardAmount ??
-        0,
-    ),
+    amount: Number(submission.rewardAmount ?? task.rewardAmount ?? 0),
     reviewRewardAmount: Number(submission.reviewRewardAmount ?? 0),
     submittedAt: formatRelativeTime(
       submission.submittedAt || submission.createdAt,
     ),
     advertiser:
-      task.brand ||
-      campaign.serviceName ||
-      campaign.name ||
-      "Not listed",
+      task.brand || campaign.serviceName || campaign.name || "Not listed",
     campaign: campaign.name || "Not listed",
     platform: campaign.platform || "Not listed",
     taskDescription: toText(task.description),
@@ -152,25 +135,18 @@ function resolveProofUrl(value) {
   }
 
   const apiUrl = (
-    import.meta.env.VITE_API_URL ||
-    "http://localhost:5000"
+    import.meta.env.VITE_API_URL || "http://localhost:5000"
   ).replace(/\/+$/, "");
 
   return `${apiUrl}/${value.replace(/^\/+/, "")}`;
 }
 
 function isImageUrl(value) {
-  return /\.(png|jpe?g|gif|webp|avif)(?:[?#].*)?$/i.test(
-    value || "",
-  );
+  return /\.(png|jpe?g|gif|webp|avif)(?:[?#].*)?$/i.test(value || "");
 }
 
 function Avatar({ initials }) {
-  return (
-    <span className="moderator-review-avatar">
-      {initials}
-    </span>
-  );
+  return <span className="moderator-review-avatar">{initials}</span>;
 }
 
 function SessionCard({
@@ -252,8 +228,7 @@ function ReviewDetails({
     return (
       <section className="moderator-review-panel">
         <div className="moderator-live-state">
-          Select a pending submission to review its proof and task
-          details.
+          Select a pending submission to review its proof and task details.
         </div>
       </section>
     );
@@ -262,25 +237,22 @@ function ReviewDetails({
   const selectedReason = reasons.find(
     (reason) => reason.id === selectedReasonId,
   );
-  const commentRequired =
-    Boolean(selectedReason?.requiresComment);
+  const commentRequired = Boolean(selectedReason?.requiresComment);
   const canSubmitRejection =
     Boolean(selectedReasonId) &&
     (!commentRequired || moderatorComment.trim().length > 0) &&
     !busyAction;
 
   const proofHref = resolveProofUrl(review.proofUrl);
-const proofImageHref =
-  resolveProofUrl(review.proofImageUrl) ||
-  (isImageUrl(review.proofUrl) ? proofHref : "");
+  const proofImageHref =
+    resolveProofUrl(review.proofImageUrl) ||
+    (isImageUrl(review.proofUrl) ? proofHref : "");
 
   return (
     <section className="moderator-review-panel">
       <div className="moderator-review-panel__header">
         <div>
-          <span className="moderator-review-status">
-            Pending review
-          </span>
+          <span className="moderator-review-status">Pending review</span>
 
           <h2>{review.task}</h2>
 
@@ -330,59 +302,59 @@ const proofImageHref =
           <FileImage size={16} />
         </div>
 
-<div
-  className={`moderator-proof-preview ${
-    proofImageHref ? "moderator-proof-preview--image" : ""
-  }`}
->
-  {proofImageHref && (
-    <>
-      <a
-        className="moderator-proof-image-link"
-        href={proofImageHref}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Open submitted screenshot"
-      >
-        <img
-          className="moderator-proof-image"
-          src={proofImageHref}
-          alt={`Screenshot proof for ${review.task}`}
-        />
-      </a>
+        <div
+          className={`moderator-proof-preview ${
+            proofImageHref ? "moderator-proof-preview--image" : ""
+          }`}
+        >
+          {proofImageHref && (
+            <>
+              <a
+                className="moderator-proof-image-link"
+                href={proofImageHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open submitted screenshot"
+              >
+                <img
+                  className="moderator-proof-image"
+                  src={proofImageHref}
+                  alt={`Screenshot proof for ${review.task}`}
+                />
+              </a>
 
-      <a
-        className="moderator-proof-link"
-        href={proofImageHref}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Open screenshot ↗
-      </a>
-    </>
-  )}
+              <a
+                className="moderator-proof-link"
+                href={proofImageHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open screenshot ↗
+              </a>
+            </>
+          )}
 
-  {!proofImageHref && proofHref && <FileImage size={28} />}
+          {!proofImageHref && proofHref && <FileImage size={28} />}
 
-  {proofHref && proofHref !== proofImageHref && (
-    <a
-      className="moderator-proof-link"
-      href={proofHref}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Open proof link ↗
-    </a>
-  )}
+          {proofHref && proofHref !== proofImageHref && (
+            <a
+              className="moderator-proof-link"
+              href={proofHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open proof link ↗
+            </a>
+          )}
 
-  {!proofImageHref && !proofHref && (
-    <>
-      <FileImage size={28} />
-      <strong>No proof file attached</strong>
-      <span>Check the earner’s proof note or task submission.</span>
-    </>
-  )}
-</div>
+          {!proofImageHref && !proofHref && (
+            <>
+              <FileImage size={28} />
+              <strong>No proof file attached</strong>
+              <span>Check the earner’s proof note or task submission.</span>
+            </>
+          )}
+        </div>
 
         {review.proofNote ? (
           <div className="moderator-proof-note">
@@ -403,14 +375,14 @@ const proofImageHref =
 
       <div className="moderator-review-actions">
         <div className="moderator-review-payout">
-  <span>Your reward for this decision</span>
-  <strong>
-    {review.reviewRewardAmount > 0
-      ? formatMoney(review.reviewRewardAmount)
-      : "Not configured"}
-  </strong>
-  <small>Paid for either approval or rejection.</small>
-</div>
+          <span>Your reward for this decision</span>
+          <strong>
+            {review.reviewRewardAmount > 0
+              ? formatMoney(review.reviewRewardAmount)
+              : "Not configured"}
+          </strong>
+          <small>Paid for either approval or rejection.</small>
+        </div>
         <button
           type="button"
           className="moderator-action-button moderator-action-button--approve"
@@ -418,9 +390,7 @@ const proofImageHref =
           onClick={onApprove}
         >
           <CheckCircle2 size={15} />
-          {busyAction === "approve"
-            ? "Approving..."
-            : "Approve submission"}
+          {busyAction === "approve" ? "Approving..." : "Approve submission"}
         </button>
 
         {!rejecting ? (
@@ -435,20 +405,13 @@ const proofImageHref =
           </button>
         ) : null}
 
-        <span>
-          Decisions are recorded against your moderator account.
-        </span>
+        <span>Decisions are recorded against your moderator account.</span>
       </div>
 
       {rejecting ? (
-        <form
-          className="moderator-rejection-form"
-          onSubmit={onReject}
-        >
+        <form className="moderator-rejection-form" onSubmit={onReject}>
           <div className="moderator-rejection-form__field">
-            <label htmlFor="moderator-rejection-reason">
-              Rejection reason
-            </label>
+            <label htmlFor="moderator-rejection-reason">Rejection reason</label>
 
             {reasonsLoading ? (
               <p className="moderator-live-state">
@@ -458,9 +421,7 @@ const proofImageHref =
               <select
                 id="moderator-rejection-reason"
                 value={selectedReasonId}
-                onChange={(event) =>
-                  onReasonChange(event.target.value)
-                }
+                onChange={(event) => onReasonChange(event.target.value)}
                 required
                 disabled={Boolean(busyAction)}
               >
@@ -468,9 +429,7 @@ const proofImageHref =
                 {reasons.map((reason) => (
                   <option key={reason.id} value={reason.id}>
                     {reason.label}
-                    {reason.requiresComment
-                      ? " (comment required)"
-                      : ""}
+                    {reason.requiresComment ? " (comment required)" : ""}
                   </option>
                 ))}
               </select>
@@ -479,8 +438,7 @@ const proofImageHref =
                 className="moderator-live-state moderator-live-state--error"
                 role="alert"
               >
-                {reasonsError ||
-                  "No active rejection reasons are available."}
+                {reasonsError || "No active rejection reasons are available."}
               </p>
             )}
 
@@ -498,9 +456,7 @@ const proofImageHref =
             <textarea
               id="moderator-rejection-comment"
               value={moderatorComment}
-              onChange={(event) =>
-                onCommentChange(event.target.value)
-              }
+              onChange={(event) => onCommentChange(event.target.value)}
               maxLength={2000}
               rows={4}
               placeholder={
@@ -514,10 +470,7 @@ const proofImageHref =
           </div>
 
           {actionError ? (
-            <p
-              className="moderator-action-error"
-              role="alert"
-            >
+            <p className="moderator-action-error" role="alert">
               {actionError}
             </p>
           ) : null}
@@ -529,9 +482,7 @@ const proofImageHref =
               disabled={!canSubmitRejection}
             >
               <XCircle size={15} />
-              {busyAction === "reject"
-                ? "Rejecting..."
-                : "Confirm rejection"}
+              {busyAction === "reject" ? "Rejecting..." : "Confirm rejection"}
             </button>
 
             <button
@@ -569,8 +520,8 @@ function ModerationGuide({ review }) {
         <AlertCircle size={15} />
 
         <p>
-          If the proof is unclear or incomplete, reject the task
-          using the reason that best matches the issue.
+          If the proof is unclear or incomplete, reject the task using the
+          reason that best matches the issue.
         </p>
       </div>
 
@@ -578,13 +529,13 @@ function ModerationGuide({ review }) {
         <h3>Moderator instructions</h3>
 
         <p>
-          Confirm that the submitted proof matches the task
-          instructions and belongs to the selected campaign.
+          Confirm that the submitted proof matches the task instructions and
+          belongs to the selected campaign.
         </p>
 
         <p>
-          Approve only when the proof is clear and the required
-          action is visible.
+          Approve only when the proof is clear and the required action is
+          visible.
         </p>
       </div>
 
@@ -609,18 +560,14 @@ function ModerationGuide({ review }) {
 
       <div className="moderator-guide-status">
         <ShieldCheck size={15} />
-        <span>
-          Review decisions are logged against your moderator account.
-        </span>
+        <span>Review decisions are logged against your moderator account.</span>
       </div>
     </aside>
   );
 }
 
 export default function ModeratorOverview() {
-  const [token] = useState(() =>
-    getStoredValue("tecotaskToken"),
-  );
+  const [token] = useState(() => getStoredValue("tecotaskToken"));
   const [reviews, setReviews] = useState([]);
   const [reasons, setReasons] = useState([]);
   const [selectedId, setSelectedId] = useState("");
@@ -636,11 +583,43 @@ export default function ModeratorOverview() {
   const [rejecting, setRejecting] = useState(false);
   const [selectedReasonId, setSelectedReasonId] = useState("");
   const [moderatorComment, setModeratorComment] = useState("");
-  const [sessionReviewedCount, setSessionReviewedCount] =
-    useState(0);
-  const [sessionEarnings, setSessionEarnings] = useState(0);
+  const [sessionReviewedCount, setSessionReviewedCount] = useState(0);
+  const [availableBalance, setAvailableBalance] = useState(null);
+  const [balanceLoading, setBalanceLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadModeratorBalance() {
+      setBalanceLoading(true);
+
+      try {
+        if (!token) {
+          if (isActive) setAvailableBalance(null);
+          return;
+        }
+
+        const data = await authApi.getModeratorWallet(token);
+        const balance = Number(data.wallet?.availableBalance);
+
+        if (isActive) {
+          setAvailableBalance(Number.isFinite(balance) ? balance : 0);
+        }
+      } catch {
+        if (isActive) setAvailableBalance(null);
+      } finally {
+        if (isActive) setBalanceLoading(false);
+      }
+    }
+
+    loadModeratorBalance();
+
+    return () => {
+      isActive = false;
+    };
+  }, [refreshKey, token]);
 
   useEffect(() => {
     let isActive = true;
@@ -674,15 +653,11 @@ export default function ModeratorOverview() {
         setTotalPending(
           Number(data.totalPending ?? data.pagination?.total ?? 0),
         );
-        setTotalPages(
-          Math.max(1, Number(data.pagination?.totalPages ?? 1)),
-        );
+        setTotalPages(Math.max(1, Number(data.pagination?.totalPages ?? 1)));
       } catch (error) {
         if (!isActive) return;
 
-        setQueueError(
-          error.message || "Could not load the moderator queue.",
-        );
+        setQueueError(error.message || "Could not load the moderator queue.");
       } finally {
         if (isActive) setQueueLoading(false);
       }
@@ -700,9 +675,7 @@ export default function ModeratorOverview() {
 
     async function loadReasons() {
       if (!token) {
-        setReasonsError(
-          "Your moderator session was not found. Sign in again.",
-        );
+        setReasonsError("Your moderator session was not found. Sign in again.");
         setReasonsLoading(false);
         return;
       }
@@ -711,21 +684,15 @@ export default function ModeratorOverview() {
       setReasonsError("");
 
       try {
-        const data =
-          await authApi.getModeratorRejectionReasons(token);
+        const data = await authApi.getModeratorRejectionReasons(token);
 
         if (!isActive) return;
 
-        setReasons(
-          Array.isArray(data.reasons) ? data.reasons : [],
-        );
+        setReasons(Array.isArray(data.reasons) ? data.reasons : []);
       } catch (error) {
         if (!isActive) return;
 
-        setReasonsError(
-          error.message ||
-            "Could not load rejection reasons.",
-        );
+        setReasonsError(error.message || "Could not load rejection reasons.");
       } finally {
         if (isActive) setReasonsLoading(false);
       }
@@ -739,9 +706,7 @@ export default function ModeratorOverview() {
   }, [refreshKey, token]);
 
   useEffect(() => {
-    if (
-      !reviews.some((review) => review.id === selectedId)
-    ) {
+    if (!reviews.some((review) => review.id === selectedId)) {
       setSelectedId(reviews[0]?.id || "");
     }
   }, [reviews, selectedId]);
@@ -768,12 +733,7 @@ export default function ModeratorOverview() {
   }
 
   function recordSuccessfulDecision(data, decision) {
-    const moderatorReward = Number(
-      data.submission?.moderatorRewardAmount ?? 0,
-    );
-
     setSessionReviewedCount((count) => count + 1);
-    setSessionEarnings((amount) => amount + moderatorReward);
     setNotice(
       data.message ||
         (decision === "approved"
@@ -781,10 +741,10 @@ export default function ModeratorOverview() {
           : "Submission rejected."),
     );
 
+    // Keep the rest of your existing function below this.
+
     setReviews((current) =>
-      current.filter(
-        (review) => review.id !== selectedReview?.id,
-      ),
+      current.filter((review) => review.id !== selectedReview?.id),
     );
 
     setSelectedId("");
@@ -819,9 +779,7 @@ export default function ModeratorOverview() {
 
       recordSuccessfulDecision(data, "approved");
     } catch (error) {
-      setActionError(
-        error.message || "Could not approve this submission.",
-      );
+      setActionError(error.message || "Could not approve this submission.");
     } finally {
       setBusyAction("");
     }
@@ -841,13 +799,8 @@ export default function ModeratorOverview() {
       return;
     }
 
-    if (
-      chosenReason.requiresComment &&
-      !moderatorComment.trim()
-    ) {
-      setActionError(
-        "Add a comment for the selected rejection reason.",
-      );
+    if (chosenReason.requiresComment && !moderatorComment.trim()) {
+      setActionError("Add a comment for the selected rejection reason.");
       return;
     }
 
@@ -872,9 +825,7 @@ export default function ModeratorOverview() {
 
       recordSuccessfulDecision(data, "rejected");
     } catch (error) {
-      setActionError(
-        error.message || "Could not reject this submission.",
-      );
+      setActionError(error.message || "Could not reject this submission.");
     } finally {
       setBusyAction("");
     }
@@ -895,9 +846,7 @@ export default function ModeratorOverview() {
 
             <h1>Review queue</h1>
 
-            <p>
-              Review each proof before you approve or reject.
-            </p>
+            <p>Review each proof before you approve or reject.</p>
           </div>
 
           <div className="moderator-queue-header__actions">
@@ -923,9 +872,15 @@ export default function ModeratorOverview() {
 
         <section className="moderator-session-grid">
           <SessionCard
-            label="Moderator earnings"
-            value={formatMoney(sessionEarnings)}
-            description="Rewards from reviews this session"
+            label="Available balance"
+            value={
+              balanceLoading
+                ? "Loading…"
+                : availableBalance === null
+                  ? "Unavailable"
+                  : formatMoney(availableBalance)
+            }
+            description="Available for withdrawal"
             tone="green"
             icon={FileCheck2}
           />
@@ -971,12 +926,15 @@ export default function ModeratorOverview() {
 
             <div className="moderator-pending-list">
               {queueLoading && reviews.length === 0 ? (
-             <div className="moderator-live-state" role="status">
-  <span className="moderator-loading-roller" aria-hidden="true" />
-  <span className="moderator-loading-sr-only">
-    Loading pending submissions
-  </span>
-</div>
+                <div className="moderator-live-state" role="status">
+                  <span
+                    className="moderator-loading-roller"
+                    aria-hidden="true"
+                  />
+                  <span className="moderator-loading-sr-only">
+                    Loading pending submissions
+                  </span>
+                </div>
               ) : queueError && reviews.length === 0 ? (
                 <div
                   className="moderator-live-state moderator-live-state--error"
@@ -994,9 +952,7 @@ export default function ModeratorOverview() {
                     key={review.id}
                     review={review}
                     selected={selectedReview?.id === review.id}
-                    onSelect={() =>
-                      handleSelectReview(review.id)
-                    }
+                    onSelect={() => handleSelectReview(review.id)}
                   />
                 ))
               )}
@@ -1006,11 +962,7 @@ export default function ModeratorOverview() {
               <div className="moderator-pending-pagination">
                 <button
                   type="button"
-                  onClick={() =>
-                    setPage((current) =>
-                      Math.max(1, current - 1),
-                    )
-                  }
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
                   disabled={page <= 1 || queueLoading}
                 >
                   Previous
@@ -1023,9 +975,7 @@ export default function ModeratorOverview() {
                 <button
                   type="button"
                   onClick={() =>
-                    setPage((current) =>
-                      Math.min(totalPages, current + 1),
-                    )
+                    setPage((current) => Math.min(totalPages, current + 1))
                   }
                   disabled={page >= totalPages || queueLoading}
                 >
@@ -1071,11 +1021,7 @@ export default function ModeratorOverview() {
         </section>
 
         {notice ? (
-          <div
-            className="moderator-toast"
-            role="status"
-            aria-live="polite"
-          >
+          <div className="moderator-toast" role="status" aria-live="polite">
             <CheckCircle2 size={15} />
             {notice}
           </div>
