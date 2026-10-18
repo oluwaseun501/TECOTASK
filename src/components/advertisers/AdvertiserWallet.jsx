@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-  useSearchParams,
-} from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authApi } from "../../services/auth.js";
 import "../../styles/AdvertiserWallet.css";
 
@@ -45,8 +41,7 @@ const transactionLabels = {
 
 const getTransactionDisplay = (transaction) => {
   const isCredit = transaction.direction === "credit";
-  const label =
-    transactionLabels[transaction.type] || "Wallet transaction";
+  const label = transactionLabels[transaction.type] || "Wallet transaction";
 
   return {
     title: label,
@@ -100,9 +95,7 @@ const AdvertiserWallet = () => {
         }
       } catch (requestError) {
         if (isMounted) {
-          setError(
-            requestError.message || "Could not load your wallet.",
-          );
+          setError(requestError.message || "Could not load your wallet.");
         }
       } finally {
         if (isMounted) {
@@ -152,11 +145,10 @@ const AdvertiserWallet = () => {
       attempts += 1;
 
       try {
-        const result =
-          await authApi.getAdvertiserWalletTopUpStatus(
-            paymentReference,
-            token,
-          );
+        const result = await authApi.getAdvertiserWalletTopUpStatus(
+          paymentReference,
+          token,
+        );
 
         if (isStopped) return;
 
@@ -164,13 +156,10 @@ const AdvertiserWallet = () => {
 
         if (topUp?.status === "success") {
           setPaymentError("");
-          setPaymentNotice(
-            "Payment confirmed. Your wallet has been funded.",
-          );
+          setPaymentNotice("Payment confirmed. Your wallet has been funded.");
 
           try {
-            const walletData =
-              await authApi.getAdvertiserWallet(token);
+            const walletData = await authApi.getAdvertiserWallet(token);
 
             if (!isStopped) {
               setWallet(walletData.wallet || null);
@@ -223,10 +212,7 @@ const AdvertiserWallet = () => {
         return;
       }
 
-      timeoutId = window.setTimeout(
-        checkPaymentStatus,
-        POLL_INTERVAL_MS,
-      );
+      timeoutId = window.setTimeout(checkPaymentStatus, POLL_INTERVAL_MS);
     }
 
     checkPaymentStatus();
@@ -260,11 +246,10 @@ const AdvertiserWallet = () => {
     setIsStartingPayment(true);
 
     try {
-      const result =
-        await authApi.startAdvertiserWalletTopUp(
-          numericAmount,
-          token,
-        );
+      const result = await authApi.startAdvertiserWalletTopUp(
+        numericAmount,
+        token,
+      );
 
       const checkoutUrl = result.topUp?.checkoutUrl;
 
@@ -292,10 +277,7 @@ const AdvertiserWallet = () => {
           role="status"
           aria-live="polite"
         >
-          <span
-            className="advertiser-wallet__roller"
-            aria-hidden="true"
-          >
+          <span className="advertiser-wallet__roller" aria-hidden="true">
             <span />
           </span>
           <strong>Loading your wallet</strong>
@@ -448,23 +430,19 @@ const AdvertiserWallet = () => {
                 disabled={isStartingPayment || !amount}
               >
                 <span>+</span>
-                {isStartingPayment
-                  ? "Opening KoraPay…"
-                  : "Fund wallet"}
+                {isStartingPayment ? "Opening KoraPay…" : "Fund wallet"}
               </button>
             </form>
           </section>
 
           <section className="advertiser-wallet-protection">
-            <span className="advertiser-wallet-protection__icon">
-              ♡
-            </span>
+            <span className="advertiser-wallet-protection__icon">♡</span>
 
             <div>
               <h2>Secure KoraPay checkout</h2>
               <p>
-                Your payment status is checked securely by TecoTask before
-                funds are added to your wallet.
+                Your payment status is checked securely by TecoTask before funds
+                are added to your wallet.
               </p>
             </div>
           </section>
