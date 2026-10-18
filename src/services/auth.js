@@ -114,6 +114,7 @@ export const authApi = {
   });
 },
 
+
   login: async (details) => {
     // Wake the API first, matching the existing signup flow.
     await requestAuthWithRetry("/api/health");
@@ -124,7 +125,7 @@ export const authApi = {
       body: details,
     });
   },
-  
+
 
 google: (credential) =>
   requestAuthWithRetry("/api/auth/google", {
