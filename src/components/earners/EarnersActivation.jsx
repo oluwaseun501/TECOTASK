@@ -1,41 +1,55 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { authApi } from "../../services/auth.js";
 import "../../styles/EarnersActivation.css";
 
-const paymentMethods = [
-  {
-    id: "card",
-    title: "Debit or credit card",
-    description: "Pay securely with your bank card.",
-    icon: "▣",
-  },
-  {
-    id: "bank",
-    title: "Bank transfer",
-    description: "Transfer ₦1,200 from your bank app.",
-    icon: "↗",
-  },
-  {
-    id: "ussd",
-    title: "USSD",
-    description: "Pay using your bank's USSD code.",
-    icon: "⌁",
-  },
-];
-
-const banks = ["GTBank", "Access Bank", "Opay", "Kuda", "Palmpay"];
+const getAuthToken = () =>
+  sessionStorage.getItem("tecotaskToken") ||
+  localStorage.getItem("tecotaskToken");
 
 const EarnersActivation = () => {
-  const [paymentMethod, setPaymentMethod] = useState("card");
-  const [selectedBank, setSelectedBank] = useState("GTBank");
-  const [paymentStarted, setPaymentStarted] = useState(false);
+  const navigate = useNavigate();
+  const [isStartingPayment, setIsStartingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
-  const handlePayment = (event) => {
+  const handlePayment = async (event) => {
     event.preventDefault();
+    setPaymentError("");
 
-    // Temporary front-end state.
-    // Connect this to your payment provider later.
-    setPaymentStarted(true);
+    const token = getAuthToken();
+
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    setIsStartingPayment(true);
+
+    try {
+      const result = await authApi.startEarnerActivation(token);
+
+      if (result.isActivated) {
+        navigate("/earners", { replace: true });
+        return;
+      }
+
+      const checkoutUrl =
+        result.activationPayment?.checkoutUrl;
+
+      if (!checkoutUrl) {
+        throw new Error(
+          "KoraPay did not return a checkout link. Please try again.",
+        );
+      }
+
+      window.location.assign(checkoutUrl);
+    } catch (error) {
+      setPaymentError(
+        error.message ||
+          "Could not start the activation payment. Please try again.",
+      );
+      setIsStartingPayment(false);
+    }
   };
 
   return (
@@ -90,109 +104,41 @@ const EarnersActivation = () => {
         </div>
 
         <section className="activation-payment-card">
-          {!paymentStarted ? (
-            <>
-              <div className="activation-payment-card__heading">
-                <div>
-                  <span>One-time activation</span>
-                  <h2>Choose how to pay</h2>
-                </div>
-
-                <strong>₦1,200</strong>
-              </div>
-
-              <p className="activation-payment-card__note">
-                This is a one-time account activation fee. It is not a
-                subscription.
-              </p>
-
-              <form onSubmit={handlePayment}>
-                <div className="activation-methods">
-                  {paymentMethods.map((method) => (
-                    <button
-                      type="button"
-                      key={method.id}
-                      className={`activation-method ${
-                        paymentMethod === method.id ? "is-selected" : ""
-                      }`}
-                      onClick={() => setPaymentMethod(method.id)}
-                    >
-                      <span className="activation-method__icon">
-                        {method.icon}
-                      </span>
-
-                      <span className="activation-method__copy">
-                        <strong>{method.title}</strong>
-                        <small>{method.description}</small>
-                      </span>
-
-                      <span className="activation-method__radio">
-                        {paymentMethod === method.id ? "✓" : ""}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                {paymentMethod === "bank" && (
-                  <div className="activation-bank-select">
-                    <label htmlFor="bank">Choose your bank</label>
-
-                    <select
-                      id="bank"
-                      value={selectedBank}
-                      onChange={(event) => setSelectedBank(event.target.value)}
-                    >
-                      {banks.map((bank) => (
-                        <option key={bank} value={bank}>
-                          {bank}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="activation-pay-button"
-                >
-                  Pay ₦1,200 and activate
-                  <span>→</span>
-                </button>
-
-                <small className="activation-secure-note">
-                  Your payment is processed securely. Your account activates
-                  after payment confirmation.
-                </small>
-              </form>
-            </>
-          ) : (
-            <div className="activation-payment-pending">
-              <div className="activation-payment-pending__icon">✓</div>
-
-              <h2>Payment setup is ready</h2>
-
-              <p>
-                The payment provider will be connected here next. Your selected
-                method is{" "}
-                <strong>
-                  {paymentMethod === "bank"
-                    ? `${selectedBank} transfer`
-                    : paymentMethods.find(
-                        (method) => method.id === paymentMethod,
-                      )?.title}
-                </strong>
-                .
-              </p>
-
-              <button
-                type="button"
-                className="activation-pay-button"
-                onClick={() => setPaymentStarted(false)}
-              >
-                Change payment method
-              </button>
+          <div className="activation-payment-card__heading">
+            <div>
+              <span>One-time activation</span>
+              <h2>Pay securely with KoraPay</h2>
             </div>
-          )}
+
+            <strong>₦1,200</strong>
+          </div>
+
+          <p className="activation-payment-card__note">
+            This is a one-time account activation fee, not a subscription.
+            Your account activates after TecoTask verifies the payment.
+          </p>
+
+          <form onSubmit={handlePayment}>
+            {paymentError && (
+              <p role="alert">{paymentError}</p>
+            )}
+
+            <button
+              type="submit"
+              className="activation-pay-button"
+              disabled={isStartingPayment}
+            >
+              {isStartingPayment
+                ? "Opening KoraPay…"
+                : "Pay ₦1,200 and activate"}
+              <span>→</span>
+            </button>
+
+            <small className="activation-secure-note">
+              KoraPay processes the payment. TecoTask confirms it on the
+              server before activating your account.
+            </small>
+          </form>
         </section>
       </section>
     </main>

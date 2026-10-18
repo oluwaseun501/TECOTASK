@@ -306,4 +306,16 @@ getAdvertiserWalletTopUpStatus: (reference, token) =>
     `/api/advertiser/wallet/top-ups/${encodeURIComponent(reference)}/status`,
     { token },
   ),
+
+  startEarnerActivation: (token) =>
+  request("/api/earner/activation/initialize", {
+    method: "POST",
+    token,
+  }),
+
+getEarnerActivationStatus: (reference, token) =>
+  request(
+    `/api/earner/activation/${encodeURIComponent(reference)}/status`,
+    { token },
+  ),
 };
