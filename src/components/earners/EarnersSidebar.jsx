@@ -17,6 +17,12 @@ const navItems = [
     path: "/earners/referrals",
     icon: "♧",
   },
+
+  {
+  label: "Marketplace posts",
+  path: "/earners/marketplace-posts",
+  icon: "▧",
+},
   {
     label: "Settings",
     path: "/earners/settings",

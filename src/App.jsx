@@ -74,6 +74,10 @@ import ModeratorLogin from "./pages/ModeratorLogin";
 
 import SupportWidget from "./components/SupportWidget";
 
+import MarketplacePage from "./pages/MarketplacePage";
+import MarketplacePostManager from "./components/marketplace/MarketplacePostManager";
+import AdminMarketplacePosts from "./components/admin/AdminMarketplacePosts.jsx";
+
 const Home = () => {
   return (
     <>
@@ -191,6 +195,10 @@ const App = () => {
   path="/earners/activate/thank-you"
   element={<EarnerActivationThankYou />}
 />
+<Route
+  path="marketplace-posts"
+  element={<MarketplacePostManager workspaceRole="earner" />}
+/>
               <Route path="referrals" element={<EarnersReferrals />} />
               <Route path="settings" element={<EarnersSettings />} />
             </Route>
@@ -205,6 +213,10 @@ const App = () => {
               <Route
   path="wallet/thank-you"
   element={<AdvertiserPaymentThankYou />}
+/>
+<Route
+  path="marketplace-posts"
+  element={<MarketplacePostManager workspaceRole="advertiser" />}
 />
 <Route path="wallet" element={<AdvertiserWallet />} />
               <Route
@@ -290,6 +302,11 @@ const App = () => {
               />
 
               <Route
+  path="marketplace-posts"
+  element={<AdminMarketplacePosts />}
+/>
+
+              <Route
                 path="campaign-progress"
                 element={<Navigate to="campaigns" replace />}
               />
@@ -309,6 +326,8 @@ const App = () => {
         <Route path="/terms" element={<LegalPage type="terms" />} />
 <Route path="/privacy" element={<LegalPage type="privacy" />} />
 <Route path="/support" element={<SupportRedirect />} />
+<Route path="/marketplace" element={<MarketplacePage />} />
+<Route path="/marketplace/:slug" element={<MarketplacePage />} />
 
         {/* Unknown routes return to landing page */}
         <Route path="*" element={<Navigate to="/" replace />} />

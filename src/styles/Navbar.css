@@ -320,3 +320,7 @@ html {
   height: 48px;
   object-fit: contain;
 }
+
+.navbar__mobile-menu.is-open > a:nth-child(5) {
+  transition-delay: 280ms;
+}

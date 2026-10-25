@@ -24,6 +24,13 @@ const navItems = [
     path: "/earners/wallet",
     icon: "₦",
   },
+
+  {
+  label: "Posts",
+  path: "/earners/marketplace-posts",
+  icon: "✦",
+  primary: true,
+},
   {
     label: "Profile",
     path: "/earners/settings",

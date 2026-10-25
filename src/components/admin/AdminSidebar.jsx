@@ -1,5 +1,6 @@
 import {
   ArrowDownToLine,
+  ClipboardCheck,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -9,6 +10,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import "../../styles/AdminSidebar.css";
@@ -84,6 +86,12 @@ export default function AdminSidebar({
       icon: ShieldAlert,
       to: `${basePath}/moderation`,
     },
+    {
+  key: "marketplace-posts",
+  label: "Marketplace posts",
+  icon: ClipboardCheck,
+  to: `${basePath}/marketplace-posts`,
+},
   ];
 
   const systemItems = [

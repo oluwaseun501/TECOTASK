@@ -24,6 +24,7 @@ const Navbar = () => {
           <div className="navbar__links">
             <a href="#how-it-works">How it works</a>
             <a href="#tasks">Tasks</a>
+            <Link to="/marketplace">Marketplace</Link>
             <a href="#advertisers">For advertisers</a>
             <a href="#faq">FAQ</a>
           </div>
@@ -62,6 +63,10 @@ const Navbar = () => {
           <a href="#tasks" onClick={closeMenu}>
             Tasks
           </a>
+
+          <Link to="/marketplace" onClick={closeMenu}>
+            Marketplace
+          </Link>
 
           <a href="#advertisers" onClick={closeMenu}>
             For advertisers

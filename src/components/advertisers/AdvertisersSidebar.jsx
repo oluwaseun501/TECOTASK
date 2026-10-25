@@ -19,6 +19,11 @@ const advertiserLinks = [
     icon: "♧",
   },
   {
+  label: "Marketplace posts",
+  path: "/advertisers/marketplace-posts",
+  icon: "▧",
+},
+  {
     label: "Settings",
     path: "/advertisers/settings",
     icon: "⚙",

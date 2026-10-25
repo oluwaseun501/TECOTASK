@@ -381,4 +381,81 @@ getEarnerActivationStatus: (reference, token) =>
     `/api/earner/activation/${encodeURIComponent(reference)}/status`,
     { token },
   ),
+
+    getMarketplacePosts: (page = 1, limit = 12) =>
+    request(
+      `/api/marketplace/posts?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`,
+    ),
+
+  getMarketplacePost: (slug) =>
+    request(`/api/marketplace/posts/${encodeURIComponent(slug)}`),
+   
+    createMarketplacePost: (details, token) =>
+    request("/api/marketplace/posts", {
+      method: "POST",
+      body: details,
+      token,
+    }),
+
+  getMyMarketplacePosts: (token) =>
+    request("/api/marketplace/posts/mine", { token }),
+
+  uploadMarketplacePostImage: (postId, file, token, altText = "") => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    if (altText) {
+      formData.append("altText", altText);
+    }
+
+    return request(
+      `/api/marketplace/posts/${encodeURIComponent(postId)}/images`,
+      {
+        method: "POST",
+        body: formData,
+        token,
+        timeoutMs: 60000,
+      },
+    );
+  },
+
+  initializeMarketplacePostPayment: (postId, token) =>
+    request(
+      `/api/marketplace/posts/${encodeURIComponent(postId)}/payment/initialize`,
+      {
+        method: "POST",
+        token,
+      },
+    ),
+
+  getMarketplacePostPaymentStatus: (postId, token) =>
+    request(
+      `/api/marketplace/posts/${encodeURIComponent(postId)}/payment/status`,
+      { token },
+    ),
+
+      getAdminMarketplacePosts: (page = 1, limit = 20, token) =>
+    request(
+      `/api/admin/marketplace/posts?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`,
+      { token },
+    ),
+
+  approveMarketplacePost: (postId, token) =>
+    request(
+      `/api/admin/marketplace/posts/${encodeURIComponent(postId)}/approve`,
+      {
+        method: "PATCH",
+        token,
+      },
+    ),
+
+  rejectMarketplacePost: (postId, rejectionReason, token) =>
+    request(
+      `/api/admin/marketplace/posts/${encodeURIComponent(postId)}/reject`,
+      {
+        method: "PATCH",
+        body: { rejectionReason },
+        token,
+      },
+    ),
 };

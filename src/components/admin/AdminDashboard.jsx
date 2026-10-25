@@ -22,7 +22,9 @@ function getPageTitle(pathname, search) {
   if (pathname === "/admin") {
     return "Overview";
   }
-
+  if (pathname.startsWith("/admin/marketplace-posts")) {
+    return "Marketplace posts";
+  }
   if (pathname.startsWith("/admin/users")) {
     if (search.includes("role=earner")) return "Earners";
     if (search.includes("role=advertiser")) return "Advertisers";
