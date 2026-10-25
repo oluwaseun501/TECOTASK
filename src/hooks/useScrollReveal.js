@@ -19,11 +19,12 @@ const useScrollReveal = ({
     }
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        // Important: do not unobserve here.
-        // This allows the animation to replay when scrolling up.
-        setIsVisible(entry.isIntersecting);
-      },
+     ([entry]) => {
+  if (!entry.isIntersecting) return;
+
+  setIsVisible(true);
+  observer.unobserve(entry.target);
+},
       {
         threshold,
         rootMargin,

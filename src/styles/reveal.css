@@ -1,19 +1,14 @@
 .reveal-item {
   opacity: 0;
-  transform: translateY(48px) scale(0.985);
-  filter: blur(3px);
+  transform: translateY(10px);
   transition:
-    opacity 1000ms ease,
-    transform 1000ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 1000ms ease;
-  transition-delay: 0ms;
+    opacity 360ms ease,
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal-section.is-visible .reveal-item {
   opacity: 1;
-  transform: translateY(0) scale(1);
-  filter: blur(0);
-  transition-delay: var(--reveal-delay, 0ms);
+  transform: translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -21,7 +16,6 @@
   .reveal-section.is-visible .reveal-item {
     opacity: 1;
     transform: none;
-    filter: none;
     transition: none;
   }
 }

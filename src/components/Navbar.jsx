@@ -1,12 +1,29 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "../styles/Navbar.css";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname } = useLocation();
 
   const closeMenu = () => {
     setMenuOpen(false);
+  };
+
+  const sectionLink = (id, label, onClick) => {
+    if (pathname === "/") {
+      return (
+        <a href={`#${id}`} onClick={onClick}>
+          {label}
+        </a>
+      );
+    }
+
+    return (
+      <Link to={`/#${id}`} onClick={onClick}>
+        {label}
+      </Link>
+    );
   };
 
   return (
@@ -22,11 +39,11 @@ const Navbar = () => {
           </Link>
 
           <div className="navbar__links">
-            <a href="#how-it-works">How it works</a>
-            <a href="#tasks">Tasks</a>
+            {sectionLink("how-it-works", "How it works")}
+            {sectionLink("tasks", "Tasks")}
             <Link to="/marketplace">Marketplace</Link>
-            <a href="#advertisers">For advertisers</a>
-            <a href="#faq">FAQ</a>
+            {sectionLink("advertisers", "For advertisers")}
+            {sectionLink("faq", "FAQ")}
           </div>
 
           <div className="navbar__actions">
@@ -56,25 +73,13 @@ const Navbar = () => {
           className={`navbar__mobile-menu ${menuOpen ? "is-open" : ""}`}
           aria-hidden={!menuOpen}
         >
-          <a href="#how-it-works" onClick={closeMenu}>
-            How it works
-          </a>
-
-          <a href="#tasks" onClick={closeMenu}>
-            Tasks
-          </a>
-
+          {sectionLink("how-it-works", "How it works", closeMenu)}
+          {sectionLink("tasks", "Tasks", closeMenu)}
           <Link to="/marketplace" onClick={closeMenu}>
             Marketplace
           </Link>
-
-          <a href="#advertisers" onClick={closeMenu}>
-            For advertisers
-          </a>
-
-          <a href="#faq" onClick={closeMenu}>
-            FAQ
-          </a>
+          {sectionLink("advertisers", "For advertisers", closeMenu)}
+          {sectionLink("faq", "FAQ", closeMenu)}
 
           <div className="navbar__mobile-actions">
             <Link to="/login" onClick={closeMenu}>

@@ -46,34 +46,32 @@ const Hero = ({ imageSrc = "/hero-earner.jpg" }) => {
 
       <div className="hero__inner">
         <div className="hero__content">
-          <span className="hero__badge">
-            Paying earners in Nigeria
-          </span>
+    <span className="hero__badge">
+  For Nigerian brands and earners
+</span>
 
-          <h1 className="hero__title">
-            Small tasks. Real
-            <br />
-            naira.
-            <br />
-            <span>Paid the same day.</span>
-          </h1>
+<h1 className="hero__title">
+  Promote your business.
+  <br />
+  <span>Earn by completing tasks.</span>
+</h1>
 
-          <p className="hero__description">
-            TecoTask connects Nigerian brands that need real engagement with
-            everyday people who have spare minutes. Follow, install, survey,
-            submit your proof, and cash out to your bank.
-          </p>
+<p className="hero__description">
+  TecoTask helps Nigerian businesses promote products and social media pages
+  with real people. Earners get paid to complete simple campaign tasks and
+  submit proof.
+</p>
 
-          <div className="hero__actions">
-            <Link to="/signup" className="hero__primary-button">
-  <span className="hero__button-text">Start earning free</span>
-  <span className="hero__button-arrow">→</span>
-</Link>
+<div className="hero__actions">
+  <Link to="/signup" className="hero__primary-button">
+    <span className="hero__button-text">Earn with us</span>
+    <span className="hero__button-arrow">→</span>
+  </Link>
 
-            <a href="#advertisers" className="hero__secondary-button">
-              <span className="hero__button-text">Advertise with us</span>
-            </a>
-          </div>
+  <a href="#advertisers" className="hero__secondary-button">
+    <span className="hero__button-text">Advertise with us</span>
+  </a>
+</div>
 
           <div className="hero__stats">
             <div className="hero__stat">

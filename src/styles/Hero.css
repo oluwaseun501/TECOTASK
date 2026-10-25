@@ -729,3 +729,77 @@
     animation: none;
   }
 }
+
+/* Calmer hero entrance */
+.hero__content,
+.hero__visual {
+  opacity: 0 !important;
+  transform: translateY(10px) !important;
+  transition:
+    opacity 360ms ease,
+    transform 360ms ease !important;
+  animation: none !important;
+}
+
+.hero--visible .hero__content,
+.hero--visible .hero__visual {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  transition-delay: 0ms !important;
+  animation: none !important;
+}
+
+.hero__content > * {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+.hero__image-frame {
+  transform: none !important;
+  animation: none !important;
+  transition:
+    transform 250ms ease,
+    box-shadow 250ms ease !important;
+}
+
+.hero__image-frame:hover {
+  transform: translateY(-3px) !important;
+}
+
+.hero__proof-card,
+.hero__balance-card {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.hero__bubble {
+  opacity: 0.18 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.hero__glow {
+  opacity: 0.7 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__content,
+  .hero__visual {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .hero__image-frame:hover {
+    transform: none !important;
+  }
+
+  .hero__bubble {
+    display: none;
+  }
+}

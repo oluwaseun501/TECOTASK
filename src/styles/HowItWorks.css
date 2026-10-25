@@ -175,3 +175,47 @@
     transition: none;
   }
 }
+
+/* Faster, subtler How It Works reveal */
+.how-it-works__heading,
+.how-it-works__step {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 320ms ease,
+    transform 320ms ease;
+}
+
+.how-it-works__step {
+  animation: none;
+}
+
+.how-it-works.is-visible .how-it-works__heading,
+.how-it-works.is-visible .how-it-works__step {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.how-it-works.is-visible .how-it-works__step {
+  transition-delay: var(--delay, 0ms);
+}
+
+.how-it-works__number {
+  transition:
+    transform 220ms ease,
+    background-color 220ms ease;
+}
+
+.how-it-works__step:hover .how-it-works__number {
+  transform: scale(1.04) rotate(-2deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-it-works__heading,
+  .how-it-works__step {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+}

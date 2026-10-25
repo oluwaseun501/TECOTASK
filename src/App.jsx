@@ -149,10 +149,24 @@ const App = () => {
       );
     }
 
-    window.scrollTo({
-      top: 0,
+ if (location.hash) {
+  const targetId = decodeURIComponent(location.hash.slice(1));
+  const target = document.getElementById(targetId);
+
+  if (target) {
+    target.scrollIntoView({
       behavior: reduceMotion ? "auto" : "smooth",
+      block: "start",
     });
+  } else {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+} else {
+  window.scrollTo({
+    top: 0,
+    behavior: reduceMotion ? "auto" : "smooth",
+  });
+}
 
     return () => animation?.cancel();
   }, [location.pathname]);
