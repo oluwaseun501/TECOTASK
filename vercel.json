@@ -1,8 +1,14 @@
+
+
 {
   "rewrites": [
     {
       "source": "/sitemap.xml",
       "destination": "https://tecotask-backend.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/marketplace/:slug",
+      "destination": "https://tecotask-backend.onrender.com/seo/marketplace/:slug"
     },
     {
       "source": "/(.*)",
