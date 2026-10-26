@@ -21,9 +21,11 @@ const navItems = [
     end: true,
   },
   {
-    label: "Referrals",
-    path: "/advertisers/referrals",
-    icon: "♧",
+    label: "Advertise",
+    ariaLabel: "Advertise your business",
+    path: "/advertisers/marketplace-posts",
+    icon: "▧",
+    end: true,
   },
   {
     label: "Profile",
@@ -41,7 +43,7 @@ const AdvertisersBottomNav = () => {
             key={item.path}
             to={item.path}
             end={item.end}
-            aria-label={item.label}
+            aria-label={item.ariaLabel || item.label}
             className={({ isActive }) =>
               [
                 "advertiser-bottom-nav__item",

@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Share2 } from "lucide-react";
+import {
+  SiFacebook,
+  SiInstagram,
+  SiTiktok,
+  SiWhatsapp,
+  SiX,
+  SiYoutube,
+} from "react-icons/si";
 import { authApi } from "../../services/auth.js";
 import "./MarketplacePostManager.css";
 
@@ -9,12 +18,21 @@ const EMPTY_FORM = {
   title: "",
   description: "",
   category: "",
-  price: "",
   hashtags: "",
-  platform: "instagram",
-  handle: "",
-  profileUrl: "",
+  websiteUrl: "",
+  socialProfiles: {},
 };
+
+const SOCIAL_PLATFORMS = [
+  { id: "instagram", label: "Instagram", Icon: SiInstagram },
+  { id: "tiktok", label: "TikTok", Icon: SiTiktok },
+  { id: "facebook", label: "Facebook", Icon: SiFacebook },
+  { id: "x", label: "X", Icon: SiX },
+  { id: "youtube", label: "YouTube", Icon: SiYoutube },
+  { id: "linkedin", label: "LinkedIn", Icon: Share2 },
+  { id: "whatsapp", label: "WhatsApp", Icon: SiWhatsapp },
+  { id: "other", label: "Other", Icon: Share2 },
+];
 
 const STATUS_LABELS = {
   draft: "Draft",
@@ -24,16 +42,6 @@ const STATUS_LABELS = {
   rejected: "Rejected",
 };
 
-function formatPrice(price, currency = "NGN") {
-  if (price == null) return "Price not specified";
-
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(price);
-}
-
 export default function MarketplacePostManager({
   workspaceRole = "earner",
 }) {
@@ -41,6 +49,7 @@ export default function MarketplacePostManager({
   const navigate = useNavigate();
 
   const [form, setForm] = useState(EMPTY_FORM);
+  const [selectedSocials, setSelectedSocials] = useState([]);
   const [selectedImages, setSelectedImages] = useState([]);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -152,6 +161,27 @@ export default function MarketplacePostManager({
     setForm((current) => ({ ...current, [name]: value }));
   }
 
+  function toggleSocialPlatform(platform) {
+    setSelectedSocials((current) =>
+      current.includes(platform)
+        ? current.filter((item) => item !== platform)
+        : [...current, platform],
+    );
+  }
+
+  function updateSocialProfile(platform, field, value) {
+    setForm((current) => ({
+      ...current,
+      socialProfiles: {
+        ...current.socialProfiles,
+        [platform]: {
+          ...current.socialProfiles[platform],
+          [field]: value,
+        },
+      },
+    }));
+  }
+
   function handleImageSelection(event) {
     const files = Array.from(event.target.files || []);
     setSelectedImages(files.slice(0, MAX_IMAGES));
@@ -179,33 +209,30 @@ export default function MarketplacePostManager({
       return;
     }
 
-    if (!form.platform || (!form.handle.trim() && !form.profileUrl.trim())) {
-      setError("Choose a social platform and enter a handle or profile link.");
-      return;
-    }
+    const socialProfiles = selectedSocials
+      .map((platform) => {
+        const profile = form.socialProfiles[platform] || {};
 
-    if (
-      form.price &&
-      (!Number.isSafeInteger(Number(form.price)) || Number(form.price) < 0)
-    ) {
-      setError("Enter the price as a whole number of naira.");
-      return;
-    }
+        return {
+          platform,
+          handle: profile.handle?.trim() || "",
+          url: profile.url?.trim() || "",
+        };
+      })
+      .filter((profile) => profile.handle || profile.url);
 
     const details = {
       title: form.title.trim(),
       description: form.description.trim(),
       category: form.category.trim(),
-      price: form.price === "" ? null : Number(form.price),
+      websiteUrl: form.websiteUrl.trim(),
       hashtags: form.hashtags
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
-      socialProfile: {
-        platform: form.platform,
-        handle: form.handle.trim(),
-        url: form.profileUrl.trim(),
-      },
+      socialProfiles,
+      // Keeps compatibility with the previous single-profile API field.
+      socialProfile: socialProfiles[0] || null,
     };
 
     let createdPost = null;
@@ -220,12 +247,16 @@ export default function MarketplacePostManager({
       }
 
       setForm(EMPTY_FORM);
+      setSelectedSocials([]);
       setSelectedImages([]);
-      setNotice("Draft created. Pay the posting fee to send it for admin review.");
+      setNotice(
+        "Draft created. Pay the posting fee to send it for admin review.",
+      );
       await loadPosts();
     } catch (requestError) {
       if (createdPost) {
         setForm(EMPTY_FORM);
+        setSelectedSocials([]);
         setSelectedImages([]);
         setNotice(
           "Your draft was created, but an image did not upload. Add the remaining image(s) from the draft below.",
@@ -283,7 +314,9 @@ export default function MarketplacePostManager({
     }
 
     if (!post.images?.length) {
-      setError("Add at least one image before submitting this post for payment.");
+      setError(
+        "Add at least one image before submitting this post for payment.",
+      );
       return;
     }
 
@@ -357,11 +390,11 @@ export default function MarketplacePostManager({
             {roleName} workspace
           </span>
 
-          <h1>Your Marketplace posts</h1>
+          <h1>Put your business in the spotlight</h1>
 
           <p>
-            Create a post, add its image and social profile, then submit it for
-            payment and review.
+            Help new customers discover what you offer. Create a post with
+            photos, and add your website or social links if you want.
           </p>
         </div>
 
@@ -399,24 +432,36 @@ export default function MarketplacePostManager({
           <div className="marketplace-manager__section-heading">
             <div>
               <span className="marketplace-manager__step">NEW POST</span>
-              <h2>Create a Marketplace post</h2>
+              <h2>Create your business post</h2>
+              <p className="marketplace-manager__section-description">
+                Share what makes your product or service worth discovering.
+              </p>
             </div>
           </div>
 
+          <div className="marketplace-manager__quick-guide">
+            <strong>Quick guide</strong>
+            <p>
+              Add a clear title and description, upload 1–5 photos, then create
+              your draft. You can submit it for review after paying the posting
+              fee.
+            </p>
+          </div>
+
           <label className="marketplace-manager__field">
-            <span>Title</span>
+            <span>Post title</span>
             <input
               name="title"
               value={form.title}
               onChange={updateForm}
               maxLength={120}
               required
-              placeholder="Give your post a clear title"
+              placeholder="e.g. Handmade skincare made with natural ingredients"
             />
           </label>
 
           <label className="marketplace-manager__field">
-            <span>Description</span>
+            <span>Tell customers about your business</span>
             <textarea
               name="description"
               value={form.description}
@@ -424,89 +469,147 @@ export default function MarketplacePostManager({
               maxLength={5000}
               rows={5}
               required
-              placeholder="Describe what your post is about"
+              placeholder="What do you offer? What makes it special? Help customers understand why they’ll love it."
             />
           </label>
 
-          <div className="marketplace-manager__two-columns">
-            <label className="marketplace-manager__field">
-              <span>Category</span>
-              <input
-                name="category"
-                value={form.category}
-                onChange={updateForm}
-                maxLength={80}
-                placeholder="e.g. Social media"
-              />
-            </label>
-
-            <label className="marketplace-manager__field">
-              <span>Price in naira (optional)</span>
-              <input
-                name="price"
-                type="number"
-                min="0"
-                step="1"
-                value={form.price}
-                onChange={updateForm}
-                placeholder="e.g. 5000"
-              />
-            </label>
-          </div>
+          <label className="marketplace-manager__field">
+            <span>Category <em>(optional)</em></span>
+            <input
+              name="category"
+              value={form.category}
+              onChange={updateForm}
+              maxLength={80}
+              placeholder="e.g. Fashion, food, beauty, home"
+            />
+          </label>
 
           <label className="marketplace-manager__field">
-            <span>Hashtags (comma-separated, optional)</span>
+            <span>Hashtags <em>(optional)</em></span>
             <input
               name="hashtags"
               value={form.hashtags}
               onChange={updateForm}
-              placeholder="design, writing, social"
+              placeholder="Add keywords separated by commas"
             />
           </label>
-
-          <div className="marketplace-manager__two-columns">
-            <label className="marketplace-manager__field">
-              <span>Social platform</span>
-              <select
-                name="platform"
-                value={form.platform}
-                onChange={updateForm}
-                required
-              >
-                <option value="instagram">Instagram</option>
-                <option value="tiktok">TikTok</option>
-                <option value="facebook">Facebook</option>
-                <option value="x">X</option>
-                <option value="youtube">YouTube</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-
-            <label className="marketplace-manager__field">
-              <span>Handle</span>
-              <input
-                name="handle"
-                value={form.handle}
-                onChange={updateForm}
-                maxLength={100}
-                placeholder="@yourhandle"
-              />
-            </label>
-          </div>
 
           <label className="marketplace-manager__field">
-            <span>Social profile URL (optional)</span>
+            <span>Website <em>(optional)</em></span>
             <input
-              name="profileUrl"
+              name="websiteUrl"
               type="url"
-              value={form.profileUrl}
+              value={form.websiteUrl}
               onChange={updateForm}
               maxLength={500}
-              placeholder="https://..."
+              placeholder="https://yourbusiness.com"
             />
           </label>
+
+          <div className="marketplace-manager__social-section">
+            <div className="marketplace-manager__social-heading">
+              <div>
+                <strong>Social media <em>(optional)</em></strong>
+                <p>Select any platforms you’d like customers to find you on.</p>
+              </div>
+              <span>Optional</span>
+            </div>
+
+            <div className="marketplace-manager__social-picker">
+              {SOCIAL_PLATFORMS.map((platform) => {
+                const isSelected = selectedSocials.includes(platform.id);
+                const Icon = platform.Icon;
+
+                return (
+                  <button
+                    key={platform.id}
+                    type="button"
+                    className={`marketplace-manager__social-option${
+                      isSelected ? " is-selected" : ""
+                    }`}
+                    aria-pressed={isSelected}
+                    onClick={() => toggleSocialPlatform(platform.id)}
+                  >
+                    <span
+                      className="marketplace-manager__social-mark"
+                      aria-hidden="true"
+                    >
+                      <Icon size={16} />
+                    </span>
+                    <span>{platform.label}</span>
+                    <span
+                      className="marketplace-manager__social-check"
+                      aria-hidden="true"
+                    >
+                      {isSelected ? "✓" : "+"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {selectedSocials.length > 0 && (
+              <div className="marketplace-manager__social-inputs">
+                {selectedSocials.map((platformId) => {
+                  const platform = SOCIAL_PLATFORMS.find(
+                    (item) => item.id === platformId,
+                  );
+                  const Icon = platform.Icon;
+                  const profile = form.socialProfiles[platformId] || {};
+
+                  return (
+                    <div
+                      className="marketplace-manager__social-card"
+                      key={platformId}
+                    >
+                      <div className="marketplace-manager__social-card-title">
+                        <span
+                          className="marketplace-manager__social-mark"
+                          aria-hidden="true"
+                        >
+                          <Icon size={16} />
+                        </span>
+                        <strong>{platform.label}</strong>
+                      </div>
+
+                      <label className="marketplace-manager__field">
+                        <span>Handle <em>(optional)</em></span>
+                        <input
+                          value={profile.handle || ""}
+                          onChange={(event) =>
+                            updateSocialProfile(
+                              platformId,
+                              "handle",
+                              event.target.value,
+                            )
+                          }
+                          maxLength={100}
+                          placeholder="@yourhandle"
+                        />
+                      </label>
+
+                      <label className="marketplace-manager__field">
+                        <span>Profile link <em>(optional)</em></span>
+                        <input
+                          type="url"
+                          value={profile.url || ""}
+                          onChange={(event) =>
+                            updateSocialProfile(
+                              platformId,
+                              "url",
+                              event.target.value,
+                            )
+                          }
+                          maxLength={500}
+                          placeholder="https://..."
+                        />
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           <label className="marketplace-manager__field">
             <span>Post images (1–5)</span>
@@ -597,10 +700,7 @@ export default function MarketplacePostManager({
 
                         <h3>{post.title}</h3>
 
-                        <p>
-                          {post.category || "Marketplace"} ·{" "}
-                          {formatPrice(post.price, post.currency)}
-                        </p>
+                        <p>{post.category || "Marketplace"}</p>
 
                         <small>
                           {imageCount} of {MAX_IMAGES} images

@@ -487,3 +487,368 @@
     transition: none;
   }
 }
+
+.marketplace-manager__section-description {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.marketplace-manager__quick-guide {
+  margin: -4px 0 22px;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f0fdf4, #f8fff9);
+  padding: 15px 17px;
+}
+
+.marketplace-manager__quick-guide strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #166534;
+  font-size: 12px;
+}
+
+.marketplace-manager__quick-guide p,
+.marketplace-manager__social-heading p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.marketplace-manager__quick-guide p {
+  color: #476154;
+  font-size: 12px;
+}
+
+.marketplace-manager__field > span em,
+.marketplace-manager__social-heading em {
+  color: #94a3b8;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.marketplace-manager__field textarea {
+  min-height: 176px;
+  line-height: 1.65;
+}
+
+.marketplace-manager__social-section {
+  margin: 4px 0 20px;
+  border: 1px solid #e5ece7;
+  border-radius: 13px;
+  background: #fbfdfb;
+  padding: 16px;
+}
+
+.marketplace-manager__social-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.marketplace-manager__social-heading strong {
+  color: #334155;
+  font-size: 13px;
+}
+
+.marketplace-manager__social-heading > span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #f1f5f9;
+  padding: 5px 8px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.marketplace-manager__social-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.marketplace-manager__social-option {
+  display: flex;
+  min-width: 0;
+  min-height: 42px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #fff;
+  padding: 6px 8px;
+  color: #475569;
+  cursor: pointer;
+  font: 500 10px "Poppins", sans-serif;
+  text-align: left;
+}
+
+.marketplace-manager__social-option.is-selected {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.marketplace-manager__social-mark {
+  display: inline-grid;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  place-items: center;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.marketplace-manager__social-mark svg {
+  width: 16px;
+  height: 16px;
+}
+
+.marketplace-manager__social-option.is-selected
+  .marketplace-manager__social-mark {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.marketplace-manager__social-check {
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.marketplace-manager__social-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 13px;
+}
+
+.marketplace-manager__social-card {
+  min-width: 0;
+  border: 1px solid #e5ece7;
+  border-radius: 10px;
+  background: #fff;
+  padding: 12px;
+}
+
+.marketplace-manager__social-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #334155;
+  font-size: 12px;
+}
+
+.marketplace-manager__social-card .marketplace-manager__field {
+  margin-bottom: 11px;
+}
+
+.marketplace-manager__social-card .marketplace-manager__field:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 950px) {
+  .marketplace-manager__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .marketplace-manager__social-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .marketplace-manager__social-inputs {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Match the dashboard's gentle entrance glide */
+@keyframes marketplace-manager-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .marketplace-manager {
+    animation: marketplace-manager-enter 420ms
+      cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .marketplace-manager__post {
+    transition:
+      transform 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .marketplace-manager__post:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marketplace-manager {
+    animation: none;
+  }
+
+  .marketplace-manager__post {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* More readable typography, keeping the existing Poppins and green palette */
+.marketplace-manager__header h1 {
+  font-size: clamp(28px, 3.2vw, 36px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.marketplace-manager__header p {
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.marketplace-manager__eyebrow,
+.marketplace-manager__step {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.marketplace-manager__section-heading h2 {
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.marketplace-manager__section-description,
+.marketplace-manager__quick-guide p {
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.marketplace-manager__quick-guide strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.marketplace-manager__field > span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.marketplace-manager__field input,
+.marketplace-manager__field textarea,
+.marketplace-manager__field select {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.marketplace-manager__field small,
+.marketplace-manager__fine-print {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.marketplace-manager__social-heading strong,
+.marketplace-manager__social-card-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.marketplace-manager__social-heading p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.marketplace-manager__social-option {
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.marketplace-manager__primary-button,
+.marketplace-manager__secondary-button,
+.marketplace-manager__refresh,
+.marketplace-manager__upload-button,
+.marketplace-manager__secondary-link {
+  font-size: 13px;
+}
+
+.marketplace-manager__primary-button--small {
+  font-size: 12px;
+}
+
+.marketplace-manager__status {
+  font-size: 11px;
+}
+
+.marketplace-manager__post-info h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.marketplace-manager__post-info p {
+  font-size: 12px;
+}
+
+.marketplace-manager__post-info small {
+  font-size: 11px;
+}
+
+.marketplace-manager__empty {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.marketplace-manager__alert {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Keep form text comfortable on mobile */
+@media (max-width: 600px) {
+  .marketplace-manager__field input,
+  .marketplace-manager__field textarea,
+  .marketplace-manager__field select {
+    font-size: 16px;
+  }
+}
+
+.marketplace-manager {
+  padding-top: 26px;
+}
+
+.marketplace-manager__header h1 {
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.25;
+}
+
+@media (max-width: 600px) {
+  .marketplace-manager {
+    padding-top: 22px;
+  }
+
+  .marketplace-manager__header h1 {
+    font-size: clamp(24px, 7vw, 30px);
+  }
+}

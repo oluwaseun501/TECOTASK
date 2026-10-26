@@ -18,8 +18,8 @@ const advertiserLinks = [
     path: "/advertisers/referrals",
     icon: "♧",
   },
-  {
-  label: "Marketplace posts",
+{
+  label: "Advertise your business",
   path: "/advertisers/marketplace-posts",
   icon: "▧",
 },

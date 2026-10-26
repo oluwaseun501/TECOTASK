@@ -8,11 +8,6 @@ const navItems = [
     end: true,
   },
   {
-    label: "Referrals",
-    path: "/earners/referrals",
-    icon: "♧",
-  },
-  {
     label: "Earn",
     path: "/earners",
     icon: "↗",
@@ -24,13 +19,12 @@ const navItems = [
     path: "/earners/wallet",
     icon: "₦",
   },
-
   {
-  label: "Posts",
-  path: "/earners/marketplace-posts",
-  icon: "✦",
-  primary: true,
-},
+    label: "Advertise",
+    ariaLabel: "Advertise your business",
+    path: "/earners/marketplace-posts",
+    icon: "▧",
+  },
   {
     label: "Profile",
     path: "/earners/settings",
@@ -44,10 +38,10 @@ const EarnersBottomNav = () => {
       <div className="earner-bottom-nav__inner">
         {navItems.map((item) => (
           <NavLink
-            key={item.label}
+            key={item.path + item.label}
             to={item.path}
             end={item.end}
-            aria-label={item.label}
+            aria-label={item.ariaLabel || item.label}
             className={({ isActive }) =>
               [
                 "earner-bottom-nav__item",

@@ -925,3 +925,149 @@
     justify-content: flex-start;
   }
 }
+
+/* Consistent Poppins typography and a clearer campaign form hierarchy */
+.advertiser-create-campaign {
+  font-family: "Poppins", sans-serif;
+  color: #0f172a;
+}
+
+.advertiser-create-campaign__back {
+  font-size: 12px;
+}
+
+.advertiser-create-campaign__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.advertiser-create-campaign h1 {
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.advertiser-create-campaign__top p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.advertiser-campaign-step {
+  font-size: 12px;
+}
+
+.advertiser-campaign-step span {
+  font-size: 11px;
+}
+
+.advertiser-campaign-form__heading h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.advertiser-campaign-form__heading p {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.advertiser-form-field label,
+.advertiser-form-label-row label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.advertiser-form-field input,
+.advertiser-form-field select,
+.advertiser-form-field textarea {
+  font-family: "Poppins", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.advertiser-form-field input::placeholder,
+.advertiser-form-field textarea::placeholder {
+  color: #94a3b8;
+}
+
+.advertiser-form-field > small,
+.advertiser-form-label-row > span {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.advertiser-instruction-number {
+  font-size: 12px;
+}
+
+.advertiser-add-instruction {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.advertiser-review-card h3,
+.advertiser-publish-info h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.advertiser-review-card__heading span,
+.advertiser-review-list dt,
+.advertiser-review-list dd,
+.advertiser-publish-info p {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.advertiser-create-campaign__message {
+  font-size: 13px;
+}
+
+.advertiser-campaign-secondary-button,
+.advertiser-campaign-primary-button {
+  font: 600 13px "Poppins", sans-serif;
+}
+
+.advertiser-campaign-cost-card > span {
+  font-size: 11px;
+}
+
+.advertiser-campaign-cost-card > strong {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.advertiser-campaign-cost-line span,
+.advertiser-campaign-cost-line strong,
+.advertiser-campaign-cost-card > p {
+  font-size: 12px;
+}
+
+.advertiser-guide-image__copy strong {
+  font-size: 13px;
+}
+
+.advertiser-guide-image__copy span,
+.advertiser-guide-image__copy small {
+  font-size: 12px;
+}
+
+.advertiser-guide-image__choose,
+.advertiser-guide-image__remove {
+  font: 600 12px "Poppins", sans-serif;
+}
+
+@media (max-width: 650px) {
+  .advertiser-create-campaign h1 {
+    font-size: clamp(24px, 7vw, 28px);
+  }
+
+  .advertiser-form-field input,
+  .advertiser-form-field select,
+  .advertiser-form-field textarea {
+    font-size: 16px;
+  }
+}

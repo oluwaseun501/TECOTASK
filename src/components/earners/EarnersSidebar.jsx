@@ -19,7 +19,7 @@ const navItems = [
   },
 
   {
-  label: "Marketplace posts",
+  label: "Advertise your business",
   path: "/earners/marketplace-posts",
   icon: "▧",
 },
