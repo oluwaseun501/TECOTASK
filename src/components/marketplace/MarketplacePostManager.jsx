@@ -12,6 +12,7 @@ import {
 import { authApi } from "../../services/auth.js";
 import "./MarketplacePostManager.css";
 
+
 const MAX_IMAGES = 5;
 const MARKETPLACE_POSTING_FEE = 1000;
 
