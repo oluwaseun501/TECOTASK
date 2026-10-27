@@ -852,3 +852,125 @@
     font-size: clamp(24px, 7vw, 30px);
   }
 }
+
+.marketplace-manager__post-fee {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  border-radius: 8px;
+  background: #f0fdf4;
+  padding: 10px 12px;
+  color: #166534;
+  font-size: 12px;
+}
+
+.marketplace-manager__post-fee strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .marketplace-manager {
+    padding-top: 18px;
+    padding-inline: 12px;
+  }
+
+  .marketplace-manager__header {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .marketplace-manager__header h1 {
+    font-size: 22px;
+    line-height: 1.25;
+    letter-spacing: -0.035em;
+  }
+
+  .marketplace-manager__header p {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .marketplace-manager__form,
+  .marketplace-manager__posts {
+    padding: 15px;
+  }
+
+  .marketplace-manager__section-heading h2 {
+    font-size: 17px;
+    line-height: 1.35;
+  }
+
+  .marketplace-manager__section-description,
+  .marketplace-manager__quick-guide p {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .marketplace-manager__quick-guide {
+    margin-bottom: 18px;
+    padding: 12px 13px;
+  }
+
+  .marketplace-manager__field > span {
+    font-size: 12px;
+  }
+
+  /* Keep fields at 16px to prevent iPhone Safari from zooming on focus. */
+  .marketplace-manager__field input,
+  .marketplace-manager__field textarea,
+  .marketplace-manager__field select {
+    font-size: 16px;
+  }
+
+  .marketplace-manager__field small,
+  .marketplace-manager__fine-print {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .marketplace-manager__social-heading strong,
+  .marketplace-manager__social-card-title {
+    font-size: 12px;
+  }
+
+  .marketplace-manager__social-heading p,
+  .marketplace-manager__social-option {
+    font-size: 11px;
+  }
+
+  .marketplace-manager__social-option {
+    min-height: 38px;
+  }
+
+  .marketplace-manager__primary-button,
+  .marketplace-manager__secondary-button,
+  .marketplace-manager__refresh,
+  .marketplace-manager__upload-button,
+  .marketplace-manager__secondary-link {
+    font-size: 12px;
+  }
+
+  .marketplace-manager__post-info h3 {
+    font-size: 14px;
+  }
+
+  .marketplace-manager__post-info p,
+  .marketplace-manager__post-info small {
+    font-size: 11px;
+  }
+
+  .marketplace-manager__post-fee {
+    font-size: 11px;
+  }
+
+  .marketplace-manager__post-fee strong {
+    font-size: 13px;
+  }
+
+  .marketplace-manager__empty {
+    font-size: 12px;
+  }
+}

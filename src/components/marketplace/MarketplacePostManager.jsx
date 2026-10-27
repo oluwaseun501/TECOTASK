@@ -13,6 +13,7 @@ import { authApi } from "../../services/auth.js";
 import "./MarketplacePostManager.css";
 
 const MAX_IMAGES = 5;
+const MARKETPLACE_POSTING_FEE = 1000;
 
 const EMPTY_FORM = {
   title: "",
@@ -57,6 +58,7 @@ export default function MarketplacePostManager({
   const [busyPostId, setBusyPostId] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [editingPostId, setEditingPostId] = useState("");
 
   const roleName = workspaceRole === "advertiser" ? "Advertiser" : "Earner";
 
@@ -182,6 +184,57 @@ export default function MarketplacePostManager({
     }));
   }
 
+  function startEditingPost(post) {
+    const profiles =
+      Array.isArray(post.socialProfiles) && post.socialProfiles.length > 0
+        ? post.socialProfiles
+        : post.socialProfile?.platform
+          ? [post.socialProfile]
+          : [];
+
+    const editableProfiles = profiles.filter((profile) =>
+      SOCIAL_PLATFORMS.some((item) => item.id === profile.platform),
+    );
+
+    setForm({
+      title: post.title || "",
+      description: post.description || "",
+      category: post.category || "",
+      hashtags: Array.isArray(post.hashtags) ? post.hashtags.join(", ") : "",
+      websiteUrl: post.websiteUrl || "",
+      socialProfiles: editableProfiles.reduce(
+        (result, profile) => ({
+          ...result,
+          [profile.platform]: {
+            handle: profile.handle || "",
+            url: profile.url || "",
+          },
+        }),
+        {},
+      ),
+    });
+
+    setSelectedSocials(editableProfiles.map((profile) => profile.platform));
+    setSelectedImages([]);
+    setEditingPostId(post.id);
+    setError("");
+    setNotice("");
+
+    managerRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
+  function cancelEditingPost() {
+    setForm(EMPTY_FORM);
+    setSelectedSocials([]);
+    setSelectedImages([]);
+    setEditingPostId("");
+    setError("");
+    setNotice("");
+  }
+
   function handleImageSelection(event) {
     const files = Array.from(event.target.files || []);
     setSelectedImages(files.slice(0, MAX_IMAGES));
@@ -204,7 +257,7 @@ export default function MarketplacePostManager({
       return;
     }
 
-    if (selectedImages.length === 0) {
+    if (!editingPostId && selectedImages.length === 0) {
       setError("Add at least one image before creating your post.");
       return;
     }
@@ -231,7 +284,6 @@ export default function MarketplacePostManager({
         .map((tag) => tag.trim())
         .filter(Boolean),
       socialProfiles,
-      // Keeps compatibility with the previous single-profile API field.
       socialProfile: socialProfiles[0] || null,
     };
 
@@ -239,6 +291,18 @@ export default function MarketplacePostManager({
     setSaving(true);
 
     try {
+      if (editingPostId) {
+        await authApi.updateMarketplacePost(editingPostId, details, token);
+
+        setForm(EMPTY_FORM);
+        setSelectedSocials([]);
+        setSelectedImages([]);
+        setEditingPostId("");
+        setNotice("Draft updated.");
+        await loadPosts();
+        return;
+      }
+
       const result = await authApi.createMarketplacePost(details, token);
       createdPost = result.post;
 
@@ -263,7 +327,7 @@ export default function MarketplacePostManager({
         );
         await loadPosts();
       } else {
-        setError(requestError.message || "Could not create the post.");
+        setError(requestError.message || "Could not save the post.");
       }
     } finally {
       setSaving(false);
@@ -431,8 +495,16 @@ export default function MarketplacePostManager({
         >
           <div className="marketplace-manager__section-heading">
             <div>
-              <span className="marketplace-manager__step">NEW POST</span>
-              <h2>Create your business post</h2>
+              <span className="marketplace-manager__step">
+                {editingPostId ? "EDIT DRAFT" : "NEW POST"}
+              </span>
+
+              <h2>
+                {editingPostId
+                  ? "Edit your business post"
+                  : "Create your business post"}
+              </h2>
+
               <p className="marketplace-manager__section-description">
                 Share what makes your product or service worth discovering.
               </p>
@@ -442,9 +514,9 @@ export default function MarketplacePostManager({
           <div className="marketplace-manager__quick-guide">
             <strong>Quick guide</strong>
             <p>
-              Add a clear title and description, upload 1–5 photos, then create
-              your draft. You can submit it for review after paying the posting
-              fee.
+              {editingPostId
+                ? "Update your details and save. Existing images will stay on your draft."
+                : "Add a clear title and description, upload 1–5 photos, then create your draft. The posting fee is ₦1,000."}
             </p>
           </div>
 
@@ -474,7 +546,9 @@ export default function MarketplacePostManager({
           </label>
 
           <label className="marketplace-manager__field">
-            <span>Category <em>(optional)</em></span>
+            <span>
+              Category <em>(optional)</em>
+            </span>
             <input
               name="category"
               value={form.category}
@@ -485,7 +559,9 @@ export default function MarketplacePostManager({
           </label>
 
           <label className="marketplace-manager__field">
-            <span>Hashtags <em>(optional)</em></span>
+            <span>
+              Hashtags <em>(optional)</em>
+            </span>
             <input
               name="hashtags"
               value={form.hashtags}
@@ -495,7 +571,9 @@ export default function MarketplacePostManager({
           </label>
 
           <label className="marketplace-manager__field">
-            <span>Website <em>(optional)</em></span>
+            <span>
+              Website <em>(optional)</em>
+            </span>
             <input
               name="websiteUrl"
               type="url"
@@ -509,7 +587,9 @@ export default function MarketplacePostManager({
           <div className="marketplace-manager__social-section">
             <div className="marketplace-manager__social-heading">
               <div>
-                <strong>Social media <em>(optional)</em></strong>
+                <strong>
+                  Social media <em>(optional)</em>
+                </strong>
                 <p>Select any platforms you’d like customers to find you on.</p>
               </div>
               <span>Optional</span>
@@ -573,7 +653,9 @@ export default function MarketplacePostManager({
                       </div>
 
                       <label className="marketplace-manager__field">
-                        <span>Handle <em>(optional)</em></span>
+                        <span>
+                          Handle <em>(optional)</em>
+                        </span>
                         <input
                           value={profile.handle || ""}
                           onChange={(event) =>
@@ -589,7 +671,9 @@ export default function MarketplacePostManager({
                       </label>
 
                       <label className="marketplace-manager__field">
-                        <span>Profile link <em>(optional)</em></span>
+                        <span>
+                          Profile link <em>(optional)</em>
+                        </span>
                         <input
                           type="url"
                           value={profile.url || ""}
@@ -611,32 +695,56 @@ export default function MarketplacePostManager({
             )}
           </div>
 
-          <label className="marketplace-manager__field">
-            <span>Post images (1–5)</span>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageSelection}
-            />
-            <small>
-              {selectedImages.length
-                ? `${selectedImages.length} image(s) selected`
-                : "Choose at least one image."}
-            </small>
-          </label>
+          {!editingPostId ? (
+            <label className="marketplace-manager__field">
+              <span>Post images (1–5)</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageSelection}
+              />
+              <small>
+                {selectedImages.length
+                  ? `${selectedImages.length} image(s) selected`
+                  : "Choose at least one image."}
+              </small>
+            </label>
+          ) : (
+            <p className="marketplace-manager__fine-print">
+              Existing images stay attached. Use “Add images” on the draft card
+              to add more.
+            </p>
+          )}
 
           <button
             type="submit"
             className="marketplace-manager__primary-button"
             disabled={saving}
           >
-            {saving ? "Saving post…" : "Create draft"}
+            {saving
+              ? editingPostId
+                ? "Saving changes…"
+                : "Saving post…"
+              : editingPostId
+                ? "Save changes"
+                : "Create draft"}
           </button>
 
+          {editingPostId && (
+            <button
+              type="button"
+              className="marketplace-manager__secondary-button"
+              disabled={saving}
+              onClick={cancelEditingPost}
+            >
+              Cancel editing
+            </button>
+          )}
+
           <p className="marketplace-manager__fine-print">
-            The payment fee is set by the server and will be shown in the
-            checkout flow.
+            Posting fee: ₦1,000. You’ll pay this when you submit the draft for
+            review.
           </p>
         </form>
 
@@ -699,7 +807,6 @@ export default function MarketplacePostManager({
                         </span>
 
                         <h3>{post.title}</h3>
-
                         <p>{post.category || "Marketplace"}</p>
 
                         <small>
@@ -715,6 +822,15 @@ export default function MarketplacePostManager({
                       <p className="marketplace-manager__rejection">
                         {post.rejectionReason}
                       </p>
+                    )}
+
+                    {post.status === "draft" && (
+                      <div className="marketplace-manager__post-fee">
+                        <span>Posting fee</span>
+                        <strong>
+                          ₦{MARKETPLACE_POSTING_FEE.toLocaleString("en-NG")}
+                        </strong>
+                      </div>
                     )}
 
                     <div className="marketplace-manager__post-actions">
@@ -733,6 +849,17 @@ export default function MarketplacePostManager({
                             }}
                           />
                         </label>
+                      )}
+
+                      {post.status === "draft" && (
+                        <button
+                          type="button"
+                          className="marketplace-manager__secondary-button"
+                          disabled={isBusy || saving}
+                          onClick={() => startEditingPost(post)}
+                        >
+                          Edit draft
+                        </button>
                       )}
 
                       {post.status === "draft" && (

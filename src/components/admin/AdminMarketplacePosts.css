@@ -412,3 +412,84 @@
     gap: 8px;
   }
 }
+
+@media (max-width: 650px) {
+  .admin-marketplace {
+    width: min(100% - 24px, 1100px);
+    padding-top: 18px;
+  }
+
+  .admin-marketplace__eyebrow {
+    font-size: 10px;
+  }
+
+  .admin-marketplace__header h1 {
+    font-size: 22px;
+    line-height: 1.25;
+  }
+
+  .admin-marketplace__header p,
+  .admin-marketplace__summary,
+  .admin-marketplace__alert {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .admin-marketplace__card-header h2 {
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  .admin-marketplace__category,
+  .admin-marketplace__description {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .admin-marketplace__status,
+  .admin-marketplace__detail-label {
+    font-size: 10px;
+  }
+
+  .admin-marketplace__amount {
+    font-size: 13px;
+  }
+
+  .admin-marketplace__details {
+    gap: 10px;
+  }
+
+  .admin-marketplace__details strong,
+  .admin-marketplace__details small,
+  .admin-marketplace__details a {
+    overflow: visible;
+    font-size: 11px;
+    line-height: 1.5;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-marketplace__tags span {
+    font-size: 10px;
+  }
+
+  .admin-marketplace__refresh,
+  .admin-marketplace__button,
+  .admin-marketplace__pagination button {
+    min-height: 40px;
+    font-size: 12px;
+  }
+
+  .admin-marketplace__pagination {
+    font-size: 12px;
+  }
+
+  .admin-marketplace__reject-form label {
+    font-size: 12px;
+  }
+
+  .admin-marketplace__reject-form textarea {
+    font-size: 16px;
+  }
+}

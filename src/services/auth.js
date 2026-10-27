@@ -397,6 +397,13 @@ getEarnerActivationStatus: (reference, token) =>
       token,
     }),
 
+    updateMarketplacePost: (postId, details, token) =>
+  request(`/api/marketplace/posts/${encodeURIComponent(postId)}`, {
+    method: "PATCH",
+    body: details,
+    token,
+  }),
+
   getMyMarketplacePosts: (token) =>
     request("/api/marketplace/posts/mine", { token }),
 
