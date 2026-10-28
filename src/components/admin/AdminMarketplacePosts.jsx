@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ExternalLink, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Copy, ExternalLink, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "../../services/auth.js";
 import "./AdminMarketplacePosts.css";
 
 const PAGE_SIZE = 20;
+const PUBLIC_SITE_ORIGIN = "https://www.tecotask.com";
+const SEARCH_CONSOLE_INSPECTION_URL =
+  "https://search.google.com/search-console?action=inspect";
 
 function formatPrice(amount, currency = "NGN") {
   if (amount == null) return "Not specified";
@@ -50,6 +53,8 @@ export default function AdminMarketplacePosts() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [publishedUrl, setPublishedUrl] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
 
   const loadQueue = useCallback(async () => {
     const token = sessionStorage.getItem("tecotaskToken");
@@ -81,6 +86,26 @@ export default function AdminMarketplacePosts() {
     void loadQueue();
   }, [loadQueue]);
 
+  async function copyPublishedUrl() {
+    if (!publishedUrl) return;
+
+    try {
+      if (!navigator.clipboard?.writeText) {
+        setCopyStatus(
+          "Clipboard access is unavailable. Select the URL and copy it manually.",
+        );
+        return;
+      }
+
+      await navigator.clipboard.writeText(publishedUrl);
+      setCopyStatus("URL copied.");
+    } catch {
+      setCopyStatus(
+        "Could not copy automatically. Select the URL and copy it manually.",
+      );
+    }
+  }
+
   async function handleApprove(post) {
     const token = sessionStorage.getItem("tecotaskToken");
     const postId = post._id || post.id;
@@ -93,9 +118,22 @@ export default function AdminMarketplacePosts() {
     setBusyPostId(postId);
     setError("");
     setNotice("");
+    setPublishedUrl("");
+    setCopyStatus("");
 
     try {
       const result = await authApi.approveMarketplacePost(postId, token);
+      const slug = result.post?.slug || post.slug;
+
+      if (slug) {
+        setPublishedUrl(
+          new URL(
+            "/marketplace/" + encodeURIComponent(slug),
+            PUBLIC_SITE_ORIGIN,
+          ).href,
+        );
+      }
+
       setNotice(result.message || "Post approved and published.");
       setRejectingPostId("");
       await loadQueue();
@@ -131,6 +169,8 @@ export default function AdminMarketplacePosts() {
     setBusyPostId(postId);
     setError("");
     setNotice("");
+    setPublishedUrl("");
+    setCopyStatus("");
 
     try {
       const result = await authApi.rejectMarketplacePost(
@@ -171,14 +211,78 @@ export default function AdminMarketplacePosts() {
       </header>
 
       {error && (
-        <div className="admin-marketplace__alert admin-marketplace__alert--error" role="alert">
+        <div
+          className="admin-marketplace__alert admin-marketplace__alert--error"
+          role="alert"
+        >
           {error}
         </div>
       )}
 
       {notice && (
-        <div className="admin-marketplace__alert admin-marketplace__alert--success" role="status">
-          {notice}
+        <div
+          className="admin-marketplace__alert admin-marketplace__alert--success"
+          role="status"
+        >
+          <p>{notice}</p>
+
+          {publishedUrl && (
+            <div style={{ display: "grid", gap: "0.6rem" }}>
+              <label htmlFor="published-marketplace-url">Public post URL</label>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <input
+                  id="published-marketplace-url"
+                  type="text"
+                  value={publishedUrl}
+                  readOnly
+                  onFocus={(event) => event.currentTarget.select()}
+                  style={{ flex: "1 1 18rem", minWidth: 0 }}
+                />
+
+                <button
+                  type="button"
+                  className="admin-marketplace__button"
+                  onClick={() => void copyPublishedUrl()}
+                >
+                  <Copy size={15} />
+                  {copyStatus === "URL copied." ? "Copied" : "Copy URL"}
+                </button>
+
+                <a
+                  className="admin-marketplace__button admin-marketplace__button--quiet"
+                  href={SEARCH_CONSOLE_INSPECTION_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <ExternalLink size={15} />
+                  Open Search Console
+                </a>
+
+                <a
+                  className="admin-marketplace__button admin-marketplace__button--quiet"
+                  href={publishedUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View post
+                </a>
+              </div>
+
+              {copyStatus && <small aria-live="polite">{copyStatus}</small>}
+              <small>
+                In Search Console, select the verified site, paste the copied
+                URL into URL Inspection, then choose Request indexing.
+              </small>
+            </div>
+          )}
         </div>
       )}
 
@@ -375,7 +479,10 @@ export default function AdminMarketplacePosts() {
       )}
 
       {pagination?.totalPages > 1 && (
-        <nav className="admin-marketplace__pagination" aria-label="Review queue pages">
+        <nav
+          className="admin-marketplace__pagination"
+          aria-label="Review queue pages"
+        >
           <button
             type="button"
             onClick={() => setPage((value) => Math.max(1, value - 1))}

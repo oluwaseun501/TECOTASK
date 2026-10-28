@@ -44,26 +44,26 @@ const Footer = () => {
         </div>
 
         <div className="site-footer__column">
-          <h3>Earners</h3>
-          <a href="/#tasks">Task board</a>
-          <Link to="/signup">Create account</Link>
-          <a href="/#how-it-works">How it works</a>
-          <a href="/#faq">Referrals</a>
-        </div>
+  <h3>Earners</h3>
+  <a href="/#tasks">Task board</a>
+  <Link to="/signup">Create account</Link>
+  <Link to="/how-it-works">How it works</Link>
+  <Link to="/faq">FAQs</Link>
+</div>
 
-        <div className="site-footer__column">
-          <h3>Advertisers</h3>
-          <a href="/#advertisers">Create campaign</a>
-          <a href="/#advertisers">Campaign pricing</a>
-          <a href="/#faq">Moderation policy</a>
-          <a href={supportUrl} target="_blank" rel="noopener noreferrer">
-            Advertiser support
-          </a>
-        </div>
+       <div className="site-footer__column">
+  <h3>Advertisers</h3>
+  <Link to="/for-advertisers">Advertiser campaign guide</Link>
+  <a href="/#advertisers">Campaign estimate</a>
+  <Link to="/faq">Review and moderation questions</Link>
+  <a href={supportUrl} target="_blank" rel="noopener noreferrer">
+    Advertiser support
+  </a>
+</div>
 
         <div className="site-footer__column">
           <h3>Company</h3>
-          <a href="/#how-it-works">About TecoTask</a>
+          <Link to="/how-it-works">About TecoTask</Link>
           <a href={supportUrl} target="_blank" rel="noopener noreferrer">
             Support
           </a>

@@ -124,9 +124,109 @@ const SupportRedirect = () => {
   );
 };
 
+
+const PUBLIC_SITE_ORIGIN = "https://www.tecotask.com";
+
+const PUBLIC_PAGE_METADATA = {
+  "/": {
+    path: "/",
+    title: "TecoTask | Paid Online Tasks and Rewards in Nigeria",
+    description:
+      "Find paid online tasks and earn rewards in Nigeria with TecoTask. Or launch a brand campaign and reach real people. Create an account to get started.",
+  },
+  "/how-it-works": {
+    path: "/how-it-works",
+    title: "How TecoTask Works | TecoTask",
+    description:
+      "Learn how TecoTask connects Nigerian earners and advertisers through tasks, proof review, rewards, and campaign tracking.",
+  },
+  "/for-advertisers": {
+    path: "/for-advertisers",
+    title: "For Advertisers | TecoTask",
+    description:
+      "Learn how to promote your business with TecoTask campaigns, set a budget, target earners, and review submitted proof.",
+  },
+  "/faq": {
+    path: "/faq",
+    title: "TecoTask FAQs | Tasks, Rewards, and Campaigns",
+    description:
+      "Get answers about TecoTask accounts, online tasks, rewards, advertiser campaigns, proof, and moderation.",
+  },
+  "/terms": {
+    path: "/terms",
+    title: "Terms of Service | TecoTask",
+    description: "Read the terms for using TecoTask.",
+  },
+  "/privacy": {
+    path: "/privacy",
+    title: "Privacy Policy | TecoTask",
+    description: "Read how TecoTask handles personal information.",
+  },
+};
+
+function upsertNameMeta(name, content) {
+  let tag = document.head.querySelector(`meta[name="${name}"]`);
+
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.setAttribute("name", name);
+    document.head.appendChild(tag);
+  }
+
+  tag.setAttribute("content", content);
+}
+
+function upsertCanonicalTag(url) {
+  let tag = document.head.querySelector('link[rel="canonical"]');
+
+  if (!tag) {
+    tag = document.createElement("link");
+    tag.setAttribute("rel", "canonical");
+    document.head.appendChild(tag);
+  }
+
+  tag.setAttribute("href", url);
+}
+
+function PublicInfoPage({ title, description, children }) {
+  return (
+    <>
+      <Navbar />
+
+      <main>
+        <header
+          style={{
+            maxWidth: "1080px",
+            margin: "0 auto",
+            padding: "3rem 1.5rem 1rem",
+          }}
+        >
+          <h1>{title}</h1>
+          <p style={{ maxWidth: "48rem" }}>{description}</p>
+        </header>
+
+        {children}
+      </main>
+
+      <Footer />
+    </>
+  );
+}
+
 const App = () => {
   const location = useLocation();
   const routeContentRef = useRef(null);
+
+  useEffect(() => {
+  const page = PUBLIC_PAGE_METADATA[location.pathname];
+
+  if (!page) return;
+
+  document.title = page.title;
+  upsertNameMeta("description", page.description);
+  upsertNameMeta("robots", "index, follow");
+  upsertCanonicalTag(`${PUBLIC_SITE_ORIGIN}${page.path}`);
+}, [location.pathname]);
 
   useEffect(() => {
     const element = routeContentRef.current;
@@ -340,6 +440,41 @@ const App = () => {
         <Route path="/terms" element={<LegalPage type="terms" />} />
 <Route path="/privacy" element={<LegalPage type="privacy" />} />
 <Route path="/support" element={<SupportRedirect />} />
+<Route
+  path="/how-it-works"
+  element={
+    <PublicInfoPage
+      title="How TecoTask Works"
+      description="See how earners and advertisers use TecoTask, from account setup to task completion and campaign review."
+    >
+      <HowItWorks />
+    </PublicInfoPage>
+  }
+/>
+
+<Route
+  path="/for-advertisers"
+  element={
+    <PublicInfoPage
+      title="For Advertisers"
+      description="Promote your business with a campaign budget, audience targeting, and reviewed task submissions."
+    >
+      <WhatWeDo />
+    </PublicInfoPage>
+  }
+/>
+
+<Route
+  path="/faq"
+  element={
+    <PublicInfoPage
+      title="Frequently Asked Questions"
+      description="Answers about TecoTask tasks, rewards, campaigns, proof, and moderation."
+    >
+      <FAQ />
+    </PublicInfoPage>
+  }
+/>
 <Route path="/marketplace" element={<MarketplacePage />} />
 <Route path="/marketplace/:slug" element={<MarketplacePage />} />
 

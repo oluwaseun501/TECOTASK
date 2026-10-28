@@ -38,13 +38,13 @@ const Navbar = () => {
             />
           </Link>
 
-          <div className="navbar__links">
-            {sectionLink("how-it-works", "How it works")}
-            {sectionLink("tasks", "Tasks")}
-            <Link to="/marketplace">Marketplace</Link>
-            {sectionLink("advertisers", "For advertisers")}
-            {sectionLink("faq", "FAQ")}
-          </div>
+        <div className="navbar__links">
+  <Link to="/how-it-works">How it works</Link>
+  {sectionLink("tasks", "Tasks")}
+  <Link to="/marketplace">Marketplace</Link>
+  <Link to="/for-advertisers">For advertisers</Link>
+  <Link to="/faq">FAQ</Link>
+</div>
 
           <div className="navbar__actions">
             <Link to="/login" className="navbar__login">
@@ -73,13 +73,19 @@ const Navbar = () => {
           className={`navbar__mobile-menu ${menuOpen ? "is-open" : ""}`}
           aria-hidden={!menuOpen}
         >
-          {sectionLink("how-it-works", "How it works", closeMenu)}
-          {sectionLink("tasks", "Tasks", closeMenu)}
-          <Link to="/marketplace" onClick={closeMenu}>
-            Marketplace
-          </Link>
-          {sectionLink("advertisers", "For advertisers", closeMenu)}
-          {sectionLink("faq", "FAQ", closeMenu)}
+      <Link to="/how-it-works" onClick={closeMenu}>
+  How it works
+</Link>
+{sectionLink("tasks", "Tasks", closeMenu)}
+<Link to="/marketplace" onClick={closeMenu}>
+  Marketplace
+</Link>
+<Link to="/for-advertisers" onClick={closeMenu}>
+  For advertisers
+</Link>
+<Link to="/faq" onClick={closeMenu}>
+  FAQ
+</Link>
 
           <div className="navbar__mobile-actions">
             <Link to="/login" onClick={closeMenu}>
