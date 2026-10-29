@@ -8,7 +8,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   approveAdminCampaign,
@@ -49,15 +49,10 @@ function formatCurrency(value) {
 }
 
 function formatDate(value) {
-  if (!value) {
-    return "—";
-  }
+  if (!value) return "—";
 
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
+  if (Number.isNaN(date.getTime())) return "—";
 
   return new Intl.DateTimeFormat("en-NG", {
     dateStyle: "medium",
@@ -65,15 +60,10 @@ function formatDate(value) {
 }
 
 function formatDateTime(value) {
-  if (!value) {
-    return "—";
-  }
+  if (!value) return "—";
 
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
+  if (Number.isNaN(date.getTime())) return "—";
 
   return new Intl.DateTimeFormat("en-NG", {
     dateStyle: "medium",
@@ -81,20 +71,19 @@ function formatDateTime(value) {
   }).format(date);
 }
 
-export default function AdminCampaignDetails({
-  basePath = "/admin",
-}) {
+export default function AdminCampaignDetails({ basePath = "/admin" }) {
   const { campaignId } = useParams();
 
   const [campaign, setCampaign] = useState(null);
-  const [adminTaskInstructions, setAdminTaskInstructions] =
-    useState("");
+  const [adminTaskInstructions, setAdminTaskInstructions] = useState("");
   const [adminPrivateNote, setAdminPrivateNote] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [confirmation, setConfirmation] = useState(null);
+  const cancelConfirmationRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,21 +96,15 @@ export default function AdminCampaignDetails({
       try {
         const result = await getAdminCampaign(campaignId);
 
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         setCampaign(result);
-        setAdminTaskInstructions(
-          result.adminTaskInstructions || "",
-        );
+        setAdminTaskInstructions(result.adminTaskInstructions || "");
         setAdminPrivateNote(result.adminPrivateNote || "");
         setRejectionReason(result.rejectionReason || "");
       } catch (loadError) {
         if (!cancelled) {
-          setError(
-            loadError.message || "Could not load this campaign.",
-          );
+          setError(loadError.message || "Could not load this campaign.");
         }
       } finally {
         if (!cancelled) {
@@ -130,12 +113,30 @@ export default function AdminCampaignDetails({
       }
     }
 
-    loadCampaign();
+    void loadCampaign();
 
     return () => {
       cancelled = true;
     };
   }, [campaignId]);
+
+  useEffect(() => {
+    if (!confirmation) return;
+
+    cancelConfirmationRef.current?.focus();
+
+    function handleConfirmationKeyDown(event) {
+      if (event.key === "Escape" && !busy) {
+        setConfirmation(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleConfirmationKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleConfirmationKeyDown);
+    };
+  }, [confirmation, busy]);
 
   const mergeCampaignUpdate = (updatedCampaign) => {
     setCampaign((current) => ({
@@ -143,8 +144,7 @@ export default function AdminCampaignDetails({
       ...updatedCampaign,
       submissionCounts:
         updatedCampaign.submissionCounts ||
-        current?.submissionCounts ||
-        {
+        current?.submissionCounts || {
           started: 0,
           submitted: 0,
           approved: 0,
@@ -153,38 +153,49 @@ export default function AdminCampaignDetails({
     }));
   };
 
+  const requestApprovalConfirmation = () => {
+    setError("");
+    setNotice("");
+    setConfirmation("approve");
+  };
+
+  const requestRejectionConfirmation = () => {
+    if (!rejectionReason.trim()) {
+      setError(
+        "Enter a rejection reason. The advertiser will be able to see it.",
+      );
+      return;
+    }
+
+    setError("");
+    setNotice("");
+    setConfirmation("reject");
+  };
+
   const handleSaveNotes = async () => {
     setBusy("save");
     setError("");
     setNotice("");
 
     try {
-      const updatedCampaign =
-        await saveAdminCampaignReviewNotes(campaignId, {
+      const updatedCampaign = await saveAdminCampaignReviewNotes(
+        campaignId,
+        {
           adminTaskInstructions,
           adminPrivateNote,
-        });
+        },
+      );
 
       mergeCampaignUpdate(updatedCampaign);
       setNotice("Review notes saved.");
     } catch (saveError) {
-      setError(
-        saveError.message || "Could not save review notes.",
-      );
+      setError(saveError.message || "Could not save review notes.");
     } finally {
       setBusy("");
     }
   };
 
   const handleApprove = async () => {
-    const confirmed = window.confirm(
-      "Approve and publish this campaign? An earner task will be created.",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     setBusy("approve");
     setError("");
     setNotice("");
@@ -196,9 +207,7 @@ export default function AdminCampaignDetails({
       });
 
       mergeCampaignUpdate(result.campaign);
-      setNotice(
-        result.message || "Campaign approved and published.",
-      );
+      setNotice(result.message || "Campaign approved and published.");
     } catch (approveError) {
       setError(
         approveError.message || "Could not approve this campaign.",
@@ -215,14 +224,6 @@ export default function AdminCampaignDetails({
       setError(
         "Enter a rejection reason. The advertiser will be able to see it.",
       );
-      return;
-    }
-
-    const confirmed = window.confirm(
-      "Reject this campaign? The rejection reason will be shown to the advertiser and the unused reserved funds will be refunded.",
-    );
-
-    if (!confirmed) {
       return;
     }
 
@@ -251,23 +252,35 @@ export default function AdminCampaignDetails({
     }
   };
 
-if (loading) {
-  return (
-    <main className="admin-campaigns-page">
-      <div className="admin-campaigns-container">
-        <div
-          className="campaign-loading campaign-loading--page"
-          role="status"
-          aria-live="polite"
-        >
-          <span className="campaign-loading__roller" aria-hidden="true" />
-          <span>Loading campaign details…</span>
-          <small>Fetching campaign information for review.</small>
+  const confirmCampaignDecision = async () => {
+    if (!confirmation || busy) return;
+
+    if (confirmation === "approve") {
+      await handleApprove();
+    } else if (confirmation === "reject") {
+      await handleReject();
+    }
+
+    setConfirmation(null);
+  };
+
+  if (loading) {
+    return (
+      <main className="admin-campaigns-page">
+        <div className="admin-campaigns-container">
+          <div
+            className="campaign-loading campaign-loading--page"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="campaign-loading__roller" aria-hidden="true" />
+            <span>Loading campaign details…</span>
+            <small>Fetching campaign information for review.</small>
+          </div>
         </div>
-      </div>
-    </main>
-  );
-}
+      </main>
+    );
+  }
 
   if (!campaign) {
     return (
@@ -276,9 +289,7 @@ if (loading) {
           <div className="campaign-not-found">
             <h1>Campaign not found</h1>
             <p>{error || "This campaign could not be loaded."}</p>
-            <Link to={`${basePath}/campaigns`}>
-              Return to campaigns
-            </Link>
+            <Link to={`${basePath}/campaigns`}>Return to campaigns</Link>
           </div>
         </div>
       </main>
@@ -294,23 +305,17 @@ if (loading) {
   const totalSlots = Number(campaign.targetQuantity || 0);
 
   const progress = totalSlots
-    ? Math.min(
-        Math.round((approvedCount / totalSlots) * 100),
-        100,
-      )
+    ? Math.min(Math.round((approvedCount / totalSlots) * 100), 100)
     : 0;
 
-  const isPendingReview =
-    campaign.status === "pending_review";
+  const isPendingReview = campaign.status === "pending_review";
 
-  const advertiserInstructions = Array.isArray(
-    campaign.instructions,
-  )
+  const advertiserInstructions = Array.isArray(campaign.instructions)
     ? campaign.instructions.join("\n")
     : String(campaign.instructions || "");
 
-  const statusLabel =
-    statusLabels[campaign.status] || campaign.status;
+  const statusLabel = statusLabels[campaign.status] || campaign.status;
+  const isApprovalConfirmation = confirmation === "approve";
 
   return (
     <main className="admin-campaigns-page">
@@ -323,28 +328,19 @@ if (loading) {
           Back to campaigns
         </Link>
 
-      {error && (
-  <div className="campaign-feedback campaign-feedback--error" role="alert">
-    {error}
-  </div>
-)}
-
-{notice && (
-  <div className="campaign-feedback campaign-feedback--success" role="status">
-    {notice}
-  </div>
-)}
+        {error && (
+          <div
+            className="campaign-feedback campaign-feedback--error"
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
 
         {notice && (
           <div
+            className="campaign-feedback campaign-feedback--success"
             role="status"
-            style={{
-              margin: "12px 0",
-              padding: 12,
-              color: "#17663a",
-              background: "#edf8f0",
-              borderRadius: 8,
-            }}
           >
             {notice}
           </div>
@@ -357,25 +353,19 @@ if (loading) {
             </span>
 
             <div>
-              <p className="admin-campaigns-eyebrow">
-                Campaign review
-              </p>
-
+              <p className="admin-campaigns-eyebrow">Campaign review</p>
               <h1>{campaign.name}</h1>
-
               <p>
                 Submitted by{" "}
-                {campaign.advertiser?.fullName ||
-                  "Unknown advertiser"}{" "}
-                · {formatDate(campaign.submittedAt)}
+                {campaign.advertiser?.fullName || "Unknown advertiser"} ·{" "}
+                {formatDate(campaign.submittedAt)}
               </p>
             </div>
           </div>
 
           <span
             className={
-              statusClasses[campaign.status] ||
-              statusClasses.draft
+              statusClasses[campaign.status] || statusClasses.draft
             }
           >
             <i />
@@ -387,18 +377,14 @@ if (loading) {
           <article>
             <p>Earner reward per person</p>
             <strong>
-              {formatCurrency(
-                campaign.pricing?.earnerRewardPerPerson,
-              )}
+              {formatCurrency(campaign.pricing?.earnerRewardPerPerson)}
             </strong>
             <span>Reward for each approved submission</span>
           </article>
 
           <article>
             <p>Total budget</p>
-            <strong>
-              {formatCurrency(campaign.pricing?.totalBudget)}
-            </strong>
+            <strong>{formatCurrency(campaign.pricing?.totalBudget)}</strong>
             <span>Advertiser-funded campaign budget</span>
           </article>
 
@@ -423,7 +409,6 @@ if (loading) {
                   <h2>Campaign brief</h2>
                   <p>Details submitted by the advertiser.</p>
                 </div>
-
                 <Edit3 size={17} />
               </div>
 
@@ -435,24 +420,19 @@ if (loading) {
 
                 <div>
                   <span>Proof required</span>
-                  <strong>
-                    {campaign.proofRequirements || "—"}
-                  </strong>
+                  <strong>{campaign.proofRequirements || "—"}</strong>
                 </div>
 
                 <div>
                   <span>Advertiser</span>
                   <strong>
-                    {campaign.advertiser?.fullName ||
-                      "Unknown advertiser"}
+                    {campaign.advertiser?.fullName || "Unknown advertiser"}
                   </strong>
                 </div>
 
                 <div>
                   <span>Advertiser email</span>
-                  <strong>
-                    {campaign.advertiser?.email || "—"}
-                  </strong>
+                  <strong>{campaign.advertiser?.email || "—"}</strong>
                 </div>
 
                 <div>
@@ -468,13 +448,14 @@ if (loading) {
                   <h2>Campaign instructions</h2>
                   <p>Review the advertiser’s task instructions.</p>
                 </div>
-
                 <Edit3 size={17} />
               </div>
 
               <div className="campaign-instruction-block">
                 <span>Advertiser instructions</span>
-                <p>{advertiserInstructions || "No instructions provided."}</p>
+                <p>
+                  {advertiserInstructions || "No instructions provided."}
+                </p>
               </div>
 
               <label className="campaign-form-field">
@@ -532,7 +513,6 @@ if (loading) {
                   <h2>Campaign activity</h2>
                   <p>Submission status and progress.</p>
                 </div>
-
                 <Clock3 size={17} />
               </div>
 
@@ -566,7 +546,6 @@ if (loading) {
                       : "This campaign is no longer awaiting review."}
                   </p>
                 </div>
-
                 <WalletCards size={17} />
               </div>
 
@@ -590,7 +569,7 @@ if (loading) {
                     <button
                       type="button"
                       className="campaign-primary-button"
-                      onClick={handleApprove}
+                      onClick={requestApprovalConfirmation}
                       disabled={Boolean(busy)}
                     >
                       <CheckCircle2 size={15} />
@@ -602,7 +581,7 @@ if (loading) {
                     <button
                       type="button"
                       className="campaign-danger-button"
-                      onClick={handleReject}
+                      onClick={requestRejectionConfirmation}
                       disabled={Boolean(busy)}
                     >
                       <AlertTriangle size={15} />
@@ -662,6 +641,94 @@ if (loading) {
           </aside>
         </section>
       </div>
+
+      {confirmation && (
+        <div
+          className="campaign-confirm-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !busy) {
+              setConfirmation(null);
+            }
+          }}
+        >
+          <section
+            className="campaign-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="campaign-confirm-title"
+            aria-describedby="campaign-confirm-description"
+            aria-busy={Boolean(busy)}
+          >
+            <div
+              className={`campaign-confirm-modal__icon ${
+                isApprovalConfirmation
+                  ? "campaign-confirm-modal__icon--approve"
+                  : "campaign-confirm-modal__icon--reject"
+              }`}
+            >
+              {isApprovalConfirmation ? (
+                <CheckCircle2 size={20} />
+              ) : (
+                <AlertTriangle size={20} />
+              )}
+            </div>
+
+            <span className="campaign-confirm-modal__eyebrow">
+              CAMPAIGN REVIEW
+            </span>
+
+            <h2 id="campaign-confirm-title">
+              {isApprovalConfirmation
+                ? "Approve and publish this campaign?"
+                : "Reject and refund this campaign?"}
+            </h2>
+
+            <p id="campaign-confirm-description">
+              {isApprovalConfirmation
+                ? "An earner task will be created, and this campaign will become available to earners."
+                : "The advertiser will see the rejection reason, and unused reserved funds will be refunded."}
+            </p>
+
+            {confirmation === "reject" && rejectionReason.trim() && (
+              <div className="campaign-confirm-modal__reason">
+                <span>Rejection reason</span>
+                <p>{rejectionReason.trim()}</p>
+              </div>
+            )}
+
+            <div className="campaign-confirm-modal__actions">
+              <button
+                ref={cancelConfirmationRef}
+                type="button"
+                className="campaign-secondary-button"
+                disabled={Boolean(busy)}
+                onClick={() => setConfirmation(null)}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className={
+                  isApprovalConfirmation
+                    ? "campaign-primary-button"
+                    : "campaign-danger-button"
+                }
+                disabled={Boolean(busy)}
+                onClick={() => void confirmCampaignDecision()}
+              >
+                {busy === "approve"
+                  ? "Approving…"
+                  : busy === "reject"
+                    ? "Rejecting…"
+                    : isApprovalConfirmation
+                      ? "Approve and publish"
+                      : "Reject and refund"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

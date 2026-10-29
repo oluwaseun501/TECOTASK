@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Copy, ExternalLink, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Copy,
+  ExternalLink,
+  X,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "../../services/auth.js";
 import "./AdminMarketplacePosts.css";
@@ -8,6 +15,12 @@ const PAGE_SIZE = 20;
 const PUBLIC_SITE_ORIGIN = "https://www.tecotask.com";
 const SEARCH_CONSOLE_INSPECTION_URL =
   "https://search.google.com/search-console?action=inspect";
+
+const TABS = [
+  { status: "pending_review", label: "Pending review" },
+  { status: "approved", label: "Published" },
+  { status: "archived", label: "Archived" },
+];
 
 function formatPrice(amount, currency = "NGN") {
   if (amount == null) return "Not specified";
@@ -42,10 +55,54 @@ function safeHttpsUrl(value) {
   }
 }
 
+function getMarketplacePostUrl(slug) {
+  if (typeof slug !== "string" || !slug.trim()) return "";
+
+  return new URL(
+    "/marketplace/" + encodeURIComponent(slug),
+    PUBLIC_SITE_ORIGIN,
+  ).href;
+}
+
+function getStatusLabel(status) {
+  if (status === "pending_review") return "Paid · Awaiting review";
+  if (status === "approved") return "Published";
+  if (status === "archived") return "Archived · Disabled";
+  return status;
+}
+
+function getEmptyMessage(status) {
+  if (status === "pending_review") {
+    return {
+      title: "No posts awaiting review",
+      description: "New paid Marketplace posts will appear here.",
+    };
+  }
+
+  if (status === "approved") {
+    return {
+      title: "No published posts",
+      description: "Approved Marketplace posts will appear here.",
+    };
+  }
+
+  return {
+    title: "No archived posts",
+    description: "Posts you disable will appear here.",
+  };
+}
+
 export default function AdminMarketplacePosts() {
   const navigate = useNavigate();
+
   const [posts, setPosts] = useState([]);
   const [pagination, setPagination] = useState(null);
+  const [counts, setCounts] = useState({
+    pending_review: 0,
+    approved: 0,
+    archived: 0,
+  });
+  const [status, setStatus] = useState("pending_review");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [busyPostId, setBusyPostId] = useState("");
@@ -55,8 +112,10 @@ export default function AdminMarketplacePosts() {
   const [notice, setNotice] = useState("");
   const [publishedUrl, setPublishedUrl] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
+  const [confirmation, setConfirmation] = useState(null);
+const cancelConfirmationRef = useRef(null);
 
-  const loadQueue = useCallback(async () => {
+  const loadPosts = useCallback(async () => {
     const token = sessionStorage.getItem("tecotaskToken");
 
     if (!token) {
@@ -72,36 +131,77 @@ export default function AdminMarketplacePosts() {
         page,
         PAGE_SIZE,
         token,
+        status,
       );
+
       setPosts(data.posts || []);
       setPagination(data.pagination || null);
+      setCounts(
+        data.counts || {
+          pending_review: 0,
+          approved: 0,
+          archived: 0,
+        },
+      );
     } catch (requestError) {
-      setError(requestError.message || "Could not load the review queue.");
+      setError(requestError.message || "Could not load Marketplace posts.");
     } finally {
       setLoading(false);
     }
-  }, [navigate, page]);
+  }, [navigate, page, status]);
 
   useEffect(() => {
-    void loadQueue();
-  }, [loadQueue]);
+    void loadPosts();
+  }, [loadPosts]);
 
-  async function copyPublishedUrl() {
-    if (!publishedUrl) return;
+  useEffect(() => {
+  if (!confirmation) return;
+
+  cancelConfirmationRef.current?.focus();
+
+  function handleConfirmationKeyDown(event) {
+    if (event.key === "Escape") {
+      setConfirmation(null);
+    }
+  }
+
+  window.addEventListener("keydown", handleConfirmationKeyDown);
+
+  return () => {
+    window.removeEventListener("keydown", handleConfirmationKeyDown);
+  };
+}, [confirmation]);
+
+  function handleTabChange(nextStatus) {
+    if (nextStatus === status) return;
+
+    setStatus(nextStatus);
+    setPage(1);
+    setError("");
+    setNotice("");
+    setPublishedUrl("");
+    setCopyStatus("");
+    setRejectingPostId("");
+    setRejectionReason("");
+  }
+
+  async function copyUrl(url) {
+    if (!url) return;
 
     try {
       if (!navigator.clipboard?.writeText) {
-        setCopyStatus(
-          "Clipboard access is unavailable. Select the URL and copy it manually.",
-        );
-        return;
+        throw new Error("Clipboard access is unavailable.");
       }
 
-      await navigator.clipboard.writeText(publishedUrl);
+      await navigator.clipboard.writeText(url);
+      setError("");
       setCopyStatus("URL copied.");
+      setNotice(
+        "Post URL copied. Request indexing only when the post is publicly available.",
+      );
     } catch {
-      setCopyStatus(
-        "Could not copy automatically. Select the URL and copy it manually.",
+      setError(
+        "Could not copy automatically. Select the displayed URL and copy it manually.",
       );
     }
   }
@@ -123,20 +223,13 @@ export default function AdminMarketplacePosts() {
 
     try {
       const result = await authApi.approveMarketplacePost(postId, token);
-      const slug = result.post?.slug || post.slug;
+      const approvedPost = result.post || post;
 
-      if (slug) {
-        setPublishedUrl(
-          new URL(
-            "/marketplace/" + encodeURIComponent(slug),
-            PUBLIC_SITE_ORIGIN,
-          ).href,
-        );
-      }
-
+      setPublishedUrl(getMarketplacePostUrl(approvedPost.slug));
       setNotice(result.message || "Post approved and published.");
       setRejectingPostId("");
-      await loadQueue();
+      setStatus("approved");
+      setPage(1);
     } catch (requestError) {
       setError(requestError.message || "Could not approve this post.");
     } finally {
@@ -178,16 +271,91 @@ export default function AdminMarketplacePosts() {
         reason,
         token,
       );
+
       setNotice(result.message || "Post rejected.");
       setRejectingPostId("");
       setRejectionReason("");
-      await loadQueue();
+      await loadPosts();
     } catch (requestError) {
       setError(requestError.message || "Could not reject this post.");
     } finally {
       setBusyPostId("");
     }
   }
+
+  async function handleDisable(post) {
+    const postId = post._id || post.id;
+    const token = sessionStorage.getItem("tecotaskToken");
+
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+
+    setBusyPostId(postId);
+    setError("");
+    setNotice("");
+    setPublishedUrl("");
+    setCopyStatus("");
+
+    try {
+      const result = await authApi.archiveMarketplacePost(postId, token);
+
+      setNotice(result.message || "Post disabled and moved to Archived.");
+      setStatus("archived");
+      setPage(1);
+    } catch (requestError) {
+      setError(requestError.message || "Could not disable this post.");
+    } finally {
+      setBusyPostId("");
+    }
+  }
+
+  async function handleRestore(post) {
+    const postId = post._id || post.id;
+    const token = sessionStorage.getItem("tecotaskToken");
+
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    setBusyPostId(postId);
+    setError("");
+    setNotice("");
+    setPublishedUrl("");
+    setCopyStatus("");
+
+    try {
+      const result = await authApi.restoreMarketplacePost(postId, token);
+
+      setNotice(result.message || "Post restored and published.");
+      setPublishedUrl(getMarketplacePostUrl(post.slug));
+      setStatus("approved");
+      setPage(1);
+    } catch (requestError) {
+      setError(requestError.message || "Could not restore this post.");
+    } finally {
+      setBusyPostId("");
+    }
+  }
+
+  async function confirmMarketplaceAction() {
+  if (!confirmation) return;
+
+  if (confirmation.type === "approve") {
+    await handleApprove(confirmation.post);
+  } else if (confirmation.type === "disable") {
+    await handleDisable(confirmation.post);
+  }
+
+  setConfirmation(null);
+}
+
+  const emptyMessage = getEmptyMessage(status);
+  const currentCount =
+    counts[status] ?? pagination?.total ?? posts.length;
 
   return (
     <section className="admin-marketplace">
@@ -196,17 +364,18 @@ export default function AdminMarketplacePosts() {
           <span className="admin-marketplace__eyebrow">CONTENT REVIEW</span>
           <h1>Marketplace posts</h1>
           <p>
-            Review paid posts before they appear in the public Marketplace.
+            Review submissions, manage published posts, and disable or restore
+            listings.
           </p>
         </div>
 
         <button
           type="button"
           className="admin-marketplace__refresh"
-          onClick={() => void loadQueue()}
+          onClick={() => void loadPosts()}
           disabled={loading}
         >
-          {loading ? "Refreshing…" : "Refresh queue"}
+          {loading ? "Refreshing…" : "Refresh"}
         </button>
       </header>
 
@@ -228,7 +397,9 @@ export default function AdminMarketplacePosts() {
 
           {publishedUrl && (
             <div style={{ display: "grid", gap: "0.6rem" }}>
-              <label htmlFor="published-marketplace-url">Public post URL</label>
+              <label htmlFor="published-marketplace-url">
+                Public post URL
+              </label>
 
               <div
                 style={{
@@ -250,7 +421,7 @@ export default function AdminMarketplacePosts() {
                 <button
                   type="button"
                   className="admin-marketplace__button"
-                  onClick={() => void copyPublishedUrl()}
+                  onClick={() => void copyUrl(publishedUrl)}
                 >
                   <Copy size={15} />
                   {copyStatus === "URL copied." ? "Copied" : "Copy URL"}
@@ -286,22 +457,60 @@ export default function AdminMarketplacePosts() {
         </div>
       )}
 
+      <div
+        role="tablist"
+        aria-label="Marketplace post status"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.5rem",
+          margin: "1.25rem 0",
+        }}
+      >
+        {TABS.map((tab) => {
+          const selected = status === tab.status;
+
+          return (
+            <button
+              key={tab.status}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              className={`admin-marketplace__button ${
+                selected
+                  ? "admin-marketplace__button--approve"
+                  : "admin-marketplace__button--quiet"
+              }`}
+              onClick={() => handleTabChange(tab.status)}
+            >
+              {tab.label} ({counts[tab.status] ?? 0})
+            </button>
+          );
+        })}
+      </div>
+
       <div className="admin-marketplace__summary">
-        <strong>{pagination?.total ?? posts.length}</strong>
-        <span>post(s) awaiting review</span>
+        <strong>{currentCount}</strong>
+        <span>
+          {status === "pending_review"
+            ? "paid post(s) awaiting review"
+            : status === "approved"
+              ? "published post(s)"
+              : "disabled post(s)"}
+        </span>
       </div>
 
       {loading ? (
         <div className="admin-marketplace__empty" role="status">
-          Loading review queue…
+          Loading Marketplace posts…
         </div>
       ) : posts.length === 0 ? (
         <div className="admin-marketplace__empty">
           <span className="admin-marketplace__empty-icon">
             <Check size={20} />
           </span>
-          <h2>Queue is clear</h2>
-          <p>There are no paid Marketplace posts awaiting review.</p>
+          <h2>{emptyMessage.title}</h2>
+          <p>{emptyMessage.description}</p>
         </div>
       ) : (
         <div className="admin-marketplace__list">
@@ -313,14 +522,18 @@ export default function AdminMarketplacePosts() {
                 : {};
             const socialProfile = post.socialProfile || {};
             const profileUrl = safeHttpsUrl(socialProfile.url);
+            const postUrl = getMarketplacePostUrl(post.slug);
             const busy = busyPostId === postId;
+            const isPending = post.status === "pending_review";
+            const isPublished = post.status === "approved";
+            const isArchived = post.status === "archived";
 
             return (
               <article className="admin-marketplace__card" key={postId}>
                 <div className="admin-marketplace__card-header">
                   <div>
                     <span className="admin-marketplace__status">
-                      Paid · Awaiting review
+                      {getStatusLabel(post.status)}
                     </span>
                     <h2>{post.title}</h2>
                     <p className="admin-marketplace__category">
@@ -353,7 +566,10 @@ export default function AdminMarketplacePosts() {
                         >
                           <img
                             src={imageUrl}
-                            alt={image.altText || `${post.title} image ${index + 1}`}
+                            alt={
+                              image.altText ||
+                              `${post.title} image ${index + 1}`
+                            }
                           />
                           <span>
                             <ExternalLink size={13} />
@@ -380,7 +596,9 @@ export default function AdminMarketplacePosts() {
                     <strong>
                       {socialProfile.platform || "Not specified"}
                       {socialProfile.handle
-                        ? ` · ${socialProfile.handle.startsWith("@") ? "" : "@"}${socialProfile.handle}`
+                        ? ` · ${
+                            socialProfile.handle.startsWith("@") ? "" : "@"
+                          }${socialProfile.handle}`
                         : ""}
                     </strong>
                     {profileUrl && (
@@ -396,7 +614,93 @@ export default function AdminMarketplacePosts() {
                     </span>
                     <strong>{formatDate(post.submittedAt)}</strong>
                   </div>
+
+                  {post.publishedAt && (
+                    <div>
+                      <span className="admin-marketplace__detail-label">
+                        Published
+                      </span>
+                      <strong>{formatDate(post.publishedAt)}</strong>
+                    </div>
+                  )}
+
+                  {post.archivedAt && (
+                    <div>
+                      <span className="admin-marketplace__detail-label">
+                        Disabled
+                      </span>
+                      <strong>{formatDate(post.archivedAt)}</strong>
+                    </div>
+                  )}
                 </div>
+
+                {postUrl && (
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "0.6rem",
+                      marginTop: "1rem",
+                      padding: "0.85rem",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "0.75rem",
+                    }}
+                  >
+                    <label htmlFor={`marketplace-post-url-${postId}`}>
+                      {isPublished
+                        ? "Public post URL"
+                        : isArchived
+                          ? "Post URL · currently disabled"
+                          : "Post URL · available after publishing"}
+                    </label>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      <input
+                        id={`marketplace-post-url-${postId}`}
+                        type="text"
+                        value={postUrl}
+                        readOnly
+                        onFocus={(event) => event.currentTarget.select()}
+                        style={{ flex: "1 1 18rem", minWidth: 0 }}
+                      />
+
+                      <button
+                        type="button"
+                        className="admin-marketplace__button admin-marketplace__button--quiet"
+                        disabled={busy}
+                        onClick={() => void copyUrl(postUrl)}
+                      >
+                        <Copy size={15} />
+                        Copy URL
+                      </button>
+
+                      {isPublished && (
+                        <a
+                          className="admin-marketplace__button admin-marketplace__button--quiet"
+                          href={postUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View post
+                        </a>
+                      )}
+                    </div>
+
+                    <small>
+                      {isPublished
+                        ? "You can copy this URL and optionally request indexing in Search Console."
+                        : isArchived
+                          ? "This page is hidden from the public Marketplace until you restore it."
+                          : "The public page becomes available after approval and publishing."}
+                    </small>
+                  </div>
+                )}
 
                 {post.hashtags?.length > 0 && (
                   <div className="admin-marketplace__tags">
@@ -406,7 +710,7 @@ export default function AdminMarketplacePosts() {
                   </div>
                 )}
 
-                {rejectingPostId === postId ? (
+                {isPending && rejectingPostId === postId ? (
                   <form
                     className="admin-marketplace__reject-form"
                     onSubmit={(event) => void handleReject(event, post)}
@@ -417,7 +721,9 @@ export default function AdminMarketplacePosts() {
                     <textarea
                       id={`rejection-${postId}`}
                       value={rejectionReason}
-                      onChange={(event) => setRejectionReason(event.target.value)}
+                      onChange={(event) =>
+                        setRejectionReason(event.target.value)
+                      }
                       maxLength={1000}
                       rows={3}
                       required
@@ -447,29 +753,57 @@ export default function AdminMarketplacePosts() {
                   </form>
                 ) : (
                   <div className="admin-marketplace__actions">
-                    <button
-                      type="button"
-                      className="admin-marketplace__button admin-marketplace__button--reject"
-                      disabled={busy}
-                      onClick={() => {
-                        setRejectingPostId(postId);
-                        setRejectionReason("");
-                        setError("");
-                      }}
-                    >
-                      <X size={15} />
-                      Reject
-                    </button>
+                    {isPending && (
+                      <>
+                        <button
+                          type="button"
+                          className="admin-marketplace__button admin-marketplace__button--reject"
+                          disabled={busy}
+                          onClick={() => {
+                            setRejectingPostId(postId);
+                            setRejectionReason("");
+                            setError("");
+                          }}
+                        >
+                          <X size={15} />
+                          Reject
+                        </button>
 
-                    <button
-                      type="button"
-                      className="admin-marketplace__button admin-marketplace__button--approve"
-                      disabled={busy}
-                      onClick={() => void handleApprove(post)}
-                    >
-                      <Check size={15} />
-                      {busy ? "Approving…" : "Approve and publish"}
-                    </button>
+                        <button
+                          type="button"
+                          className="admin-marketplace__button admin-marketplace__button--approve"
+                          disabled={busy}
+                          onClick={() => setConfirmation({ type: "approve", post })}
+                        >
+                          <Check size={15} />
+                          {busy ? "Approving…" : "Approve and publish"}
+                        </button>
+                      </>
+                    )}
+
+                    {isPublished && (
+                      <button
+                        type="button"
+                        className="admin-marketplace__button admin-marketplace__button--reject"
+                        disabled={busy}
+                        onClick={() => setConfirmation({ type: "disable", post })}
+                      >
+                        <X size={15} />
+                        {busy ? "Disabling…" : "Disable post"}
+                      </button>
+                    )}
+
+                    {isArchived && (
+                      <button
+                        type="button"
+                        className="admin-marketplace__button admin-marketplace__button--approve"
+                        disabled={busy}
+                        onClick={() => void handleRestore(post)}
+                      >
+                        <Check size={15} />
+                        {busy ? "Restoring…" : "Restore post"}
+                      </button>
+                    )}
                   </div>
                 )}
               </article>
@@ -481,7 +815,7 @@ export default function AdminMarketplacePosts() {
       {pagination?.totalPages > 1 && (
         <nav
           className="admin-marketplace__pagination"
-          aria-label="Review queue pages"
+          aria-label="Marketplace post pages"
         >
           <button
             type="button"
@@ -510,6 +844,90 @@ export default function AdminMarketplacePosts() {
           </button>
         </nav>
       )}
+
+      {confirmation && (() => {
+  const isApproval = confirmation.type === "approve";
+  const confirmationPostId =
+    confirmation.post._id || confirmation.post.id;
+  const isBusy = busyPostId === confirmationPostId;
+
+  return (
+    <div
+      className="admin-marketplace__modal-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isBusy) {
+          setConfirmation(null);
+        }
+      }}
+    >
+      <section
+        className="admin-marketplace__modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="marketplace-confirm-title"
+        aria-describedby="marketplace-confirm-description"
+        aria-busy={isBusy}
+      >
+        <div
+          className={`admin-marketplace__modal-icon ${
+            isApproval
+              ? "admin-marketplace__modal-icon--approve"
+              : "admin-marketplace__modal-icon--disable"
+          }`}
+        >
+          {isApproval ? <Check size={20} /> : <X size={20} />}
+        </div>
+
+        <span className="admin-marketplace__modal-eyebrow">
+          {isApproval ? "PUBLISH LISTING" : "LISTING STATUS"}
+        </span>
+
+        <h2 id="marketplace-confirm-title">
+          {isApproval
+            ? "Approve and publish this post?"
+            : "Disable this post?"}
+        </h2>
+
+        <p id="marketplace-confirm-description">
+          {isApproval
+            ? "This post will become visible in the public Marketplace. You can disable it later from the Published tab."
+            : "This post will be hidden from the public Marketplace and sitemap. You can restore it later from Archived."}
+        </p>
+
+        <div className="admin-marketplace__modal-actions">
+          <button
+            ref={cancelConfirmationRef}
+            type="button"
+            className="admin-marketplace__button admin-marketplace__button--quiet"
+            disabled={isBusy}
+            onClick={() => setConfirmation(null)}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            className={`admin-marketplace__button ${
+              isApproval
+                ? "admin-marketplace__button--approve"
+                : "admin-marketplace__button--reject"
+            }`}
+            disabled={isBusy}
+            onClick={() => void confirmMarketplaceAction()}
+          >
+            {isBusy
+              ? isApproval
+                ? "Publishing…"
+                : "Disabling…"
+              : isApproval
+                ? "Approve and publish"
+                : "Disable post"}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+})()}
     </section>
   );
 }

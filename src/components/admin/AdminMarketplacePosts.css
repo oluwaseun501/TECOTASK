@@ -493,3 +493,118 @@
     font-size: 16px;
   }
 }
+
+.admin-marketplace__modal-backdrop {
+  position: fixed;
+  z-index: 1400;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(3px);
+  animation: admin-marketplace-backdrop-in 160ms ease-out;
+}
+
+.admin-marketplace__modal {
+  width: min(100%, 440px);
+  border: 1px solid #e5ebe7;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 24px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.2);
+  font-family: "Poppins", sans-serif;
+  animation: admin-marketplace-modal-in 180ms ease-out;
+}
+
+.admin-marketplace__modal-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  margin-bottom: 16px;
+  border-radius: 12px;
+}
+
+.admin-marketplace__modal-icon--approve {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.admin-marketplace__modal-icon--disable {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.admin-marketplace__modal-eyebrow {
+  color: #16a34a;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.admin-marketplace__modal h2 {
+  margin: 7px 0 8px;
+  color: #0f172a;
+  font-size: 18px;
+  letter-spacing: -0.04em;
+}
+
+.admin-marketplace__modal p {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.admin-marketplace__modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+  border-top: 1px solid #eef2ef;
+  padding-top: 16px;
+}
+
+.admin-marketplace__modal-actions button:focus-visible {
+  outline: 3px solid #bbf7d0;
+  outline-offset: 2px;
+}
+
+@keyframes admin-marketplace-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes admin-marketplace-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-marketplace__modal {
+    padding: 19px;
+  }
+
+  .admin-marketplace__modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .admin-marketplace__modal-actions .admin-marketplace__button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-marketplace__modal-backdrop,
+  .admin-marketplace__modal {
+    animation: none;
+  }
+}

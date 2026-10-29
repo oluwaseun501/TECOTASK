@@ -441,11 +441,34 @@ getEarnerActivationStatus: (reference, token) =>
       { token },
     ),
 
-      getAdminMarketplacePosts: (page = 1, limit = 20, token) =>
-    request(
-      `/api/admin/marketplace/posts?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`,
-      { token },
-    ),
+   getAdminMarketplacePosts: (
+  page = 1,
+  limit = 20,
+  token,
+  status = "pending_review",
+) =>
+  request(
+    `/api/admin/marketplace/posts?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}&status=${encodeURIComponent(status)}`,
+    { token },
+  ),
+
+archiveMarketplacePost: (postId, token) =>
+  request(
+    `/api/admin/marketplace/posts/${encodeURIComponent(postId)}/archive`,
+    {
+      method: "PATCH",
+      token,
+    },
+  ),
+
+restoreMarketplacePost: (postId, token) =>
+  request(
+    `/api/admin/marketplace/posts/${encodeURIComponent(postId)}/restore`,
+    {
+      method: "PATCH",
+      token,
+    },
+  ),
 
   approveMarketplacePost: (postId, token) =>
     request(

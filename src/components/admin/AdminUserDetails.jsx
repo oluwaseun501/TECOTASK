@@ -11,7 +11,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import "../../styles/AdminUsers.css";
 
@@ -52,7 +52,11 @@ const currencyFormatter = new Intl.NumberFormat("en-NG", {
 });
 
 function formatCurrency(value) {
-  if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+  if (
+    value === null ||
+    value === undefined ||
+    !Number.isFinite(Number(value))
+  ) {
     return "—";
   }
 
@@ -67,10 +71,7 @@ function formatDate(value) {
   if (!value) return "—";
 
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
+  if (Number.isNaN(date.getTime())) return "—";
 
   return date.toLocaleDateString("en-NG", {
     day: "numeric",
@@ -98,6 +99,13 @@ function createIdempotencyKey() {
     `admin-adjustment-${Date.now()}-${Math.random()
       .toString(36)
       .slice(2)}`
+  );
+}
+
+function getAdminToken() {
+  return (
+    sessionStorage.getItem("tecotaskToken") ||
+    localStorage.getItem("tecotaskToken")
   );
 }
 
@@ -130,9 +138,10 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
   const [adjusting, setAdjusting] = useState(false);
   const [adjustmentError, setAdjustmentError] = useState("");
   const [adjustmentMessage, setAdjustmentMessage] = useState("");
-  const [adjustmentKey, setAdjustmentKey] = useState(createIdempotencyKey);
+  const [adjustmentKey, setAdjustmentKey] = useState(
+    createIdempotencyKey,
+  );
 
-  // Keep all hooks at the top level of the component.
   const [selectedRole, setSelectedRole] = useState("pending");
   const [savingRole, setSavingRole] = useState(false);
   const [roleError, setRoleError] = useState("");
@@ -143,13 +152,16 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
   const [activationError, setActivationError] = useState("");
   const [activationMessage, setActivationMessage] = useState("");
 
+  const [confirmation, setConfirmation] = useState(null);
+  const cancelConfirmationRef = useRef(null);
+
+  const actionBusy = adjusting || savingRole || activating;
+
   useEffect(() => {
     let isCurrentRequest = true;
 
     async function loadUser() {
-      const token =
-        sessionStorage.getItem("tecotaskToken") ||
-        localStorage.getItem("tecotaskToken");
+      const token = getAdminToken();
 
       if (!token) {
         setLoadError({
@@ -187,9 +199,9 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
         if (!isCurrentRequest) return;
 
         const loadedUser = data.user || null;
+
         setUser(loadedUser);
         setSelectedRole(loadedUser?.role || "pending");
-
         setReferralStats(
           data.referralStats || {
             total: 0,
@@ -205,7 +217,8 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
             requestError.status === 404
               ? "User not found"
               : "Could not load user",
-          message: requestError.message || "Could not load user details.",
+          message:
+            requestError.message || "Could not load user details.",
         });
       } finally {
         if (isCurrentRequest) {
@@ -214,14 +227,32 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
       }
     }
 
-    loadUser();
+    void loadUser();
 
     return () => {
       isCurrentRequest = false;
     };
   }, [userId, reloadKey]);
 
-  async function handleBalanceAdjustment(event) {
+  useEffect(() => {
+    if (!confirmation) return;
+
+    cancelConfirmationRef.current?.focus();
+
+    function handleConfirmationKeyDown(event) {
+      if (event.key === "Escape" && !actionBusy) {
+        setConfirmation(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleConfirmationKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleConfirmationKeyDown);
+    };
+  }, [confirmation, actionBusy]);
+
+  function handleBalanceAdjustment(event) {
     event.preventDefault();
     setAdjustmentError("");
     setAdjustmentMessage("");
@@ -240,29 +271,33 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
       return;
     }
 
-    const token =
-      sessionStorage.getItem("tecotaskToken") ||
-      localStorage.getItem("tecotaskToken");
+    if (!getAdminToken()) {
+      setAdjustmentError("Your admin session token was not found.");
+      return;
+    }
+
+    setConfirmation({
+      type: "balance",
+      direction,
+      amount: numericAmount,
+      description: description.trim(),
+      idempotencyKey: adjustmentKey,
+      availableBalance: balance.availableBalance,
+      userName: user?.fullName || user?.email || "this user",
+    });
+  }
+
+  async function executeBalanceAdjustment(action) {
+    const token = getAdminToken();
 
     if (!token) {
       setAdjustmentError("Your admin session token was not found.");
       return;
     }
 
-    const userName = user?.fullName || user?.email || "this user";
-    const actionText = direction === "credit" ? "credit" : "debit";
-
-    const confirmed = window.confirm(
-      `Confirm ${actionText} of ${formatCurrency(numericAmount)} ${
-        direction === "credit" ? "to" : "from"
-      } ${userName}?\n\nCurrent available balance: ${formatCurrency(
-        balance.availableBalance,
-      )}`,
-    );
-
-    if (!confirmed) return;
-
     setAdjusting(true);
+    setAdjustmentError("");
+    setAdjustmentMessage("");
 
     try {
       const response = await fetch(
@@ -277,10 +312,10 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            direction,
-            amount: numericAmount,
-            description,
-            idempotencyKey: adjustmentKey,
+            direction: action.direction,
+            amount: action.amount,
+            description: action.description,
+            idempotencyKey: action.idempotencyKey,
           }),
         },
       );
@@ -307,7 +342,9 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
       );
 
       setAdjustmentMessage(
-        `Balance ${direction === "credit" ? "credited" : "debited"} successfully.`,
+        `Balance ${
+          action.direction === "credit" ? "credited" : "debited"
+        } successfully.`,
       );
       setAmount("");
       setDescription("");
@@ -322,7 +359,7 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
     }
   }
 
-  async function handleRoleUpdate(event) {
+  function handleRoleUpdate(event) {
     event.preventDefault();
     setRoleError("");
     setRoleMessage("");
@@ -331,21 +368,21 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
 
     if (selectedRole === currentRole) return;
 
-    const userName = user?.fullName || user?.email || "this user";
-    const nextRoleLabel = roleLabels[selectedRole] || selectedRole;
+    if (!getAdminToken()) {
+      setRoleError("Your admin session token was not found.");
+      return;
+    }
 
-    const confirmation =
-      selectedRole === "admin"
-        ? `Promote ${userName} to Admin? This grants full administrator access.`
-        : `Change ${userName}'s role from ${
-            roleLabels[currentRole] || currentRole
-          } to ${nextRoleLabel}?`;
+    setConfirmation({
+      type: "role",
+      role: selectedRole,
+      currentRole,
+      userName: user?.fullName || user?.email || "this user",
+    });
+  }
 
-    if (!window.confirm(confirmation)) return;
-
-    const token =
-      sessionStorage.getItem("tecotaskToken") ||
-      localStorage.getItem("tecotaskToken");
+  async function executeRoleUpdate(action) {
+    const token = getAdminToken();
 
     if (!token) {
       setRoleError("Your admin session token was not found.");
@@ -353,6 +390,8 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
     }
 
     setSavingRole(true);
+    setRoleError("");
+    setRoleMessage("");
 
     try {
       const response = await fetch(
@@ -364,14 +403,16 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ role: selectedRole }),
+          body: JSON.stringify({ role: action.role }),
         },
       );
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Could not update this user's role.");
+        throw new Error(
+          data.message || "Could not update this user's role.",
+        );
       }
 
       if (data.user) {
@@ -384,7 +425,7 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
               }
             : data.user,
         );
-        setSelectedRole(data.user.role || selectedRole);
+        setSelectedRole(data.user.role || action.role);
       }
 
       setRoleMessage(data.message || "User role updated successfully.");
@@ -392,42 +433,50 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
       setActivationMessage("");
       setReloadKey((current) => current + 1);
     } catch (requestError) {
-      setRoleError(requestError.message || "Could not update this user's role.");
+      setRoleError(
+        requestError.message || "Could not update this user's role.",
+      );
     } finally {
       setSavingRole(false);
     }
   }
 
-  async function handleEarnerActivation(event) {
+  function handleEarnerActivation(event) {
     event.preventDefault();
     setActivationError("");
     setActivationMessage("");
 
     if (user?.role !== "earner" || user.isActivated) return;
 
-    const token =
-      sessionStorage.getItem("tecotaskToken") ||
-      localStorage.getItem("tecotaskToken");
+    if (!getAdminToken()) {
+      setActivationError("Your admin session token was not found.");
+      return;
+    }
+
+    setConfirmation({
+      type: "activation",
+      reference: activationReference.trim(),
+      userName: user.fullName || user.email || "this user",
+    });
+  }
+
+  async function executeEarnerActivation(action) {
+    const token = getAdminToken();
 
     if (!token) {
       setActivationError("Your admin session token was not found.");
       return;
     }
 
-    const userName = user.fullName || user.email || "this user";
-    const confirmed = window.confirm(
-      `Activate ${userName} as an earner? They will be able to start tasks and submit proof.`,
-    );
-
-    if (!confirmed) return;
-
     setActivating(true);
+    setActivationError("");
+    setActivationMessage("");
 
     try {
-      const reference = activationReference.trim();
-
       const response = await fetch(
-        `${API_BASE_URL}/api/admin/users/${encodeURIComponent(userId)}/activation`,
+        `${API_BASE_URL}/api/admin/users/${encodeURIComponent(
+          userId,
+        )}/activation`,
         {
           method: "PATCH",
           headers: {
@@ -436,8 +485,8 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(
-            reference
-              ? { activationPaymentReference: reference }
+            action.reference
+              ? { activationPaymentReference: action.reference }
               : {},
           ),
         },
@@ -462,7 +511,9 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
       }
 
       setActivationReference("");
-      setActivationMessage(data.message || "Earner activated successfully.");
+      setActivationMessage(
+        data.message || "Earner activated successfully.",
+      );
       setReloadKey((current) => current + 1);
     } catch (requestError) {
       setActivationError(
@@ -473,23 +524,42 @@ export default function AdminUserDetails({ basePath = "/admin" }) {
     }
   }
 
-if (loading) {
-  return (
-    <main className="admin-users-page">
-      <div className="admin-users-container">
-        <div
-          className="admin-users-loading admin-users-loading--page"
-          role="status"
-          aria-live="polite"
-        >
-          <span className="admin-users-loading__roller" aria-hidden="true" />
-          <span>Loading user details…</span>
-          <small>Fetching this account from the platform.</small>
+  async function confirmAdminAction() {
+    if (!confirmation || actionBusy) return;
+
+    const action = confirmation;
+
+    if (action.type === "balance") {
+      await executeBalanceAdjustment(action);
+    } else if (action.type === "role") {
+      await executeRoleUpdate(action);
+    } else if (action.type === "activation") {
+      await executeEarnerActivation(action);
+    }
+
+    setConfirmation(null);
+  }
+
+  if (loading) {
+    return (
+      <main className="admin-users-page">
+        <div className="admin-users-container">
+          <div
+            className="admin-users-loading admin-users-loading--page"
+            role="status"
+            aria-live="polite"
+          >
+            <span
+              className="admin-users-loading__roller"
+              aria-hidden="true"
+            />
+            <span>Loading user details…</span>
+            <small>Fetching this account from the platform.</small>
+          </div>
         </div>
-      </div>
-    </main>
-  );
-}
+      </main>
+    );
+  }
 
   if (loadError || !user) {
     return (
@@ -569,6 +639,49 @@ if (loading) {
           ["Pending withdrawals", balance.pendingWithdrawals],
         ]
       : [];
+
+  const confirmationTitle = confirmation
+    ? confirmation.type === "balance"
+      ? `Confirm ${
+          confirmation.direction === "credit" ? "credit" : "debit"
+        }`
+      : confirmation.type === "role"
+        ? "Confirm role change"
+        : "Activate earner account?"
+    : "";
+
+  const confirmationDescription = confirmation
+    ? confirmation.type === "balance"
+      ? `${confirmation.direction === "credit" ? "Credit" : "Debit"} ${
+          confirmation.userName
+        }'s balance by ${formatCurrency(confirmation.amount)}?`
+      : confirmation.type === "role"
+        ? confirmation.role === "admin"
+          ? `Promote ${confirmation.userName} to Admin? This grants full administrator access.`
+          : `Change ${confirmation.userName}'s role from ${
+              roleLabels[confirmation.currentRole] ||
+              confirmation.currentRole
+            } to ${roleLabels[confirmation.role] || confirmation.role}?`
+        : `Activate ${confirmation.userName} as an earner? They will be able to start tasks and submit proof.`
+    : "";
+
+  const confirmationTone =
+    confirmation?.type === "balance" &&
+    confirmation.direction === "debit"
+      ? "danger"
+      : confirmation?.type === "role" && confirmation.role === "admin"
+        ? "warning"
+        : "success";
+
+  const confirmationButtonText = confirmation
+    ? confirmation.type === "balance"
+      ? `Confirm ${
+          confirmation.direction === "credit" ? "credit" : "debit"
+        }`
+      : confirmation.type === "role"
+        ? "Confirm role change"
+        : "Activate earner"
+    : "Confirm";
 
   return (
     <main className="admin-users-page">
@@ -718,9 +831,9 @@ if (loading) {
 
               <form
                 onSubmit={handleRoleUpdate}
-                style={{ display: "grid", gap: 12, marginTop: 16 }}
+                className="user-admin-form"
               >
-                <label style={{ display: "grid", gap: 6 }}>
+                <label>
                   <span>Role</span>
                   <select
                     value={selectedRole}
@@ -729,12 +842,6 @@ if (loading) {
                       setSelectedRole(event.target.value);
                       setRoleError("");
                       setRoleMessage("");
-                    }}
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      border: "1px solid #d0d5dd",
-                      borderRadius: 8,
                     }}
                   >
                     {roleKey === "pending" && (
@@ -758,34 +865,21 @@ if (loading) {
                 </p>
 
                 {roleError && (
-                  <p role="alert" style={{ color: "#b42318" }}>
+                  <p role="alert" className="user-form-message user-form-message--error">
                     {roleError}
                   </p>
                 )}
 
                 {roleMessage && (
-                  <p role="status" style={{ color: "#067647" }}>
+                  <p role="status" className="user-form-message user-form-message--success">
                     {roleMessage}
                   </p>
                 )}
 
                 <button
                   type="submit"
+                  className="user-admin-action-button user-admin-action-button--dark"
                   disabled={savingRole || selectedRole === roleKey}
-                  style={{
-                    padding: "11px 14px",
-                    border: 0,
-                    borderRadius: 8,
-                    color: "#fff",
-                    fontWeight: 600,
-                    cursor:
-                      savingRole || selectedRole === roleKey
-                        ? "not-allowed"
-                        : "pointer",
-                    background: "#344054",
-                    opacity:
-                      savingRole || selectedRole === roleKey ? 0.65 : 1,
-                  }}
                 >
                   {savingRole ? "Saving role…" : "Save role"}
                 </button>
@@ -802,20 +896,12 @@ if (loading) {
               </div>
 
               {balance ? (
-                <div style={{ marginTop: 16 }}>
+                <div className="user-balance-summary">
                   <p className="users-muted-text">Available balance</p>
-                  <strong
-                    style={{
-                      display: "block",
-                      fontSize: 24,
-                      marginTop: 4,
-                    }}
-                  >
-                    {formatCurrency(balance.availableBalance)}
-                  </strong>
+                  <strong>{formatCurrency(balance.availableBalance)}</strong>
 
                   {balance.reservedBalance != null && (
-                    <p className="users-muted-text" style={{ marginTop: 8 }}>
+                    <p className="users-muted-text">
                       Reserved: {formatCurrency(balance.reservedBalance)}
                     </p>
                   )}
@@ -829,9 +915,9 @@ if (loading) {
               {canAdjustBalance ? (
                 <form
                   onSubmit={handleBalanceAdjustment}
-                  style={{ display: "grid", gap: 12, marginTop: 20 }}
+                  className="user-admin-form"
                 >
-                  <label style={{ display: "grid", gap: 6 }}>
+                  <label>
                     <span>Action</span>
                     <select
                       value={direction}
@@ -841,19 +927,13 @@ if (loading) {
                         setAdjustmentError("");
                         setAdjustmentMessage("");
                       }}
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid #d0d5dd",
-                        borderRadius: 8,
-                      }}
                     >
                       <option value="credit">Credit</option>
                       <option value="debit">Debit</option>
                     </select>
                   </label>
 
-                  <label style={{ display: "grid", gap: 6 }}>
+                  <label>
                     <span>Amount (NGN)</span>
                     <input
                       type="number"
@@ -867,17 +947,10 @@ if (loading) {
                         setAdjustmentError("");
                         setAdjustmentMessage("");
                       }}
-                      style={{
-                        width: "100%",
-                        boxSizing: "border-box",
-                        padding: "10px 12px",
-                        border: "1px solid #d0d5dd",
-                        borderRadius: 8,
-                      }}
                     />
                   </label>
 
-                  <label style={{ display: "grid", gap: 6 }}>
+                  <label>
                     <span>Description</span>
                     <input
                       type="text"
@@ -890,13 +963,6 @@ if (loading) {
                         setAdjustmentMessage("");
                       }}
                       placeholder="Reason for adjustment"
-                      style={{
-                        width: "100%",
-                        boxSizing: "border-box",
-                        padding: "10px 12px",
-                        border: "1px solid #d0d5dd",
-                        borderRadius: 8,
-                      }}
                     />
                   </label>
 
@@ -906,32 +972,25 @@ if (loading) {
                   </p>
 
                   {adjustmentError && (
-                    <p role="alert" style={{ color: "#b42318" }}>
+                    <p role="alert" className="user-form-message user-form-message--error">
                       {adjustmentError}
                     </p>
                   )}
 
                   {adjustmentMessage && (
-                    <p role="status" style={{ color: "#067647" }}>
+                    <p role="status" className="user-form-message user-form-message--success">
                       {adjustmentMessage}
                     </p>
                   )}
 
                   <button
                     type="submit"
+                    className={`user-admin-action-button ${
+                      direction === "credit"
+                        ? "user-admin-action-button--green"
+                        : "user-admin-action-button--red"
+                    }`}
                     disabled={adjusting || !balance}
-                    style={{
-                      padding: "11px 14px",
-                      border: 0,
-                      borderRadius: 8,
-                      color: "#fff",
-                      fontWeight: 600,
-                      cursor:
-                        adjusting || !balance ? "not-allowed" : "pointer",
-                      background:
-                        direction === "credit" ? "#079455" : "#d92d20",
-                      opacity: adjusting || !balance ? 0.65 : 1,
-                    }}
                   >
                     {adjusting
                       ? "Saving adjustment…"
@@ -939,31 +998,17 @@ if (loading) {
                   </button>
                 </form>
               ) : (
-                <p className="user-no-history" style={{ marginTop: 16 }}>
+                <p className="user-no-history user-balance-unavailable">
                   This account role does not have an adjustable wallet.
                 </p>
               )}
 
               {earnerBalanceRows.length > 0 && (
-                <div style={{ marginTop: 20 }}>
+                <div className="user-balance-breakdown">
                   <h3>Balance breakdown</h3>
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gap: 8,
-                      marginTop: 10,
-                    }}
-                  >
+                  <div>
                     {earnerBalanceRows.map(([label, value]) => (
-                      <div
-                        key={label}
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: 12,
-                        }}
-                      >
+                      <div key={label}>
                         <span className="users-muted-text">{label}</span>
                         <strong>{formatCurrency(value)}</strong>
                       </div>
@@ -986,15 +1031,11 @@ if (loading) {
                 <InfoRow icon={Mail}>
                   {user.email || "Email not provided"}
                 </InfoRow>
-
                 <InfoRow icon={ShieldCheck}>Role: {role}</InfoRow>
-
                 <InfoRow icon={UserRound}>
                   Referral code: {user.referralCode || "Not set"}
                 </InfoRow>
-
                 <InfoRow icon={UserRound}>Referred by: {referredBy}</InfoRow>
-
                 <InfoRow icon={CalendarDays}>
                   Last updated: {formatDate(user.updatedAt)}
                 </InfoRow>
@@ -1028,13 +1069,19 @@ if (loading) {
               </div>
 
               {activationError && (
-                <p role="alert" style={{ color: "#b42318", marginTop: 12 }}>
+                <p
+                  role="alert"
+                  className="user-form-message user-form-message--error"
+                >
                   {activationError}
                 </p>
               )}
 
               {activationMessage && (
-                <p role="status" style={{ color: "#067647", marginTop: 12 }}>
+                <p
+                  role="status"
+                  className="user-form-message user-form-message--success"
+                >
                   {activationMessage}
                 </p>
               )}
@@ -1042,9 +1089,9 @@ if (loading) {
               {roleKey === "earner" && !user.isActivated && (
                 <form
                   onSubmit={handleEarnerActivation}
-                  style={{ display: "grid", gap: 12, marginTop: 16 }}
+                  className="user-admin-form"
                 >
-                  <label style={{ display: "grid", gap: 6 }}>
+                  <label>
                     <span>Payment reference (optional)</span>
                     <input
                       type="text"
@@ -1056,29 +1103,13 @@ if (loading) {
                         setActivationMessage("");
                       }}
                       placeholder="Enter a reference if available"
-                      style={{
-                        width: "100%",
-                        boxSizing: "border-box",
-                        padding: "10px 12px",
-                        border: "1px solid #d0d5dd",
-                        borderRadius: 8,
-                      }}
                     />
                   </label>
 
                   <button
                     type="submit"
+                    className="user-admin-action-button user-admin-action-button--green"
                     disabled={activating}
-                    style={{
-                      padding: "11px 14px",
-                      border: 0,
-                      borderRadius: 8,
-                      color: "#fff",
-                      fontWeight: 600,
-                      cursor: activating ? "not-allowed" : "pointer",
-                      background: "#079455",
-                      opacity: activating ? 0.65 : 1,
-                    }}
                   >
                     {activating ? "Activating earner…" : "Activate earner"}
                   </button>
@@ -1088,6 +1119,128 @@ if (loading) {
           </aside>
         </section>
       </div>
+
+      {confirmation && (
+        <div
+          className="admin-user-confirm-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !actionBusy) {
+              setConfirmation(null);
+            }
+          }}
+        >
+          <section
+            className="admin-user-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-user-confirm-title"
+            aria-describedby="admin-user-confirm-description"
+            aria-busy={actionBusy}
+          >
+            <div
+              className={`admin-user-confirm-modal__icon admin-user-confirm-modal__icon--${confirmationTone}`}
+            >
+              {confirmationTone === "danger" ||
+              confirmationTone === "warning" ? (
+                <AlertTriangle size={21} />
+              ) : (
+                <CheckCircle2 size={21} />
+              )}
+            </div>
+
+            <span className="admin-user-confirm-modal__eyebrow">
+              ADMIN ACTION
+            </span>
+
+            <h2 id="admin-user-confirm-title">{confirmationTitle}</h2>
+
+            <p id="admin-user-confirm-description">
+              {confirmationDescription}
+            </p>
+
+            {confirmation.type === "balance" && (
+              <div className="admin-user-confirm-modal__details">
+                <div>
+                  <span>Account</span>
+                  <strong>{confirmation.userName}</strong>
+                </div>
+                <div>
+                  <span>Adjustment</span>
+                  <strong>
+                    {confirmation.direction === "credit" ? "Credit" : "Debit"}{" "}
+                    {formatCurrency(confirmation.amount)}
+                  </strong>
+                </div>
+                <div>
+                  <span>Current available balance</span>
+                  <strong>
+                    {formatCurrency(confirmation.availableBalance)}
+                  </strong>
+                </div>
+                {confirmation.description && (
+                  <div>
+                    <span>Description</span>
+                    <strong>{confirmation.description}</strong>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {confirmation.type === "role" && (
+              <div className="admin-user-confirm-modal__details">
+                <div>
+                  <span>Account</span>
+                  <strong>{confirmation.userName}</strong>
+                </div>
+                <div> 
+
+_                  <span>New role</span>
+                  <strong>
+                    {roleLabels[confirmation.role] || confirmation.role}
+                  </strong>
+                </div>
+              </div>
+            )}
+
+            {confirmation.type === "activation" &&
+              confirmation.reference && (
+                <div className="admin-user-confirm-modal__details">
+                  <div>
+                    <span>Payment reference</span>
+                    <strong>{confirmation.reference}</strong>
+                  </div>
+                </div>
+              )}
+
+            <div className="admin-user-confirm-modal__actions">
+              <button
+                ref={cancelConfirmationRef}
+                type="button"
+                className="admin-user-confirm-button admin-user-confirm-button--secondary"
+                disabled={actionBusy}
+                onClick={() => setConfirmation(null)}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className={`admin-user-confirm-button admin-user-confirm-button--${confirmationTone}`}
+                disabled={actionBusy}
+                onClick={() => void confirmAdminAction()}
+              >
+                {adjusting
+                  ? "Saving adjustment…"
+                  : savingRole
+                    ? "Saving role…"
+                    : activating
+                      ? "Activating…"
+                      : confirmationButtonText}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
