@@ -1484,6 +1484,7 @@
   }
 }
 
+
 @media (prefers-reduced-motion: reduce) {
   .admin-user-confirm-modal {
     animation: none;
