@@ -107,7 +107,8 @@ const EarnersTopBar = ({
             <strong>{formatNaira(stats?.walletBalance || 0)}</strong>
           </span>
 
-          <div className="earner-profile-dropdown" ref={profileMenuRef}>
+          {/* Added 'relative' to anchor the absolute dropdown */}
+          <div className="earner-profile-dropdown relative" ref={profileMenuRef}>
             <button
               type="button"
               className="earner-topbar__avatar"
@@ -129,8 +130,9 @@ const EarnersTopBar = ({
             </button>
 
             {accountMenuOpen && (
+              // Added 'absolute right-0 z-50' to fix mobile positioning
               <div
-                className="earner-account-menu"
+                className="earner-account-menu absolute right-0 z-50"
                 id="earner-account-menu"
                 role="menu"
                 aria-label="Earner account menu"

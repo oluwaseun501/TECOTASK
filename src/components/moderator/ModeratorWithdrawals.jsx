@@ -6,6 +6,8 @@ import {
   Landmark,
   WalletCards,
   XCircle,
+  AlertCircle,
+  X,
 } from "lucide-react";
 
 import { authApi } from "../../services/auth.js";
@@ -98,6 +100,14 @@ export default function ModeratorWithdrawals() {
   const [editingPayoutAccount, setEditingPayoutAccount] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    isDanger: false,
+    onConfirm: null,
+  });
 
   const [form, setForm] = useState({
     amount: "",
@@ -235,66 +245,67 @@ export default function ModeratorWithdrawals() {
       ? `····${form.accountNumber.replace(/\D/g, "").slice(-4)}`
       : existingAccount.accountNumberMasked;
 
-    const confirmed = window.confirm(
-      `Request ${formatAmount(amount)} to ${bankName} account ${maskedAccount}? This moves the amount from your available balance into pending withdrawals.`,
-    );
+    setConfirmDialog({
+      isOpen: true,
+      title: "Process Withdrawal",
+      message: `Request ${formatAmount(amount)} to ${bankName} account ${maskedAccount}? This moves the amount from your available balance into pending withdrawals.`,
+      isDanger: true,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setSubmitting(true);
 
-    if (!confirmed) return;
+        try {
+          let savedPayoutAccount = existingAccount;
 
-    setSubmitting(true);
+          if (needsNewAccount) {
+            const accountResult = await authApi.saveModeratorPayoutAccount(
+              {
+                bankName: form.bankName.trim(),
+                accountName: form.accountName.trim(),
+                accountNumber: form.accountNumber.replace(/\D/g, ""),
+              },
+              token,
+            );
 
-    try {
-      let savedPayoutAccount = existingAccount;
+            savedPayoutAccount = accountResult.payoutAccount;
+            setWallet((current) => ({
+              ...current,
+              payoutAccount: savedPayoutAccount,
+            }));
+          }
 
-      if (needsNewAccount) {
-        const accountResult = await authApi.saveModeratorPayoutAccount(
-          {
-            bankName: form.bankName.trim(),
-            accountName: form.accountName.trim(),
-            accountNumber: form.accountNumber.replace(/\D/g, ""),
-          },
-          token,
-        );
+          const result = await authApi.requestModeratorWithdrawal(amount, token);
 
-        savedPayoutAccount = accountResult.payoutAccount;
-        setWallet((current) => ({
-          ...current,
-          payoutAccount: savedPayoutAccount,
-        }));
-      }
+          setWallet((current) => ({
+            ...current,
+            ...(result.wallet || {}),
+            payoutAccount: savedPayoutAccount,
+          }));
 
-      const result = await authApi.requestModeratorWithdrawal(amount, token);
+          setHistory((current) => [
+            normalizeWithdrawal(result.withdrawal),
+            ...current,
+          ]);
 
-      setWallet((current) => ({
-        ...current,
-        ...(result.wallet || {}),
-        payoutAccount: savedPayoutAccount,
-      }));
-
-      setHistory((current) => [
-        normalizeWithdrawal(result.withdrawal),
-        ...current,
-      ]);
-
-      setForm((current) => ({
-        ...current,
-        amount: "",
-        accountNumber: "",
-      }));
-      setEditingPayoutAccount(false);
-      setNotice(
-        result.message || "Your withdrawal request has been submitted.",
-      );
-    } catch (requestError) {
-      setError(
-        requestError.message || "Could not submit the withdrawal request.",
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  
-
-    }
+          setForm((current) => ({
+            ...current,
+            amount: "",
+            accountNumber: "",
+          }));
+          setEditingPayoutAccount(false);
+          setNotice(
+            result.message || "Your withdrawal request has been submitted.",
+          );
+        } catch (requestError) {
+          setError(
+            requestError.message || "Could not submit the withdrawal request.",
+          );
+        } finally {
+          setSubmitting(false);
+        }
+      },
+    });
+  }
 
   if (loading) {
     return (
@@ -314,9 +325,41 @@ export default function ModeratorWithdrawals() {
     );
   }
 
-
   return (
     <main className="moderator-withdrawals">
+      {confirmDialog.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between mb-4">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${confirmDialog.isDanger ? "bg-red-100" : "bg-green-100"}`}>
+                <AlertCircle size={20} className={confirmDialog.isDanger ? "text-red-600" : "text-green-600"} />
+              </div>
+              <button onClick={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">{confirmDialog.title}</h3>
+            <p className="text-sm text-gray-500 mb-6">{confirmDialog.message}</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDialog.onConfirm}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                  confirmDialog.isDanger ? "bg-red-600 hover:bg-red-700" : "bg-[#0d8a45] hover:bg-[#0a6e37]"
+                }`}
+              >
+                Confirm Withdrawal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="moderator-withdrawals__inner">
         <header className="moderator-withdrawals__header">
           <div>

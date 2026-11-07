@@ -34,10 +34,8 @@ const AdvertiserCreateCampaign = () => {
   const guideImageInputRef = useRef(null);
 
   const [campaign, setCampaign] = useState({
-    name: "",
     serviceId: "",
     brief: "",
-    proof: "",
     numberOfPeople: "5",
   });
 
@@ -249,24 +247,9 @@ const AdvertiserCreateCampaign = () => {
       return "Please select an available service.";
     }
 
-    if (!campaign.name.trim()) {
-      return "Please enter a campaign name.";
-    }
-
-    if (!campaign.brief.trim()) {
-      return "Please add a short brief for earners.";
-    }
-
-    if (
-      instructions.length < 1 ||
-      instructions.length > 20 ||
-      instructions.some((instruction) => !instruction.trim())
-    ) {
-      return "Add between 1 and 20 complete instruction steps.";
-    }
-
-    if (!campaign.proof.trim()) {
-      return "Please describe the proof requirement.";
+    // Only checking the max limit now, since steps are optional
+    if (instructions.length > 20) {
+      return "A campaign can have no more than 20 instruction steps.";
     }
 
     return "";
@@ -284,14 +267,21 @@ const AdvertiserCreateCampaign = () => {
     return "";
   };
 
-  const buildCampaignPayload = () => ({
-    serviceId: campaign.serviceId,
-    name: campaign.name.trim(),
-    shortBrief: campaign.brief.trim(),
-    instructions: instructions.map((instruction) => instruction.trim()),
-    proofRequirements: campaign.proof.trim(),
-    targetQuantity,
-  });
+  const buildCampaignPayload = () => {
+    // Auto-generate a name for the backend since we removed the input
+    const generatedName = selectedService 
+      ? `${selectedService.name} - ${new Date().toLocaleDateString("en-NG", { day: '2-digit', month: 'short', year: 'numeric' })}`
+      : "New Campaign";
+
+    return {
+      serviceId: campaign.serviceId,
+      name: generatedName, // Sending auto-generated name
+      shortBrief: campaign.brief.trim(), // Can be empty
+      instructions: instructions.map((instruction) => instruction.trim()).filter(Boolean), // Filter out empty strings
+      proofRequirements: "", // Defaulting to empty since removed
+      targetQuantity,
+    };
+  };
 
   const handleContinue = (event) => {
     event.preventDefault();
@@ -504,20 +494,6 @@ const AdvertiserCreateCampaign = () => {
             </div>
 
             <div className="advertiser-form-field">
-              <label htmlFor="campaignName">Campaign name</label>
-
-              <input
-                id="campaignName"
-                name="name"
-                type="text"
-                value={campaign.name}
-                onChange={handleCampaignChange}
-                placeholder="Example: Instagram community push"
-                required
-              />
-            </div>
-
-            <div className="advertiser-form-field">
               <label htmlFor="campaignCategory">Task category</label>
 
               <select
@@ -540,7 +516,10 @@ const AdvertiserCreateCampaign = () => {
             </div>
 
             <div className="advertiser-form-field">
-              <label htmlFor="campaignBrief">Short brief for earners</label>
+              <div className="advertiser-form-label-row">
+                <label htmlFor="campaignBrief">Short brief for earners</label>
+                <span>Optional</span>
+              </div>
 
               <textarea
                 id="campaignBrief"
@@ -549,7 +528,6 @@ const AdvertiserCreateCampaign = () => {
                 value={campaign.brief}
                 onChange={handleCampaignChange}
                 placeholder="Explain what the earner needs to do."
-                required
               />
 
               <small>
@@ -561,7 +539,7 @@ const AdvertiserCreateCampaign = () => {
             <div className="advertiser-form-field">
               <div className="advertiser-form-label-row">
                 <label>Instruction steps</label>
-                <span>{instructions.length} steps</span>
+                <span>Optional</span>
               </div>
 
               <div className="advertiser-instructions">
@@ -585,7 +563,6 @@ const AdvertiserCreateCampaign = () => {
                           ? "Open the link and tap Follow"
                           : "Describe the next step"
                       }
-                      required
                     />
 
                     <button
@@ -608,24 +585,6 @@ const AdvertiserCreateCampaign = () => {
               >
                 + Add step
               </button>
-            </div>
-
-            <div className="advertiser-form-field">
-              <label htmlFor="proofRequirement">Proof requirement</label>
-
-              <input
-                id="proofRequirement"
-                name="proof"
-                type="text"
-                value={campaign.proof}
-                onChange={handleCampaignChange}
-                placeholder="Explain the screenshot or proof an earner must submit."
-                required
-              />
-
-              <small>
-                Moderators reject any submission that does not meet this rule.
-              </small>
             </div>
 
             <div className="advertiser-form-field">
@@ -807,11 +766,6 @@ const AdvertiserCreateCampaign = () => {
 
               <dl className="advertiser-review-list">
                 <div>
-                  <dt>Campaign name</dt>
-                  <dd>{campaign.name || "—"}</dd>
-                </div>
-
-                <div>
                   <dt>Category</dt>
                   <dd>
                     {selectedService?.platform ||
@@ -823,11 +777,6 @@ const AdvertiserCreateCampaign = () => {
                 <div>
                   <dt>Number of people</dt>
                   <dd>{hasValidQuantity ? targetQuantity : "—"}</dd>
-                </div>
-
-                <div>
-                  <dt>Proof requirement</dt>
-                  <dd>{campaign.proof || "—"}</dd>
                 </div>
 
                 <div>
@@ -883,14 +832,11 @@ const AdvertiserCreateCampaign = () => {
     </section>
   );
 };
-
 const CampaignCostSidebar = ({
   selectedService,
   quantity,
   hasValidQuantity,
   totalBudget,
-  rewardTotal,
-  feeTotal,
   availableBalance,
 }) => {
   const hasEstimate =
@@ -901,21 +847,12 @@ const CampaignCostSidebar = ({
   return (
     <aside className="advertiser-campaign-preview">
       <section className="advertiser-campaign-cost-card">
-        <span>Campaign cost</span>
+        <span>Total campaign cost</span>
 
         <strong>{formatNaira(hasEstimate ? totalBudget : 0)}</strong>
 
-        <div className="advertiser-campaign-cost-line">
-          <span>Rewards to earners</span>
-          <strong>{formatNaira(hasEstimate ? rewardTotal : 0)}</strong>
-        </div>
-
-        <div className="advertiser-campaign-cost-line">
-          <span>Moderation &amp; service fee</span>
-          <strong>{formatNaira(hasEstimate ? feeTotal : 0)}</strong>
-        </div>
-
-        <div className="advertiser-campaign-cost-line">
+        {/* Kept only the wallet balance as requested */}
+        <div className="advertiser-campaign-cost-line" style={{ marginTop: "1rem" }}>
           <span>Wallet balance</span>
           <strong>{formatNaira(availableBalance)}</strong>
         </div>
@@ -926,7 +863,7 @@ const CampaignCostSidebar = ({
           </p>
         )}
 
-        <p>
+        <p style={{ marginTop: "1rem" }}>
           Unused budget stays in your wallet — you only pay for approved proofs.
         </p>
       </section>
@@ -939,9 +876,10 @@ const CampaignCostSidebar = ({
           hours.
         </p>
 
+        {/* Updated this text since we removed the proof requirement field */}
         <p>
-          Be specific about your proof rule to avoid duplicate submissions and
-          slow approvals.
+          Make sure your task instructions are clear to avoid duplicate
+          submissions and slow approvals.
         </p>
 
         <p>

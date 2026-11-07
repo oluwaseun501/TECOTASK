@@ -209,7 +209,8 @@ const AdvertisersTopBar = () => {
             </strong>
           </span>
 
-          <div className="advertiser-profile-dropdown" ref={profileMenuRef}>
+          {/* ONLY ADDED 'relative' HERE */}
+          <div className="advertiser-profile-dropdown relative" ref={profileMenuRef}>
             <button
               type="button"
               className="advertiser-topbar__avatar"
@@ -231,8 +232,9 @@ const AdvertisersTopBar = () => {
             </button>
 
             {accountMenuOpen && (
+              // ONLY ADDED 'absolute right-0 z-50' HERE - YOUR ORIGINAL CSS DOES THE REST
               <div
-                className="advertiser-account-menu"
+                className="advertiser-account-menu absolute right-0 z-50"
                 id="advertiser-account-menu"
                 role="menu"
                 aria-label="Advertiser account menu"

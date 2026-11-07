@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { authApi } from "../../services/auth.js";
 import "../../styles/EarnersDashboard.css";
+import { CheckCircle2, X, AlertCircle } from "lucide-react";
 
 const MAX_PROOF_IMAGE_BYTES = 2 * 1024 * 1024;
 
@@ -70,8 +71,10 @@ const EarnerTaskDetails = () => {
   const [proofImage, setProofImage] = useState(null);
   const [proofImagePreview, setProofImagePreview] = useState("");
   const [isBusy, setIsBusy] = useState(false);
-  const [actionError, setActionError] = useState("");
-  const [actionMessage, setActionMessage] = useState("");
+  
+  // Replaced old error/message states with professional toast/modal states
+  const [toast, setToast] = useState(null); // { type: 'error' | 'success', message: string }
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
 
   const proofImageInputRef = useRef(null);
   const proofFormRef = useRef(null);
@@ -99,6 +102,14 @@ const EarnerTaskDetails = () => {
   const showProofForm = ["started", "rejected"].includes(currentStatus);
 
   const advertiserLinks = getInstructionLinks(task?.instructions || "");
+
+  // Auto-hide toast after 5 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     setSubmissionId(existingSubmission?.id || "");
@@ -167,17 +178,16 @@ const EarnerTaskDetails = () => {
     }
 
     setIsBusy(true);
-    setActionError("");
-    setActionMessage("");
+    setToast(null);
 
     try {
       const result = await authApi.startEarnerTask(task.id, token);
 
       setSubmissionId(result.submission.id);
       setSubmissionStatus("started");
-      setActionMessage(
-        result.message || "Task started. You can now submit your proof.",
-      );
+      
+      // Show professional success toast
+      setToast({ type: "success", message: "Task started. You can now submit your proof." });
 
       try {
         await refreshDashboard(token);
@@ -185,7 +195,7 @@ const EarnerTaskDetails = () => {
         // The task is started. Keep the local page state usable if refresh fails.
       }
     } catch (error) {
-      setActionError(error.message || "Could not start this task.");
+      setToast({ type: "error", message: error.message || "Could not start this task." });
     } finally {
       setIsBusy(false);
     }
@@ -195,7 +205,7 @@ const EarnerTaskDetails = () => {
     const input = event.currentTarget;
     const file = input.files?.[0] || null;
 
-    setActionError("");
+    setToast(null);
 
     if (!file) {
       setProofImage(null);
@@ -205,16 +215,14 @@ const EarnerTaskDetails = () => {
     if (!PROOF_IMAGE_TYPES.has(file.type)) {
       setProofImage(null);
       input.value = "";
-      setActionError(
-        "Choose a PNG, JPEG, or WebP image. Videos are not accepted.",
-      );
+      setToast({ type: "error", message: "Choose a PNG, JPEG, or WebP image. Videos are not accepted." });
       return;
     }
 
     if (file.size > MAX_PROOF_IMAGE_BYTES) {
       setProofImage(null);
       input.value = "";
-      setActionError("The image must be 2 MB or smaller.");
+      setToast({ type: "error", message: "The image must be 2 MB or smaller." });
       return;
     }
 
@@ -242,8 +250,7 @@ const EarnerTaskDetails = () => {
     }
 
     setIsBusy(true);
-    setActionError("");
-    setActionMessage("");
+    setToast(null);
 
     try {
       if (proofImage) {
@@ -254,7 +261,7 @@ const EarnerTaskDetails = () => {
         );
       }
 
-      const result = await authApi.submitEarnerProof(
+      await authApi.submitEarnerProof(
         currentSubmissionId,
         { proofUrl, proofNote },
         token,
@@ -267,17 +274,19 @@ const EarnerTaskDetails = () => {
         proofImageInputRef.current.value = "";
       }
 
-      setActionMessage(result.message || "Proof submitted successfully.");
+      // Show beautiful custom modal instead of inline text
+      setSuccessModalOpen(true);
 
       try {
         await refreshDashboard(token);
       } catch {
-        setActionError(
-          "Your proof was submitted, but the dashboard could not refresh. Reload the page to see the update.",
-        );
+        setToast({
+          type: "error",
+          message: "Your proof was submitted, but the dashboard could not refresh. Please reload the page.",
+        });
       }
     } catch (error) {
-      setActionError(error.message || "Could not submit proof.");
+      setToast({ type: "error", message: error.message || "Could not submit proof." });
     } finally {
       setIsBusy(false);
     }
@@ -327,6 +336,39 @@ const EarnerTaskDetails = () => {
 
   return (
     <main className="earner-task-detail">
+      
+      {/* PROFESSIONAL TOAST NOTIFICATION */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border text-sm font-medium transition-all duration-300 ${toast.type === "error" ? "bg-red-50 border-red-200 text-red-700" : "bg-green-50 border-green-200 text-green-700"}`}>
+          {toast.type === "error" ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+          {toast.message}
+          <button onClick={() => setToast(null)} className="ml-2 hover:opacity-70">
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* PROFESSIONAL SUCCESS MODAL */}
+      {successModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center animate-in zoom-in-95 duration-200">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 mb-4">
+              <CheckCircle2 size={28} className="text-green-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Proof Submitted!</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Your proof has been successfully submitted and is now pending review. We will notify you once it's approved.
+            </p>
+            <button
+              onClick={() => setSuccessModalOpen(false)}
+              className="w-full inline-flex justify-center rounded-lg bg-[#0d8a45] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0a6e37] transition-colors"
+            >
+              Got it, thanks!
+            </button>
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         className="earner-secondary-button earner-task-detail__back"
@@ -360,30 +402,30 @@ const EarnerTaskDetails = () => {
         </div>
 
         {task.guideImageUrl && (
-  <section className="earner-task-detail__guide">
-    <div className="earner-task-detail__guide-heading">
-      <div>
-        <h2>Advertiser image guide</h2>
-        <p>Use this image as a reference while completing the task.</p>
-      </div>
+          <section className="earner-task-detail__guide">
+            <div className="earner-task-detail__guide-heading">
+              <div>
+                <h2>Advertiser image guide</h2>
+                <p>Use this image as a reference while completing the task.</p>
+              </div>
 
-      <a
-        href={task.guideImageUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="earner-task-detail__guide-link"
-      >
-        Open full image ↗
-      </a>
-    </div>
+              <a
+                href={task.guideImageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="earner-task-detail__guide-link"
+              >
+                Open full image ↗
+              </a>
+            </div>
 
-    <img
-      src={task.guideImageUrl}
-      alt={`Advertiser guide for ${task.title}`}
-      loading="lazy"
-    />
-  </section>
-)}
+            <img
+              src={task.guideImageUrl}
+              alt={`Advertiser guide for ${task.title}`}
+              loading="lazy"
+            />
+          </section>
+        )}
 
         <section className="earner-task-detail__section">
           <h2>About this task</h2>
@@ -473,18 +515,6 @@ const EarnerTaskDetails = () => {
               <span aria-hidden="true"> →</span>
             </button>
           </div>
-        )}
-
-        {actionError && (
-          <p className="role-error" role="alert">
-            {actionError}
-          </p>
-        )}
-
-        {actionMessage && (
-          <p className="earner-task-detail__message" role="status">
-            {actionMessage}
-          </p>
         )}
 
         {showProofForm && currentSubmissionId && (

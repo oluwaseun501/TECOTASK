@@ -11,6 +11,7 @@ import {
   RefreshCw,
   ShieldCheck,
   XCircle,
+  X,
 } from "lucide-react";
 
 import { authApi } from "../../services/auth.js";
@@ -589,6 +590,15 @@ export default function ModeratorOverview() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [notice, setNotice] = useState("");
 
+  // --- NEW MODAL STATE ---
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    isDanger: false,
+    onConfirm: null,
+  });
+
   useEffect(() => {
     let isActive = true;
 
@@ -741,8 +751,6 @@ export default function ModeratorOverview() {
           : "Submission rejected."),
     );
 
-    // Keep the rest of your existing function below this.
-
     setReviews((current) =>
       current.filter((review) => review.id !== selectedReview?.id),
     );
@@ -759,33 +767,38 @@ export default function ModeratorOverview() {
     setRefreshKey((current) => current + 1);
   }
 
-  async function handleApprove() {
+  // UPDATED: Removed window.confirm, now uses custom modal
+  function handleApprove() {
     if (!selectedReview || !token) return;
 
-    const confirmed = window.confirm(
-      `Approve "${selectedReview.task}"? This records the review and affects campaign and wallet balances.`,
-    );
+    setConfirmDialog({
+      isOpen: true,
+      title: "Approve Campaign",
+      message: `Approve "${selectedReview.task}"? This records the review and affects campaign and wallet balances.`,
+      isDanger: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setActionError("");
+        setBusyAction("approve");
 
-    if (!confirmed) return;
+        try {
+          const data = await authApi.approveModeratorReview(
+            selectedReview.id,
+            token,
+          );
 
-    setActionError("");
-    setBusyAction("approve");
-
-    try {
-      const data = await authApi.approveModeratorReview(
-        selectedReview.id,
-        token,
-      );
-
-      recordSuccessfulDecision(data, "approved");
-    } catch (error) {
-      setActionError(error.message || "Could not approve this submission.");
-    } finally {
-      setBusyAction("");
-    }
+          recordSuccessfulDecision(data, "approved");
+        } catch (error) {
+          setActionError(error.message || "Could not approve this submission.");
+        } finally {
+          setBusyAction("");
+        }
+      },
+    });
   }
 
-  async function handleReject(event) {
+  // UPDATED: Removed window.confirm, now uses custom modal
+  function handleReject(event) {
     event.preventDefault();
 
     if (!selectedReview || !token) return;
@@ -804,31 +817,34 @@ export default function ModeratorOverview() {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Reject "${selectedReview.task}" for "${chosenReason.label}"? This decision will be recorded.`,
-    );
+    setConfirmDialog({
+      isOpen: true,
+      title: "Reject Campaign",
+      message: `Reject "${selectedReview.task}" for "${chosenReason.label}"? This decision will be recorded.`,
+      isDanger: true,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setActionError("");
+        setBusyAction("reject");
 
-    if (!confirmed) return;
+        try {
+          const data = await authApi.rejectModeratorReview(
+            selectedReview.id,
+            {
+              rejectionReasonId: selectedReasonId,
+              moderatorComment: moderatorComment.trim(),
+            },
+            token,
+          );
 
-    setActionError("");
-    setBusyAction("reject");
-
-    try {
-      const data = await authApi.rejectModeratorReview(
-        selectedReview.id,
-        {
-          rejectionReasonId: selectedReasonId,
-          moderatorComment: moderatorComment.trim(),
-        },
-        token,
-      );
-
-      recordSuccessfulDecision(data, "rejected");
-    } catch (error) {
-      setActionError(error.message || "Could not reject this submission.");
-    } finally {
-      setBusyAction("");
-    }
+          recordSuccessfulDecision(data, "rejected");
+        } catch (error) {
+          setActionError(error.message || "Could not reject this submission.");
+        } finally {
+          setBusyAction("");
+        }
+      },
+    });
   }
 
   function handleRefresh() {
@@ -837,6 +853,40 @@ export default function ModeratorOverview() {
 
   return (
     <main className="moderator-overview">
+      {/* CUSTOM CONFIRMATION MODAL */}
+      {confirmDialog.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between mb-4">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${confirmDialog.isDanger ? "bg-red-100" : "bg-green-100"}`}>
+                <AlertCircle size={20} className={confirmDialog.isDanger ? "text-red-600" : "text-green-600"} />
+              </div>
+              <button onClick={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">{confirmDialog.title}</h3>
+            <p className="text-sm text-gray-500 mb-6">{confirmDialog.message}</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDialog.onConfirm}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                  confirmDialog.isDanger ? "bg-red-600 hover:bg-red-700" : "bg-[#0d8a45] hover:bg-[#0a6e37]"
+                }`}
+              >
+                {confirmDialog.isDanger ? "Yes, Reject" : "Yes, Approve"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="moderator-overview__inner">
         <header className="moderator-queue-header">
           <div>

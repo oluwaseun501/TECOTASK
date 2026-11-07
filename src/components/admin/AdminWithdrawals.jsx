@@ -9,6 +9,7 @@ import {
   UserRound,
   Users,
   XCircle,
+  X,
 } from "lucide-react";
 
 import "../../styles/AdminWithdrawals.css";
@@ -234,6 +235,14 @@ export default function AdminWithdrawals() {
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
 
+  // --- MODAL STATE (ONLY FOR REJECT/FAIL NOW) ---
+  const [actionModal, setActionModal] = useState({
+    isOpen: false,
+    withdrawal: null,
+    action: "", 
+    inputValue: "",
+  });
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -313,29 +322,44 @@ export default function AdminWithdrawals() {
     });
   }, [withdrawals, activeRole, activeStatus, searchQuery]);
 
+  // MAIN ACTION HANDLER
   const runAction = async (withdrawal, action) => {
-    const body = {};
-
-    if (action === "pay") {
-      const paymentReference = window.prompt(
-        "Enter the payment reference after sending the payout:",
-      );
-
-      if (!paymentReference?.trim()) return;
-      body.paymentReference = paymentReference.trim();
+    // If paying or processing, execute immediately without popup
+    if (action === "pay" || action === "process") {
+      setBusyId(withdrawal.id);
+      setError("");
+      try {
+        await updateAdminWithdrawal(withdrawal, action, {});
+        await load();
+      } catch (err) {
+        setError(err.message || "Could not update withdrawal.");
+      } finally {
+        setBusyId("");
+      }
+      return;
     }
 
-    if (action === "reject" || action === "fail") {
-      const reviewNote = window.prompt(
-        `Enter a reason to ${action} this withdrawal:`,
-      );
+    // If rejecting or failing, open the custom modal for a reason
+    setActionModal({
+      isOpen: true,
+      withdrawal,
+      action,
+      inputValue: "",
+    });
+  };
 
-      if (!reviewNote?.trim()) return;
-      body.reviewNote = reviewNote.trim();
-    }
+  // Handle reject/fail submission from the modal
+  const handleModalSubmit = async (e) => {
+    e.preventDefault();
+    const { withdrawal, action, inputValue } = actionModal;
 
+    if (!inputValue.trim()) return;
+
+    setActionModal((prev) => ({ ...prev, isOpen: false }));
     setBusyId(withdrawal.id);
     setError("");
+
+    const body = { reviewNote: inputValue.trim() };
 
     try {
       await updateAdminWithdrawal(withdrawal, action, body);
@@ -367,6 +391,60 @@ export default function AdminWithdrawals() {
 
   return (
     <main className="admin-withdrawals-page">
+      {/* CUSTOM MODAL FOR REJECT/FAIL ACTIONS ONLY */}
+      {actionModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+          <form 
+            onSubmit={handleModalSubmit}
+            className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                <AlertCircle size={20} className="text-red-600" />
+              </div>
+              <button type="button" onClick={() => setActionModal((prev) => ({ ...prev, isOpen: false }))} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            <h3 className="text-lg font-bold text-gray-900 mb-2 capitalize">
+              {actionModal.action === "reject" ? "Reject Withdrawal" : "Mark as Failed"}
+            </h3>
+            
+            <p className="text-sm text-gray-500 mb-4">
+              Please provide a reason for this decision. This will be visible to the requester.
+            </p>
+
+            <div className="mb-6">
+              <textarea
+                required
+                rows={3}
+                value={actionModal.inputValue}
+                onChange={(e) => setActionModal((prev) => ({ ...prev, inputValue: e.target.value }))}
+                placeholder="Enter the reason here..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setActionModal((prev) => ({ ...prev, isOpen: false }))}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors bg-red-600 hover:bg-red-700"
+              >
+                Confirm
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       <div className="admin-withdrawals-container">
         <header className="admin-withdrawals-header">
           <div>
