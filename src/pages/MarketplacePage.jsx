@@ -39,6 +39,14 @@ const SOCIAL_PLATFORM_ICONS = {
   other: Share2,
 };
 
+// --- IN-MEMORY CACHE ---
+// This stores data so we don't fetch the same page twice
+const apiCache = {
+  posts: {}, // stores { pageNumber: [postsArray] }
+  pagination: {}, // stores { pageNumber: paginationObject }
+  singlePosts: {}, // stores single post by slug
+};
+
 function getSocialProfiles(post) {
   if (Array.isArray(post?.socialProfiles) && post.socialProfiles.length > 0) {
     return post.socialProfiles;
@@ -407,6 +415,23 @@ export default function MarketplacePage() {
     let isActive = true;
 
     async function loadMarketplace() {
+      // Check if we have this data cached before showing the loader
+      if (slug) {
+        if (apiCache.singlePosts[slug]) {
+          setPost(apiCache.singlePosts[slug]);
+          setLoading(false);
+          return;
+        }
+      } else {
+        if (apiCache.posts[page]) {
+          setPosts(apiCache.posts[page]);
+          setPagination(apiCache.pagination[page]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // If not cached, fetch from API
       setLoading(true);
       setError("");
 
@@ -416,6 +441,8 @@ export default function MarketplacePage() {
 
           if (isActive) {
             setPost(data.post || null);
+            // Save to cache
+            if (data.post) apiCache.singlePosts[slug] = data.post;
           }
         } else {
           const data = await authApi.getMarketplacePosts(page, PAGE_SIZE);
@@ -423,6 +450,9 @@ export default function MarketplacePage() {
           if (isActive) {
             setPosts(data.posts || []);
             setPagination(data.pagination || null);
+            // Save to cache
+            apiCache.posts[page] = data.posts || [];
+            apiCache.pagination[page] = data.pagination || null;
           }
         }
       } catch (requestError) {
