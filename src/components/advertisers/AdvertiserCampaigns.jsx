@@ -196,7 +196,9 @@ if (isLoading) {
                     </div>
 
                     <p className="advertiser-campaign-card__meta">
-                      {serviceName} · Created {formatDate(campaign.createdAt)}
+                      {serviceName}
+                      {campaign.apiOrderId ? ` · API order #${campaign.apiOrderId}` : ""}
+                      {" · Created"} {formatDate(campaign.createdAt)}
                     </p>
 
                     <div className="advertiser-campaign-card__progress-row">

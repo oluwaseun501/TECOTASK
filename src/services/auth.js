@@ -102,6 +102,15 @@ async function requestAuthWithRetry(path, options = {}) {
 
 
 export const authApi = {
+  getAdvertiserApiKey: (token) =>
+    request("/api/advertiser/api-key", { token }),
+
+  generateAdvertiserApiKey: (token) =>
+    request("/api/advertiser/api-key", { method: "POST", token }),
+
+  revokeAdvertiserApiKey: (token) =>
+    request("/api/advertiser/api-key", { method: "DELETE", token }),
+
  register: async (details) => {
   // This safe GET wakes the backend; retry it if Render is starting up.
   await requestAuthWithRetry("/api/health");

@@ -145,6 +145,7 @@ function normalizeSubmission(submission) {
     reviewRewardAmount: Number(submission.reviewRewardAmount ?? 0),
     description: task.description || "No task description was provided.",
     instructions: toInstructionList(task.instructions),
+    assignedComment: submission.assignedComment,
     submittedResponse:
       submission.proofNote || "No written note was included.",
     proofImages,
@@ -436,6 +437,13 @@ if (loading) {
                 </div>
                 <Flag size={17} />
               </div>
+
+              {review.assignedComment && (
+                <div>
+                  <strong>Assigned comment</strong>
+                  <p>{review.assignedComment}</p>
+                </div>
+              )}
 
               <ol className="moderator-instruction-list">
                 {review.instructions.map((instruction, index) => (

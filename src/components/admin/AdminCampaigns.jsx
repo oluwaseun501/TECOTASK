@@ -212,7 +212,12 @@ function CampaignList({
                         </span>
 
                         <div>
-                          <strong>{campaign.name}</strong>
+                          <strong>
+                            {campaign.name}
+                            {campaign.apiOrderId && (
+                              <span className="campaign-api-label">API</span>
+                            )}
+                          </strong>
                           <small>{campaign.serviceName}</small>
                         </div>
                       </div>
@@ -322,7 +327,12 @@ function CampaignProgress({ campaigns, loading }) {
               >
                 <div className="campaign-progress-heading">
                   <div>
-                    <strong>{campaign.name}</strong>
+                    <strong>
+                      {campaign.name}
+                      {campaign.apiOrderId && (
+                        <span className="campaign-api-label">API</span>
+                      )}
+                    </strong>
                     <small>{campaign.advertiser}</small>
                   </div>
 
@@ -368,6 +378,8 @@ function ServicePricing({
       name: service.name || "",
       platform: service.platform || "",
       description: service.description || "",
+      apiOrderingEnabled: Boolean(service.apiOrderingEnabled),
+      apiServiceType: service.apiServiceType || "Default",
       defaultInstructions: Array.isArray(service.defaultInstructions)
         ? service.defaultInstructions.join("\n")
         : "",
@@ -461,6 +473,8 @@ function ServicePricing({
         platform: form.platform.trim(),
         description: form.description.trim(),
         defaultInstructions,
+        apiOrderingEnabled: form.apiOrderingEnabled,
+        apiServiceType: form.apiServiceType,
         advertiserPricePerPerson,
         earnerRewardPerPerson,
         platformFeePerPerson,
@@ -702,6 +716,38 @@ function ServicePricing({
                   />
                   <small>Up to 20 instructions, one per line.</small>
                 </label>
+
+                <label className="service-edit-form-grid__full">
+                  <span>
+                    <input
+                      type="checkbox"
+                      checked={form.apiOrderingEnabled}
+                      onChange={(event) =>
+                        updateField("apiOrderingEnabled", event.target.checked)
+                      }
+                    />{" "}
+                    Allow API orders for this service
+                  </span>
+                  {editingService.apiServiceId && (
+                    <small>API service ID {editingService.apiServiceId}</small>
+                  )}
+                </label>
+
+                {form.apiOrderingEnabled && (
+                  <label className="service-edit-form-grid__full">
+                    <span>API service type</span>
+                    <select
+                      value={form.apiServiceType}
+                      onChange={(event) => updateField("apiServiceType", event.target.value)}
+                    >
+                      <option>Default</option>
+                      <option>Custom Comments</option>
+                      <option>Custom Comments Package</option>
+                      <option>Comment Replies</option>
+                    </select>
+                  </label>
+                )}
+
 
                 <label>
                   Advertiser price per person (₦)
