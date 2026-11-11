@@ -41,6 +41,7 @@ import AdvertiserWallet from "./components/advertisers/AdvertiserWallet";
 import AdvertiserTransactions from "./components/advertisers/AdvertiserTransactions";
 import AdvertiserTransactionDetails from "./components/advertisers/AdvertiserTransactionDetails";
 import AdvertiserReferrals from "./components/advertisers/AdvertiserReferrals";
+import AdvertiserDeveloperHub from "./components/advertisers/AdvertiserDeveloperHub";
 import AdvertiserSettings from "./components/advertisers/AdvertiserSettings";
 import AdvertiserCreateCampaign from "./components/advertisers/AdvertiserCreateCampaign";
 import AdvertiserPaymentThankYou from "./components/advertisers/AdvertiserPaymentThankYou";
@@ -344,6 +345,7 @@ const App = () => {
               />
               <Route path="referrals" element={<AdvertiserReferrals />} />
               <Route path="settings" element={<AdvertiserSettings />} />
+              <Route path="developer" element={<AdvertiserDeveloperHub />} />
             </Route>
           </Route>
         </Route>

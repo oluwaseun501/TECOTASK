@@ -21,6 +21,8 @@ const initialForm = {
   description: "",
   defaultInstructions: "",
   isActive: true,
+  apiOrderingEnabled: false,
+  apiServiceType: "Default",
 };
 
 const formatNaira = (amount = 0) =>
@@ -115,6 +117,8 @@ export default function AdminServiceSetup({
           earnerRewardPerPerson: earnerReward,
           platformFeePerPerson: platformFee,
           isActive: form.isActive,
+          apiOrderingEnabled: form.apiOrderingEnabled,
+          apiServiceType: form.apiServiceType,
         }),
       });
 
@@ -296,6 +300,35 @@ export default function AdminServiceSetup({
                   Add 1–20 steps.
                 </small>
               </label>
+
+              <label className="campaign-form-field campaign-form-field--full">
+                <span>
+                  <input
+                    type="checkbox"
+                    checked={form.apiOrderingEnabled}
+                    onChange={(event) =>
+                      updateField("apiOrderingEnabled", event.target.checked)
+                    }
+                  />{" "}
+                  Allow API orders for this service
+                </span>
+              </label>
+
+              {form.apiOrderingEnabled && (
+                <label className="campaign-form-field campaign-form-field--full">
+                  <span>API service type</span>
+                  <select
+                    value={form.apiServiceType}
+                    onChange={(event) => updateField("apiServiceType", event.target.value)}
+                  >
+                    <option>Default</option>
+                    <option>Custom Comments</option>
+                    <option>Custom Comments Package</option>
+                    <option>Comment Replies</option>
+                  </select>
+                </label>
+              )}
+
             </div>
           </section>
 

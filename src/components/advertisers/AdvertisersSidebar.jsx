@@ -24,6 +24,11 @@ const advertiserLinks = [
   icon: "▧",
 },
   {
+    label: "Developer Hub",
+    path: "/advertisers/developer",
+    icon: "‹/›",
+  },
+  {
     label: "Settings",
     path: "/advertisers/settings",
     icon: "⚙",

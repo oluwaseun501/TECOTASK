@@ -1,0 +1,61 @@
+.developer-hub__card {
+  margin-top: 16px;
+  max-width: 840px;
+  min-width: 0;
+  line-height: 1.6;
+}
+
+.developer-hub__card h2 {
+  font-size: 1.15rem;
+}
+
+.developer-hub__card h3 {
+  font-size: 1rem;
+  margin-top: 20px;
+}
+
+.developer-hub__copy,
+.developer-hub__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.developer-hub__copy code {
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.developer-hub__card button {
+  padding: 6px 12px;
+  border: 1px solid #c6dece;
+  border-radius: 8px;
+  color: #166333;
+  background: #f0faf3;
+  font: inherit;
+  cursor: pointer;
+}
+
+.developer-hub__card button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.developer-hub__card pre {
+  overflow-x: auto;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f4f7f5;
+}
+
+.developer-hub__card dl > div {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 10px;
+  padding: 5px 0;
+}
+
+.developer-hub__card dd {
+  margin: 0;
+}

@@ -354,7 +354,12 @@ export default function AdminCampaignDetails({ basePath = "/admin" }) {
 
             <div>
               <p className="admin-campaigns-eyebrow">Campaign review</p>
-              <h1>{campaign.name}</h1>
+              <h1>
+                {campaign.name}
+                {campaign.apiOrderId && (
+                  <span className="campaign-api-label">API</span>
+                )}
+              </h1>
               <p>
                 Submitted by{" "}
                 {campaign.advertiser?.fullName || "Unknown advertiser"} ·{" "}
@@ -457,6 +462,17 @@ export default function AdminCampaignDetails({ basePath = "/admin" }) {
                   {advertiserInstructions || "No instructions provided."}
                 </p>
               </div>
+
+              {campaign.apiComments?.length > 0 && (
+                <details className="campaign-instruction-block">
+                  <summary>Ordered comments ({campaign.apiComments.length})</summary>
+                  <ol>
+                    {campaign.apiComments.map((comment) => (
+                      <li key={comment}>{comment}</li>
+                    ))}
+                  </ol>
+                </details>
+              )}
 
               <label className="campaign-form-field">
                 <span>Additional instructions for earners (optional)</span>

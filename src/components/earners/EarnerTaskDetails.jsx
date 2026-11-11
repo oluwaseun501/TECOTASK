@@ -66,6 +66,7 @@ const EarnerTaskDetails = () => {
 
   const [submissionId, setSubmissionId] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("");
+  const [claimedComment, setClaimedComment] = useState(null);
   const [proofUrl, setProofUrl] = useState("");
   const [proofNote, setProofNote] = useState("");
   const [proofImage, setProofImage] = useState(null);
@@ -98,6 +99,9 @@ const EarnerTaskDetails = () => {
 
   const currentStatus =
     submissionStatus || existingSubmission?.status || "";
+
+  const assignedComment = existingSubmission?.assignedComment ||
+    (claimedComment?.taskId === taskId ? claimedComment.text : "");
 
   const showProofForm = ["started", "rejected"].includes(currentStatus);
 
@@ -185,6 +189,7 @@ const EarnerTaskDetails = () => {
 
       setSubmissionId(result.submission.id);
       setSubmissionStatus("started");
+      setClaimedComment({ taskId, text: result.submission.assignedComment });
       
       // Show professional success toast
       setToast({ type: "success", message: "Task started. You can now submit your proof." });
@@ -445,6 +450,14 @@ const EarnerTaskDetails = () => {
           </div>
         </section>
 
+        {assignedComment && currentStatus !== "cancelled" && (
+          <section className="earner-task-detail__section">
+            <h2>Your assigned comment</h2>
+            <p>Post this comment exactly as shown.</p>
+            <div className="earner-task-detail__instructions">{assignedComment}</div>
+          </section>
+        )}
+
         {advertiserLinks.length > 0 && (
           <section className="earner-task-detail__links">
             <div>
@@ -481,6 +494,13 @@ const EarnerTaskDetails = () => {
               <p>{existingSubmission.moderatorComment}</p>
             ) : null}
             <span>Update your proof below and resubmit.</span>
+          </div>
+        )}
+
+        {currentStatus === "cancelled" && (
+          <div className="earner-task-detail__status">
+            <strong>Campaign canceled</strong>
+            <span>This task is closed and proof can no longer be submitted.</span>
           </div>
         )}
 
@@ -522,7 +542,11 @@ const EarnerTaskDetails = () => {
             <div className="earner-task-detail__section-heading">
               <p className="earner-task-detail__eyebrow">Task complete?</p>
               <h2>Submit your proof</h2>
-              <p>Add your proof link and an optional screenshot.</p>
+              <p>
+                {assignedComment
+                  ? "Upload a screenshot showing your assigned comment on the post."
+                  : "Add your proof link and an optional screenshot."}
+              </p>
             </div>
 
             <form
@@ -531,13 +555,13 @@ const EarnerTaskDetails = () => {
               onSubmit={handleSubmitProof}
             >
               <label className="earner-proof-form__field">
-                <span>Proof link</span>
+                <span>Proof link{assignedComment ? " (optional)" : ""}</span>
                 <input
                   type="url"
                   value={proofUrl}
                   onChange={(event) => setProofUrl(event.target.value)}
                   placeholder="https://..."
-                  required
+                  required={!assignedComment}
                 />
               </label>
 
@@ -553,7 +577,7 @@ const EarnerTaskDetails = () => {
 
               <div className="earner-proof-image">
                 <div className="earner-proof-image__copy">
-                  <strong>Screenshot proof (optional)</strong>
+                  <strong>Screenshot proof{assignedComment ? " (required)" : " (optional)"}</strong>
                   <span>PNG, JPG, or WebP · max 2 MB · no video</span>
                 </div>
 
@@ -563,7 +587,8 @@ const EarnerTaskDetails = () => {
                     ref={proofImageInputRef}
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
-                    aria-label="Choose an optional screenshot image"
+                    aria-label="Choose a screenshot image"
+                    required={Boolean(assignedComment && !existingSubmission?.proofImageUrl)}
                     onChange={handleProofImageChange}
                   />
                 </label>

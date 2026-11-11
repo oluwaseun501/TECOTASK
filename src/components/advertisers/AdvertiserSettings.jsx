@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { authApi } from "../../services/auth.js";
 import "../../styles/AdvertiserSettings.css";
 
@@ -184,6 +184,7 @@ const AdvertiserSettings = () => {
         <span>Account preferences</span>
         <h1>Settings</h1>
         <p>Manage your advertiser account and security preferences.</p>
+        <Link to="/advertisers/developer">Open Developer Hub</Link>
       </div>
 
       {accountError && (
