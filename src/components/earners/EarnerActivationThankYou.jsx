@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authApi } from "../../services/auth.js";
-import SuccessConfetti from "../components/SuccessConfetti";
-import "../../styles/ThankYouPage.css"; // Make sure to create this file (Step 4)
+import SuccessConfetti from '../SuccessConfetti';
+import "../../styles/ThankYouPage.css";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 60;

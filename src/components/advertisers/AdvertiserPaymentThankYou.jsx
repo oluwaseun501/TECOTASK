@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authApi } from "../../services/auth.js";
-import SuccessConfetti from "../components/SuccessConfetti";
+import SuccessConfetti from '../SuccessConfetti';
 import "../../styles/ThankYouPage.css";
 
 const POLL_INTERVAL_MS = 5000;
