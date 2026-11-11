@@ -974,3 +974,63 @@
     font-size: 12px;
   }
 }
+
+/* =========================================
+   MOBILE RESPONSIVENESS & OVERFLOW FIXES
+   ========================================= */
+
+/* 1. Fix Grid Blowout: Force the grid column to stay inside the screen */
+@media (max-width: 950px) {
+  .marketplace-manager__grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* 2. Stop post cards and their inner content from stretching beyond screen */
+.marketplace-manager__post {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.marketplace-manager__post-info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 3. Truncate long status badges so they don't push the screen width */
+.marketplace-manager__status {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 4. Make action buttons stack beautifully on mobile */
+@media (max-width: 600px) {
+  .marketplace-manager__post-actions {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  
+  .marketplace-manager__post-actions > * {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 12px; /* Make them taller and easier to tap */
+  }
+
+  /* Fix the posting fee row from overflowing */
+  .marketplace-manager__post-fee {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* Ensure form inputs don't overflow their containers */
+  .marketplace-manager__field input,
+  .marketplace-manager__field textarea,
+  .marketplace-manager__field select {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}

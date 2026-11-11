@@ -16,11 +16,11 @@ const Hero = ({ imageSrc = "/hero-earner.jpg" }) => {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-  if (!entry.isIntersecting) return;
+        if (!entry.isIntersecting) return;
 
-  setIsVisible(true);
-  observer.unobserve(entry.target);
-},
+        setIsVisible(true);
+        observer.unobserve(entry.target);
+      },
       {
         threshold: 0.2,
         rootMargin: "-40px 0px -40px 0px",
@@ -46,32 +46,39 @@ const Hero = ({ imageSrc = "/hero-earner.jpg" }) => {
 
       <div className="hero__inner">
         <div className="hero__content">
-    <span className="hero__badge">
-  For Nigerian brands and earners
-</span>
+          <span className="hero__badge">
+            For Nigerian brands and earners
+          </span>
 
-<h1 className="hero__title">
-  Promote your business.
-  <br />
-  <span>Earn by completing tasks.</span>
-</h1>
+          <h1 className="hero__title">
+            Promote your business.
+            <br />
+            <span>Earn by completing tasks.</span>
+          </h1>
 
-<p className="hero__description">
-  TecoTask helps Nigerian businesses promote products and social media pages
-  with real people. Earners get paid to complete simple campaign tasks and
-  submit proof.
-</p>
+          <p className="hero__description">
+            TecoTask helps Nigerian businesses promote products and social media pages
+            with real people. Earners get paid to complete simple campaign tasks and
+            submit proof.
+          </p>
 
-<div className="hero__actions">
-  <Link to="/signup" className="hero__primary-button">
-    <span className="hero__button-text">Earn with us</span>
-    <span className="hero__button-arrow">→</span>
-  </Link>
+          <div className="hero__actions">
+            {/* Button 1: Primary */}
+            <Link to="/signup" className="hero__primary-button">
+              <span className="hero__button-text">Earn with us</span>
+              <span className="hero__button-arrow">→</span>
+            </Link>
 
-  <a href="#advertisers" className="hero__secondary-button">
-    <span className="hero__button-text">Advertise with us</span>
-  </a>
-</div>
+            {/* Button 2: Secondary - UPDATED TO GO TO SIGNUP */}
+            <Link to="/signup" className="hero__secondary-button">
+              <span className="hero__button-text">Promote your business</span>
+            </Link>
+
+            {/* Button 3: Tertiary */}
+            <Link to="/marketplace" className="hero__tertiary-button">
+              <span className="hero__button-text">View promoted business</span>
+            </Link>
+          </div>
 
           <div className="hero__stats">
             <div className="hero__stat">

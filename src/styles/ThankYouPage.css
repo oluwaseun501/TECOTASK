@@ -1,0 +1,264 @@
+/* =========================================
+   THANK YOU PAGE STYLES (Earner & Advertiser)
+   ========================================= */
+
+.thank-you-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: "Poppins", sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* The Main Card */
+.thank-you-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 24px;
+  padding: 48px 32px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.05);
+  animation: cardSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  position: relative;
+  z-index: 10;
+}
+
+/* Status-specific Card borders (Optional subtle touch) */
+.thank-you-card.status-success { border-top: 4px solid #10b981; }
+.thank-you-card.status-failed { border-top: 4px solid #ef4444; }
+.thank-you-card.status-review { border-top: 4px solid #f59e0b; }
+
+/* Icon Wrapper */
+.thank-you-icon-wrapper {
+  margin: 0 auto 24px;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.status-success .thank-you-icon-wrapper { background: #ecfdf5; color: #10b981; }
+.status-failed .thank-you-icon-wrapper { background: #fef2f2; color: #ef4444; }
+.status-review .thank-you-icon-wrapper { background: #fffbeb; color: #f59e0b; }
+.status-checking .thank-you-icon-wrapper,
+.status-pending .thank-you-icon-wrapper { background: #f1f5f9; color: #64748b; }
+
+/* Animated Icons */
+.animated-checkmark,
+.animated-cross,
+.animated-loader {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.animated-checkmark {
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
+}
+
+.animated-cross {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animated-loader {
+  animation: pulse 1.5s infinite;
+}
+
+/* Typography */
+.thank-you-eyebrow {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.thank-you-title {
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 16px;
+  letter-spacing: -0.02em;
+}
+
+.thank-you-message {
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.success-copy {
+  margin-bottom: 24px;
+}
+
+.thank-you-message-highlight {
+  display: inline-block;
+  background: #f0fdf4;
+  color: #166534;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 8px;
+  border: 1px solid #bbf7d0;
+}
+
+/* Reference Box */
+.thank-you-reference {
+  display: inline-flex;
+  flex-direction: column;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 24px;
+  margin-bottom: 24px;
+}
+
+.thank-you-reference span {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.thank-you-reference code {
+  font-family: monospace;
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* Redirect Text */
+.thank-you-redirect {
+  color: #10b981;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  animation: pulse 2s infinite;
+}
+
+/* Actions */
+.thank-you-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.thank-you-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-family: inherit;
+}
+
+.thank-you-btn.primary {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.thank-you-btn.primary:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+}
+
+.thank-you-btn.secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.thank-you-btn.secondary:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* =========================================
+   CONFETTI ANIMATION
+   ========================================= */
+.confetti-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  top: -20px;
+  animation-name: confettiFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* =========================================
+   KEYFRAMES
+   ========================================= */
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(30px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .thank-you-card {
+    padding: 32px 20px;
+    border-radius: 20px;
+  }
+  .thank-you-title {
+    font-size: 24px;
+  }
+  .thank-you-icon-wrapper {
+    width: 80px;
+    height: 80px;
+  }
+  .animated-checkmark, .animated-cross, .animated-loader {
+    font-size: 40px;
+  }
+}

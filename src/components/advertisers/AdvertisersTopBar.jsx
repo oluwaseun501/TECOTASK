@@ -209,7 +209,7 @@ const AdvertisersTopBar = () => {
             </strong>
           </span>
 
-          {/* ONLY ADDED 'relative' HERE */}
+          {/* Parent wrapper for relative positioning */}
           <div className="advertiser-profile-dropdown relative" ref={profileMenuRef}>
             <button
               type="button"
@@ -232,44 +232,60 @@ const AdvertisersTopBar = () => {
             </button>
 
             {accountMenuOpen && (
-              // ONLY ADDED 'absolute right-0 z-50' HERE - YOUR ORIGINAL CSS DOES THE REST
+              // 100% TAILWIND STYLING FOR THE DROPDOWN
               <div
-                className="advertiser-account-menu absolute right-0 z-50"
+                className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-32px)] rounded-xl bg-white shadow-xl border border-gray-100 z-50 overflow-hidden"
                 id="advertiser-account-menu"
                 role="menu"
                 aria-label="Advertiser account menu"
               >
-                <div className="advertiser-account-menu__identity">
-                  <strong>{accountName}</strong>
-                  {accountEmail && <span>{accountEmail}</span>}
+                {/* Identity Header */}
+                <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                  <strong className="block text-sm font-semibold text-gray-900 truncate">
+                    {accountName}
+                  </strong>
+                  {accountEmail && (
+                    <span className="block text-xs text-gray-500 truncate mt-0.5">
+                      {accountEmail}
+                    </span>
+                  )}
                 </div>
 
-                <Link
-                  to="/advertisers/campaigns"
-                  role="menuitem"
-                  onClick={() => setAccountMenuOpen(false)}
-                >
-                  <LayoutDashboard size={15} />
-                  Campaigns
-                </Link>
+                {/* Menu Links */}
+                <div className="py-1">
+                  <Link
+                    to="/advertisers/campaigns"
+                    role="menuitem"
+                    onClick={() => setAccountMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <LayoutDashboard size={16} className="text-gray-400" />
+                    Campaigns
+                  </Link>
 
-                <Link
-                  to="/advertisers/settings"
-                  role="menuitem"
-                  onClick={() => setAccountMenuOpen(false)}
-                >
-                  <Settings size={15} />
-                  Settings
-                </Link>
+                  <Link
+                    to="/advertisers/settings"
+                    role="menuitem"
+                    onClick={() => setAccountMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Settings size={16} className="text-gray-400" />
+                    Settings
+                  </Link>
+                </div>
 
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={handleLogout}
-                >
-                  <LogOut size={15} />
-                  Log out
-                </button>
+                {/* Logout Button */}
+                <div className="border-t border-gray-100 py-1">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left"
+                  >
+                    <LogOut size={16} className="text-red-400" />
+                    Log out
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -279,4 +295,4 @@ const AdvertisersTopBar = () => {
   );
 };
 
-export default AdvertisersTopBar;
+export default AdvertisersTopBar;ea

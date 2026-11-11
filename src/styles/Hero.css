@@ -115,26 +115,29 @@
   transform: translateY(15px);
 }
 
+/* Update the actions container to handle 3 buttons gracefully */
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 11px;
-  margin-top: 28px;
+  gap: 12px;
+  margin-top: 32px;
   opacity: 0;
   transform: translateY(15px);
 }
 
 .hero__primary-button,
-.hero__secondary-button {
+.hero__secondary-button,
+.hero__tertiary-button {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   border-radius: 9px;
-  padding: 11px 16px;
-  font-size: 11px;
+  padding: 12px 20px;
+  font-size: 12.5px;
   font-weight: 600;
+  text-decoration: none;
   transition:
     transform 220ms ease,
     background 220ms ease,
@@ -143,7 +146,8 @@
 }
 
 .hero__primary-button::before,
-.hero__secondary-button::before {
+.hero__secondary-button::before,
+.hero__tertiary-button::before {
   position: absolute;
   top: 0;
   left: -120%;
@@ -161,7 +165,8 @@
 }
 
 .hero__primary-button:hover::before,
-.hero__secondary-button:hover::before {
+.hero__secondary-button:hover::before,
+.hero__tertiary-button:hover::before {
   left: 140%;
 }
 
@@ -176,6 +181,7 @@
   transition: transform 220ms ease;
 }
 
+/* 1. PRIMARY BUTTON (Solid Green) */
 .hero__primary-button {
   gap: 0;
   background: #16a34a;
@@ -187,24 +193,41 @@
   background: #05830d;
   transform: translateY(-3px);
   box-shadow: 0 12px 24px rgba(22, 163, 74, 0.22);
+  color: #ffffff;
 }
 
 .hero__primary-button:hover .hero__button-arrow {
   transform: translateX(4px);
 }
 
+/* 2. SECONDARY BUTTON (Solid Dark Navy) */
 .hero__secondary-button {
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid #0f172a;
+  background: #0f172a;
+  color: #ffffff;
 }
 
 .hero__secondary-button:hover {
-  border-color: #0f172a;
-  background: #0f172a;
+  border-color: #1e293b;
+  background: #1e293b;
   color: #ffffff;
   transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+}
+
+/* 3. TERTIARY BUTTON (Soft Green Outline) */
+.hero__tertiary-button {
+  border: 1.5px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.hero__tertiary-button:hover {
+  border-color: #16a34a;
+  background: #ffffff;
+  color: #05830d;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(22, 163, 74, 0.1);
 }
 
 .hero__stats {
@@ -586,6 +609,23 @@
 
   .hero__description {
     font-size: 11px;
+  }
+
+  /* THE NEW PROFESSIONAL MOBILE BUTTONS */
+  .hero__actions {
+    flex-direction: column; /* Stacks the 3 buttons vertically */
+    width: 100%;
+    max-width: 320px; /* Prevents them from stretching too wide on tablets */
+    margin-left: auto;
+    margin-right: auto;
+    gap: 10px;
+  }
+
+  .hero__primary-button,
+  .hero__secondary-button {
+    width: 100%; /* Makes all buttons the exact same full width */
+    padding: 14px 20px; /* Makes them slightly taller for easy tapping */
+    font-size: 13px;
   }
 
   .hero__image-frame img {
