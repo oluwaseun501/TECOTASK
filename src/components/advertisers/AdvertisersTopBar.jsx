@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ChevronDown,
-  ChevronRight,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -44,10 +44,12 @@ const AdvertisersTopBar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const profileMenuRef = useRef(null);
+  const avatarRef = useRef(null);
 
   const [user, setUser] = useState(null);
   const [dashboard, setDashboard] = useState(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
 
   useEffect(() => {
     let isMounted = true;
@@ -92,7 +94,10 @@ const AdvertisersTopBar = () => {
 
   useEffect(() => {
     function closeMenuOnOutsideClick(event) {
-      if (!profileMenuRef.current?.contains(event.target)) {
+      if (
+        !profileMenuRef.current?.contains(event.target) &&
+        !avatarRef.current?.contains(event.target)
+      ) {
         setAccountMenuOpen(false);
       }
     }
@@ -119,6 +124,17 @@ const AdvertisersTopBar = () => {
       document.removeEventListener("keydown", closeMenuOnEscape);
     };
   }, [accountMenuOpen]);
+
+  function toggleAccountMenu() {
+    if (!accountMenuOpen && avatarRef.current) {
+      const rect = avatarRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 8,
+        right: Math.max(20, window.innerWidth - rect.right),
+      });
+    }
+    setAccountMenuOpen((open) => !open);
+  }
 
   function handleLogout() {
     clearStoredAuth();
@@ -209,12 +225,12 @@ const AdvertisersTopBar = () => {
             </strong>
           </span>
 
-          {/* Parent wrapper for relative positioning */}
-          <div className="advertiser-profile-dropdown relative" ref={profileMenuRef}>
+          <div className="advertiser-profile-dropdown">
             <button
+              ref={avatarRef}
               type="button"
               className="advertiser-topbar__avatar"
-              onClick={() => setAccountMenuOpen((open) => !open)}
+              onClick={toggleAccountMenu}
               aria-label={
                 accountMenuOpen
                   ? "Close advertiser account menu"
@@ -222,7 +238,6 @@ const AdvertisersTopBar = () => {
               }
               aria-haspopup="menu"
               aria-expanded={accountMenuOpen}
-              aria-controls="advertiser-account-menu"
               title={accountEmail || accountName}
             >
               <span className="advertiser-topbar__avatar-initials">
@@ -231,63 +246,61 @@ const AdvertisersTopBar = () => {
               <ChevronDown size={13} aria-hidden="true" />
             </button>
 
-            {accountMenuOpen && (
-              // 100% TAILWIND STYLING FOR THE DROPDOWN
-              <div
-                className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-32px)] rounded-xl bg-white shadow-xl border border-gray-100 z-50 overflow-hidden"
-                id="advertiser-account-menu"
-                role="menu"
-                aria-label="Advertiser account menu"
-              >
-                {/* Identity Header */}
-                <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
-                  <strong className="block text-sm font-semibold text-gray-900 truncate">
-                    {accountName}
-                  </strong>
-                  {accountEmail && (
-                    <span className="block text-xs text-gray-500 truncate mt-0.5">
-                      {accountEmail}
-                    </span>
-                  )}
-                </div>
+            {accountMenuOpen &&
+              createPortal(
+                <div
+                  ref={profileMenuRef}
+                  className="advertiser-account-menu"
+                  style={{
+                    top: `${menuPosition.top}px`,
+                    right: `${menuPosition.right}px`,
+                  }}
+                  role="menu"
+                  aria-label="Advertiser account menu"
+                >
+                  <div className="advertiser-account-menu__identity">
+                    <div className="advertiser-account-menu__avatar">
+                      {getInitials(user?.fullName)}
+                    </div>
+                    <div className="advertiser-account-menu__details">
+                      <strong>{accountName}</strong>
+                      {accountEmail && <span>{accountEmail}</span>}
+                    </div>
+                  </div>
 
-                {/* Menu Links */}
-                <div className="py-1">
-                  <Link
-                    to="/advertisers/campaigns"
-                    role="menuitem"
-                    onClick={() => setAccountMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <LayoutDashboard size={16} className="text-gray-400" />
-                    Campaigns
-                  </Link>
+                  <div className="advertiser-account-menu__links">
+                    <Link
+                      to="/advertisers/campaigns"
+                      role="menuitem"
+                      onClick={() => setAccountMenuOpen(false)}
+                    >
+                      <LayoutDashboard size={16} className="menu-icon" />
+                      Campaigns
+                    </Link>
 
-                  <Link
-                    to="/advertisers/settings"
-                    role="menuitem"
-                    onClick={() => setAccountMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Settings size={16} className="text-gray-400" />
-                    Settings
-                  </Link>
-                </div>
+                    <Link
+                      to="/advertisers/settings"
+                      role="menuitem"
+                      onClick={() => setAccountMenuOpen(false)}
+                    >
+                      <Settings size={16} className="menu-icon" />
+                      Settings
+                    </Link>
+                  </div>
 
-                {/* Logout Button */}
-                <div className="border-t border-gray-100 py-1">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={handleLogout}
-                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left"
-                  >
-                    <LogOut size={16} className="text-red-400" />
-                    Log out
-                  </button>
-                </div>
-              </div>
-            )}
+                  <div className="advertiser-account-menu__footer">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleLogout}
+                    >
+                      <LogOut size={16} className="menu-icon" />
+                      Log out
+                    </button>
+                  </div>
+                </div>,
+                document.body
+              )}
           </div>
         </div>
       </div>
